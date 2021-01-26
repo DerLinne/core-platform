@@ -1,0 +1,33 @@
+---
+# file: kubectl_playbook.yml
+
+- name: Kubectl Setup
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Read default values
+      include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read values for playbook 'kubectl_playbook.yml'
+      include_vars:
+        file: kubectl.yml
+        name: kubectl
+
+    - name: Set facts
+      set_fact:
+        os_distribution: "{{ default.os_distribution }}"
+        os_version: "{{ default.os_version }}"
+
+    - name: Check if OS meets the requirements
+      fail:
+        msg:
+          - "Required OS distribution is:  {{ default.os_distribution }}"
+          - "Required OS version is.....:  {{ default.os_version }}"
+      when:
+        - ansible_facts['distribution'] != os_distribution
+        - ansible_facts['distribution_version'] != os_version
+
+    - include: tasks/kubectl.yml

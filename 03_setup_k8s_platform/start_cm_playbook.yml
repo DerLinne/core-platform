@@ -1,0 +1,48 @@
+---
+# file: 03_setup_k8s_platform/start_cmplaybook.yml
+- name: Start ChartMuseum
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Set facts for ChartMuseum
+      ansible.builtin.set_fact:
+        cm_port: "{{ default.CM_PORT}}"
+        cm_storage: "{{ default.CM_STORAGE }}"
+        cm_storage_local_rootdir: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
+        cm_context_path: "{{ default.CM_CONTEXT_PATH }}"
+        helm_repo_url: "{{ default.HELM_REPO_URL }}"
+        helm_repo_name: "{{ default.HELM_REPO_NAME }}"
+
+    - name: Create local storage for ChartMuseum
+      ansible.builtin.file:
+        path: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
+        state: directory
+        mode: 0755
+      when: cm_storage_local_rootdir is defined and cm_storage == "local"
+
+    - name: Start ChartMuseum with local storage
+      ansible.builtin.shell:
+        cmd: helm servecm --port "{{ cm_port }}" --storage "{{ cm_storage }}" --storage-local-rootdir="{{ cm_storage_local_rootdir }}" --context-path="{{ cm_context_path }}"
+      async: 3600
+      poll: 0
+      when:  cm_storage == "local"
+
+    - name: Add FUTR-HUB Helm repository
+      community.kubernetes.helm_repository:
+        name: "{{ helm_repo_name }}"
+        repo_url: "{{ helm_repo_url }}:{{ cm_port }}/{{ cm_context_path }}"
+
+    - name: Get list of added Helm repositories
+      ansible.builtin.shell:
+        cmd: helm repo list
+      register: helm_repo_list
+
+    - name: Show list of added Helm repositories
+      ansible.builtin.debug:
+        msg: "{{ helm_repo_list.stdout_lines }}"

@@ -1,0 +1,20 @@
+# Cache objects
+packer_cache/
+
+# Crash log
+crash.log
+
+# For built boxes
+*.box
+
+# Taskpaper files
+*.taskpaper
+
+# .env files
+*.env
+
+# secrets
+secrets
+
+# HEAP folders
+HEAP/

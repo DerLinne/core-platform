@@ -1,0 +1,17 @@
+---
+# file: 03_setuup_k8s_platform/vars/default.yml
+
+# ChartMuseum
+CM_PORT: 8879
+CM_STORAGE: local
+CM_STORAGE_LOCAL_ROOTDIR: ~/futr_hub_apps
+CM_CONTEXT_PATH: charts
+
+# Helm
+HELM_REPO_URL: http://127.0.0.1
+HELM_REPO_NAME: futr-hub
+
+# Kubernetes
+K8S_KUBECONFIG: ~/.kube/config
+K8S_CONTEXT: microk8s
+K8S_NAMESPACE: smart-city-txl

@@ -1,0 +1,31 @@
+---
+# file: 03_setup_k8s_platform/dummy_playbook.yml
+
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Get Ansible Python
+      debug:
+        msg: "{{ ansible_playbook_python }}"
+
+    - name: Get current date
+      command: date
+      register: current_date
+      changed_when: false
+
+    - name: Print current date
+      debug:
+        msg: "{{ current_date.stdout }}"
+
+    - name: Get content of $HOME directory
+      ansible.builtin.command: ls -l ~/
+      register: output
+
+    - name: Output content of $HOME directory
+      debug:
+        var: output
+
+    - name: DUMMY PLAYBOOK
+      debug:
+        msg: "Instead of this dummy, you should run a real playbook."

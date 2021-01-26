@@ -1,0 +1,37 @@
+---
+# file: prepare.yml
+- hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: Get Ansible Python
+      debug:
+        msg: "{{ ansible_playbook_python }}"
+
+    - name: Get current date
+      command: date
+      register: current_date
+      changed_when: false
+
+    - name: Print current date
+      debug:
+        msg: "{{ current_date.stdout }}"
+
+    - name: Clone Git-Repo FUTR_HUB_GIT_REPO into FUTR_HUB_GIT_CLONE_DIR
+      git:
+        accept_hostkey: true
+        ssh_opts: "-o StrictHostKeyChecking=no"
+        repo: "{{ lookup('env', 'FUTR_HUB_GIT_REPO') }}"
+        version: "{{ lookup('env', 'FUTR_HUB_GIT_BRANCH') }}"
+        dest: "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}"
+        key_file: "{{ lookup('env', 'FUTR_HUB_GIT_SSHKEY_PATH') }}{{ lookup('env', 'FUTR_HUB_GIT_SSHKEY') }}"
+
+    - name: Check for playbooks ...
+      file:
+        state: file
+        path: "{{ item }}"
+      loop:
+        - "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/01_setup_acn/ansible/playbook.yml"
+        - "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/02_setup_k8s/playbook.yml"
+        - "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/03_setup_k8s_platform/playbook.yml"

@@ -1,0 +1,23 @@
+---
+# file: 02_setup_k8s/playbook.yml
+- hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: Get Ansible Python
+      debug:
+        msg: "{{ ansible_playbook_python }}"
+
+    - name: Get current date
+      command: date
+      register: current_date
+      changed_when: false
+
+    - name: Print current date
+      debug:
+        msg: "{{ current_date.stdout }}"
+
+    - name: Setup K8S Cluster
+      debug:
+        msg: "This playbook will setup a Kubernetes cluster ..."

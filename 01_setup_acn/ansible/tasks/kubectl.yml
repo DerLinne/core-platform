@@ -1,0 +1,27 @@
+---
+# file: tasks/kubectl.yml
+
+- debug:
+    msg:
+      - "Executing kubectl tasks"
+      - msg: "Version of 'kubectl' is {{ kubectl.version }}"
+
+- name: Get apt-key for package 'kubectl'
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Install package 'apt-transport-https'
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Add repository for package 'kubectl'
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Install package 'kubectl'
+  apt:
+    name: kubectl
+    update_cache: yes

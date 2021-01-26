@@ -1,0 +1,45 @@
+---
+# file: 03_setup_k8s_platform/stop_cm_playbook.yml
+- name: Stop ChartMuseum
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Set facts for ChartMuseum
+      ansible.builtin.set_fact:
+        cm_port: "{{ default.CM_PORT}}"
+        cm_storage: "{{ default.CM_STORAGE }}"
+        cm_storage_local_rootdir: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
+        cm_context_path: "{{ default.CM_CONTEXT_PATH }}"
+        helm_repo_url: "{{ default.HELM_REPO_URL }}"
+        helm_repo_name: "{{ default.HELM_REPO_NAME }}"
+
+    - name: Stopping ChartMuseum
+      block:
+        - name: Remove Helm repo "{{ helm_repo_name }}" from list
+          community.kubernetes.helm_repository:
+            name: "{{ helm_repo_name }}"
+            repo_state: absent
+
+        - name: Get PID of ChartMuseum
+          ansible.builtin.shell: "ps -ef | grep -v grep | grep -w chartmuseum | awk '{print $2}'"
+          register: cm_pid
+
+        - name: Kill ChartMuseum with PID "{{ cm_pid.stdout }}"
+          ansible.builtin.shell: "kill {{ item }}"
+          with_items: "{{ cm_pid.stdout_lines }}"
+
+        - name: Delete local storage for ChartMuseum
+          ansible.builtin.file:
+            path: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
+            state: absent
+          when: cm_storage_local_rootdir is defined and cm_storage == "local"
+      rescue:
+        - name: Stopping ChartMuseum failed
+          ansible.builtin.debug:
+            msg: "Could not kill ChartMuseum with PID {{ cm_pid }}"

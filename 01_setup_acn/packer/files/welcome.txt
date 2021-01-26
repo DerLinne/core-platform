@@ -1,0 +1,32 @@
+###############################################################################
+# WELCOME to ANSIBLE-CONTROL-NODE for FUTR-HUB!                               #
+###############################################################################
+
+Cloning Git repository %FUTR_HUB_GIT_REPO%
+with branch %FUTR_HUB_GIT_BRANCH%
+into %FUTR_HUB_GIT_CLONE_DIR%.
+
+-------------------------------------------------------------------------------
+ATTENTION!
+IF ENVIRONMENT VARIABLES
+
+- FUTR_HUB_GIT_REPO
+- FUTR_HUB_GIT_BRANCH
+- FUTR_HUB_GIT_CLONE_DIR
+
+ARE NOT SET YOU HAVE TO SET THEM BEFORE YOU CONTINUE!
+-------------------------------------------------------------------------------
+To continue the installation, please execute the following commands.
+
+  ansible-playbook -i inventory prepare.yml
+  ansible-playbook -i inventory main.yml
+
+If you use a SSH-Key to access the Git repository, please
+- set FUTR_HUB_GIT_SSHKEY accordingly
+- execute the following commands beforehand.
+
+  eval "$(ssh-agent -s)"
+  ssh-add ~/.ssh/"${FUTR_HUB_GIT_SSHKEY}"
+
+Good luck!
+###############################################################################

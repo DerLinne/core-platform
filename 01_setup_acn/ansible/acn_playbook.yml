@@ -1,0 +1,52 @@
+---
+- name: ACN Setup
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Read default values
+      include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read values for playbook 'acn_playbook.yml'
+      include_vars:
+        file: acn.yml
+        name: acn
+
+    - name: Set facts
+      set_fact:
+        os_distribution: "{{ default.os_distribution }}"
+        os_version: "{{ default.os_version }}"
+
+    - name: Check if OS meets the requirements
+      fail:
+        msg:
+          - "Required OS distribution is:  {{ default.os_distribution }}"
+          - "Required OS version is.....:  {{ default.os_version }}"
+      when:
+        - ansible_facts['distribution'] != os_distribution
+        - ansible_facts['distribution_version'] != os_version
+
+    - name: Check if cache is out of date and redownload it
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required system packages
+      apt:
+        name: "{{ acn.sys_packages }}"
+
+    - name: Install required Python packages for user 'acn'
+      become_user: acn
+      pip:
+        name: "{{ acn.python_packages }}"
+        extra_args: --user
+
+    - name: Remove useless packages from the cache
+      apt:
+        autoclean: yes
+
+    - name: Remove dependencies that are no longer required
+      apt:
+        autoremove: yes

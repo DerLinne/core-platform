@@ -1,0 +1,5 @@
+---
+# file: vars/default.yml
+
+os_distribution: 'Ubuntu'
+os_version: '20.04'

@@ -1,0 +1,110 @@
+{
+  "description": "A Packer template to build a FUTR base-system Docker image",
+  "min_packer_version": "1.6.6",
+
+  "variables": {
+    "futr_hub_docker_registry": "{{env `FUTR_HUB_DOCKER_REGISTRY`}}",
+    "futr_hub_git_repo": "{{env `FUTR_HUB_GIT_REPO`}}",
+    "futr_hub_git_branch": "{{env `FUTR_HUB_GIT_BRANCH`}}",
+    "futr_hub_git_clone_dir": "{{env `FUTR_HUB_GIT_CLONE_DIR`}}",
+    "futr_hub_git_sshkey": "{{env `FUTR_HUB_GIT_SSHKEY`}}",
+    "futr_hub_git_sshkey_path": "{{env `FUTR_HUB_GIT_SSHKEY_PATH`}}",
+    "futr_hub_acn_sshkey": "{{env `FUTR_HUB_ACN_SSHKEY`}}",
+    "futr_hub_acn_sshkey_path": "{{env `FUTR_HUB_ACN_SSHKEY_PATH`}}",
+    "docker_login": "false",
+    "docker_user": "{{env `DOCKER_USER`}}",
+    "docker_token": "{{env `DOCKER_TOKEN`}}",
+    "pull_image": "true"
+  },
+
+  "builders": [
+    {
+      "type": "docker",
+      "login": "{{user `docker_login`}}",
+      "login_username": "{{user `docker_user`}}",
+      "login_password": "{{user `docker_token`}}",
+      "image": "ubuntu:20.04",
+      "pull": "{{user `pull_image`}}",
+      "commit": true,
+      "changes": [
+        "USER acn",
+        "WORKDIR /home/acn",
+        "ENTRYPOINT /bin/bash -l",
+        "ENV LANG C.UTF-8",
+        "ENV FUTR_HUB_GIT_REPO {{user `futr_hub_git_repo`}}",
+        "ENV FUTR_HUB_GIT_BRANCH {{user `futr_hub_git_branch`}}",
+        "ENV FUTR_HUB_GIT_CLONE_DIR {{user `futr_hub_git_clone_dir`}}",
+        "ENV FUTR_HUB_GIT_SSHKEY {{user `futr_hub_git_sshkey`}}",
+        "ENV FUTR_HUB_GIT_SSHKEY_PATH /home/acn/.ssh/"
+      ]
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "file",
+      "sources": [
+        "./packer.env",
+        "./packer/files/galaxy-requirements.yml",
+        "{{user `futr_hub_acn_sshkey_path`}}/{{user `futr_hub_acn_sshkey`}}",
+        "{{user `futr_hub_acn_sshkey_path`}}/{{user `futr_hub_acn_sshkey`}}.pub",
+        "{{user `futr_hub_git_sshkey_path`}}/{{user `futr_hub_git_sshkey`}}",
+        "{{user `futr_hub_git_sshkey_path`}}/{{user `futr_hub_git_sshkey`}}.pub"
+      ],
+      "destination": "/tmp/"
+    },
+
+    {
+      "type": "shell",
+      "scripts": [
+        "./packer/scripts/ubuntu/prepare.sh",
+        "./packer/scripts/ubuntu/install.sh",
+        "./packer/scripts/ubuntu/cleanup.sh"
+      ]
+    },
+    {
+      "type": "file",
+      "sources": [
+        "./packer/files/inventory",
+        "./packer/files/prepare.yml",
+        "./packer/files/main.yml",
+        "./packer/files/welcome.txt"
+      ],
+      "destination": "/home/acn/"
+    },
+    {
+      "type": "shell",
+      "inline": ["sed -e 's+%FUTR_HUB_GIT_REPO%+'\"{{user `futr_hub_git_repo`}}\"'+' -e 's+%FUTR_HUB_GIT_BRANCH%+'\"{{user `futr_hub_git_branch`}}\"'+' -e 's+%FUTR_HUB_GIT_CLONE_DIR%+'\"{{user `futr_hub_git_clone_dir`}}\"'+' -i /home/acn/welcome.txt"]
+    },
+    {
+      "type": "shell",
+      "inline": ["echo 'cat \"$HOME/welcome.txt\"' >> /home/acn/.profile"]
+    },
+    {
+      "type": "shell",
+      "inline": ["rm -f /tmp/*"]
+    },
+    {
+      "type": "shell",
+      "inline": ["sudo chown -R acn:acn /home/acn/"]
+    },
+    {
+      "type": "shell",
+      "inline": ["cat /home/acn/welcome.txt"]
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "{{user `futr_hub_docker_registry`}}",
+        "tags": ["1.0.0","latest"]
+      },
+      "docker-push",
+      {
+        "type": "shell-local",
+        "inline": ["docker images --no-trunc | grep \"{{user `futr_hub_docker_registry`}}\" | grep '<none>' | awk '{ print $3 }' | xargs docker rmi"]
+      }
+      ]
+  ]
+}

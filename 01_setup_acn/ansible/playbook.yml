@@ -1,0 +1,6 @@
+---
+# file: playbook.yml
+
+- import_playbook: acn_playbook.yml
+- import_playbook: helm_playbook.yml
+- import_playbook: kubectl_playbook.yml

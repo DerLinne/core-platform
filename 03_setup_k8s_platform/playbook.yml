@@ -1,0 +1,10 @@
+---
+# file: 03_setup_k8s_platform/playbook.yml
+- name: Setup FUTR-HUB data-platform and deploy it into K8S cluster
+  hosts: localhost
+  gather_facts: false
+
+# import further playbooks
+- import_playbook: start_cm_playbook.yml
+- import_playbook: dummy_playbook.yml
+- import_playbook: stop_cm_playbook.yml
