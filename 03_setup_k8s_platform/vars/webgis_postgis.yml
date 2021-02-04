@@ -1,0 +1,25 @@
+---
+# file: 03_setup_k8s_platform/vars/webgis-postgis.yml
+
+HELM_CHART_NAME: webgis-postgis
+HELM_RELEASE_NAME: geodata
+
+replicaCount: 1
+image_registry: docker.io
+image_repository: postgis/postgis
+image_tag: 13-3.1
+image_pullPolicy: IfNotPresent
+
+service_type: ClusterIP
+service_port: 5432
+service_targetPort: 5432
+service_portName: postgres
+
+persistentVolume_enabled: true
+persistentVolume_accessModes: ReadWriteOnce
+persistentVolume_size: 100Mi
+persistentVolume_storageClass: microk8s-hostpath
+persistentVolume_existingClaim:
+
+env_postgres_user: "{{ env_postgres_user }}"
+env_postgres_password: "{{ env_postgres_password }}"

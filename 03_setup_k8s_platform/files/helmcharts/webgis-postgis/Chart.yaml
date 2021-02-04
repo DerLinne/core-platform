@@ -1,0 +1,16 @@
+apiVersion: v2
+name: webgis-postgis
+version: 0.1.0
+description: A Helm chart to deploy PostGIS for the FUTR-HUB WebGIS server
+type: application
+keywords:
+  - futr-hub
+  - webgis
+  - postgis
+home: https://gitlab.com/berlintxl/futr-hub/
+sources:
+  - https://gitlab.com/berlintxl/futr-hub/platform/data-platform-k8s/-/tree/master/03_setup_k8s_platform/files/helmcharts/webgis-postgis/
+maintainers:
+  - name: Olaf Heinemann
+    email: olaf.heinemann@omp.de
+appVersion: "1.0.0"

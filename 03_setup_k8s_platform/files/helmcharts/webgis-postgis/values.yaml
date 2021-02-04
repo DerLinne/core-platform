@@ -1,0 +1,65 @@
+# Default values for webgis-postgis.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# PostGIS container image
+image:
+  registry: docker.io
+  repository: postgis/postgis
+  tag: 13-3.1
+  pullPolicy: IfNotPresent
+
+## Deployment annotations
+annotations: {}
+
+# Service
+service:
+  type: ClusterIP
+  port: 5432
+  targetPort: 5432
+  portName: postgres
+
+  annotations: {}
+
+## Strategy used to replace old Pods by new ones
+## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+##
+strategy: {}
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxSurge: 0
+  #   maxUnavailable: 1
+
+persistentVolume:
+  ## If true, PostGIS will create/use a Persistent Volume Claim
+  ## If false, use emptyDir
+  ##
+  enabled: true
+
+  ## PostGIS Persistent Volume Claim annotations
+  ##
+  annotations: {}
+
+  ## PostGIS Persistent Volume access modes
+  ## Must match those of existing PV or dynamic provisioner
+  ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+  accessModes:
+    - ReadWriteOnce
+
+  ## PostGIS Persistent Volume Size
+  ##
+  size: 100Mi
+
+  ## PostGIS Persistent Volume Storage Class
+  ## For microk8s we use 'microk8s-hostpath'
+  storageClass: "microk8s-hostpath"
+  existingClaim: ""
+
+## PostGIS startup configuration
+## Values in here get injected as environment variables
+## Needed chart reinstall for apply changes
+env:
+  postgres_user: postgres
+  postgres_password: postgres123

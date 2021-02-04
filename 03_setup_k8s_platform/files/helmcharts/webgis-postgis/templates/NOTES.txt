@@ -1,0 +1,20 @@
+** Please be patient while the chart is being deployed **
+
+PostGIS can be accessed via port {{ .Values.service.port }} on the following DNS name from within your cluster:
+
+    {{ include "webgis-postgis.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+
+To get the PostGIS user run:
+    export POSTGRES_USER=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ template "webgis-postgis.fullname" . }} -o jsonpath="{.data.postgres_user}" | base64 -d)
+
+To get the password for this user run:
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ template "webgis-postgis.fullname" . }} -o jsonpath="{.data.postgres_password}" | base64 -d)
+
+To connect to your database from outside the cluster execute the following commands:
+{{- if contains "ClusterIP" .Values.service.type }}
+    kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "webgis-postgis.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} &
+    PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 --port {{ .Values.service.port}}
+{{- end }}
+
+To check for PostGIS extension run (within psql):
+    \dx
