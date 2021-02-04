@@ -1,5 +1,5 @@
 ---
-# file: 03_setup_k8s_platform/start_cmplaybook.yml
+# file: 03_setup_k8s_platform/start_cmp_laybook.yml
 - name: Start ChartMuseum
   hosts: localhost
   gather_facts: false
