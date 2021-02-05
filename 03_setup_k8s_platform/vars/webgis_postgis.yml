@@ -1,5 +1,5 @@
 ---
-# file: 03_setup_k8s_platform/vars/webgis-postgis.yml
+# file: 03_setup_k8s_platform/vars/webgis_postgis.yml
 
 HELM_CHART_NAME: webgis-postgis
 HELM_RELEASE_NAME: geodata-postgis
