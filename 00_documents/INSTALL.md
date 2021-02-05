@@ -197,5 +197,30 @@ kubectl port-forward --namespace smart-city-txl $POD_NAME 8080:80
 
 Now you can access pgAdmin's web-interface with [this](http://127.0.0.1:8080) URL.
 
+To login, user either the default values
 
+- Login: max@mustermann.de
+- Password: pgadmin123
+
+or the values of the environment variables
+
+- `PGADMIN_DEFAULT_EMAIL`
+- `PGADMIN_DEFAULT_PASSWORD`
+
+if you have set them.
+
+A server defintion for the PostGIS database is already provided, using the default values of the PostGIS installation.
+
+**NOTE**
+If you changed one of those values, you have to either edit the file `vars/webgis_pgadmin.yml` and/or set the following envirionment variables, before you run the Ansible playbook.
+
+| ENVIRONMENT VARIABLE | DEFAULT VALUE                                 |
+| :--------------------| :---------------------------------------------|
+|`POSTGIS_USER`        | postgres                                      |
+|`POSTGIS_DB`          | postgres                                      |
+|`POSTGIS_HOST`        | geodata-postgis-webgis-postgis.smart-city-txl |
+
+At the moment you have to enter the password for the PostGIS user manually, if you want to connect to the PostGIS database.
+
+The default password for the default PostGIS user `postgres` is `postgres123`.
 
