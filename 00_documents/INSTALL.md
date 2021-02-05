@@ -2,8 +2,8 @@
 
 This document describes how to:
 
-+ create the Docker image for the [Ansible Control Node](#acn) (ACN) that is used to setup a Kubernetes cluster and deploy the Urban Data Platform into that cluster.
-+ install the [WebGIS prototype](#webgis)
++ create the Docker image for the [Ansible Control Node](#installation-of-acn) (ACN) that is used to setup a Kubernetes cluster and deploy the Urban Data Platform into that cluster.
++ install the [WebGIS prototype](#webgis-prototype)
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -15,7 +15,7 @@ This document describes how to:
 - a SSH key pair to access this Git repository, since it is set to _private_.
 
 
-## [Installation of ACN](id:acn)
+## Installation of ACN
 ```
 # clone this repository
 git clone git@gitlab.com:berlintxl/futr-hub/platform/data-platform-k8s.git
@@ -66,26 +66,47 @@ and edit the configuration of your Docker Daemon like the following.
   ]
 ```
 
-## [WebGIS protoype](id:webgis)
+## WebGIS prototype
 This section describes how to install the following components:
 
 + [PostGIS](#postgis)
++ [pgAdmin](#pgadmin)
 
 ### Prerequisites
+Make sure that ChartMuseum is running.
+```
+ps aux | grep 'helm servecm' | grep -v grep
+```
+
+If not, run the Ansible playbook `start_cm_playbook.yml`.
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory start_cm_playbook.yml
+```
+
 You need to create a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
 
 **NOTE**
-> If you use microk8s simply run `microk8s config > config_for_acn` and paste the content of this file into `~/.kube/config` within the ACN. In the future a kubeconfig-file will be created for you.
+> If you use microk8s simply run `microk8s config > config_for_acn` and paste the content of this file into `~/.kube/config` within the ACN. Right now you have to create the directory `~/.kube` yourself. In the future a kubeconfig-file will be created for you.
 
-To verify you can connect to your K8s API server, simply run the following command.
+**IMPORTANT!**
+MAKE SURE THE FILE `~/.kube/config` HAS THE PERMISSIONS SET TO `0600`!
+***
+
+To verify you can connect to your K8s API server and all necessary Pods, simply run the following commands.
 ```
 kubectl cluster-info
+
+kubectl get pods --namespace kube-system
 ```
 
-### [PostGIS](id:postgis)
-To install PostGIS as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_postgis_playbook.yml` from within the ACN.
+### PostGIS
+To install [PostGIS](https://postgis.net/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_postgis_playbook.yml` from within the ACN.
 
 ```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
 ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
 ```
 
@@ -94,6 +115,8 @@ After a view minutes the deployment should be finished and you can then connect 
 If you want to change the user and password, you have to export the environment variables `POSTGRES_USER` and `POSTGRES_PASSWORD`, before running the Ansible playbook.
 
 ```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
 export POSTGRES_USER=foo
 export POSTGRES_PASSWORD=bar
 ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
@@ -120,10 +143,11 @@ To get the password for this user run:
 export POSTGRES_PASSWORD=$(
     kubectl get secret --namespace smart-city-txl \
     geodata-postgis-webgis-postgis \
-    -o jsonpath="{.data.postgres_password}" | base64 -d)
+    -o jsonpath="{.data.postgres_password}" | base64 -d
+)
 ```
 
-To connect to your database from outside the cluster execute the following commands:
+To connect to your database from outside the cluster, using `psql` execute the following commands:
 ```
 kubectl port-forward --namespace smart-city-txl \
     svc/geodata-postgis-webgis-postgis 5432:5432 &
@@ -146,3 +170,32 @@ postgres=# \dx
  postgis_topology       | 3.1.0   | topology   | PostGIS topology spatial types and functions
 (5 rows)
 ```
+
+### pgAdmin
+To install [pgAdmin](https://www.pgadmin.org/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_pgadmin_playbook.yml` from within the ACN.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_pgadmin_playbook.yml
+```
+
+After a view minutes the deployment should be finished.
+**NOTE**
+> To further customize the deployment of pgAdmin, you simply need to edit the file `data-platform-k8s/03_setup_k8s_platform/vars/webgis_pgadmin.yml`.
+
+To connect to the web-interface, please execute the following commands.
+```
+export POD_NAME=$(
+    kubectl get pods --namespace smart-city-txl \
+    -l "app.kubernetes.io/name=pgadmin4,app.kubernetes.io/instance=geodata-pgadmin" \
+    -o jsonpath="{.items[0].metadata.name}"
+)
+
+kubectl port-forward --namespace smart-city-txl $POD_NAME 8080:80
+```
+
+Now you can access pgAdmin's web-interface with [this](http://127.0.0.1:8080) URL.
+
+
+
