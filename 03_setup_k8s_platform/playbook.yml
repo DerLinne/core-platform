@@ -7,4 +7,3 @@
 # import further playbooks
 - import_playbook: start_cm_playbook.yml
 - import_playbook: dummy_playbook.yml
-- import_playbook: stop_cm_playbook.yml
