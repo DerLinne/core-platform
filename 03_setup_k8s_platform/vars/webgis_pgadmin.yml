@@ -1,0 +1,48 @@
+---
+# file: 03_setup_k8s_platform/vars/webgis_pgadmin.yml
+
+HELM_REPO_NAME: runix
+HELM_REPO_URL: https://helm.runix.net/
+HELM_CHART_NAME: pgadmin4
+HELM_RELEASE_NAME: geodata-pgadmin
+
+image_registry: docker.io
+image_repository: dpage/pgadmin4
+image_tag: "4.29"
+image_pullPolicy: IfNotPresent
+
+service_type: ClusterIP
+service_port: 80
+service_targetPort: http
+service_portName: http
+
+serverDefinitions_enabled: true
+serverDefinitions_Name: WebGIS Prototyp – PostGIS
+serverDefinitions_Group: Servers
+serverDefinitions_Port: 5432
+serverDefintions_Username: "{{ lookup('env','POSTGIS_USER') | default('postgres', true) }}"
+serverDefintions_Host: "{{ lookup('env', 'POSTGIS_HOST') | default('geodata-postgis-webgis-postgis.smart-city-txl', true) }}"
+serverDefinitions_SSLMode: prefer
+serverDefinitions_MaintenanceDB: "{{ serverDefinitions_MaintenanceDB }}"
+
+networkPolicy_enabled: true
+
+ingress_enabled: false
+ingres_host:
+
+existingSecret: ""
+
+env_email: "{{ lookup('env','PGADMIN_DEFAULT_EMAIL') | default('max@mustermann.de', true) }}"
+env_password: "{{ lookup('env','PGADMIN_DEFAULT_PASSWORD') | default('pgadmin123', true) }}"
+env_enhanced_cookie_protection: "{{ lookup('env','PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION') | default('False', true) }}"
+# Add more env variables if necessary, e.g.
+# PGADMIN_ENABLE_TLS: "{{ lookup('env','PGADMIN_ENABLE_TLS') | default('false', true) }}"
+
+persistentVolume_enabled: true
+persistentVolume_accessModes: ReadWriteOnce
+persistentVolume_size: 100Mi
+persistentVolume_storageClass: microk8s-hostpath
+persistentVolume_existingClaim:
+
+VolumePermissions_enabled: true
+
