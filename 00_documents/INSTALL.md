@@ -69,24 +69,20 @@ and edit the configuration of your Docker Daemon like the following.
 ## [WebGIS protoype](id:webgis)
 This section describes how to install the following components:
 
-+ PostGIS
++ [PostGIS](#postgis)
 
 ### Prerequisites
 You need to create a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
 
 **NOTE**
-If you use microk8s simply run `microk8s config > config_for_acn` and paste the content of this file into `~/.kube/config` within the ACN.
-
-***
-In the future a kubeconfig-file will be created for you.
-***
+> If you use microk8s simply run `microk8s config > config_for_acn` and paste the content of this file into `~/.kube/config` within the ACN. In the future a kubeconfig-file will be created for you.
 
 To verify you can connect to your K8s API server, simply run the following command.
 ```
 kubectl cluster-info
 ```
 
-### PostGIS
+### [PostGIS](id:postgis)
 To install PostGIS as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_postgis_playbook.yml` from within the ACN.
 
 ```
@@ -103,17 +99,18 @@ export POSTGRES_PASSWORD=bar
 ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
 ```
 
-To further customize the deployment of PostGIS, you simply need to edit the file `data-platform-k8s/03_setup_k8s_platform/vars/webgis_postgis.yml`.
+**NOTE**
+> To further customize the deployment of PostGIS, you simply need to edit the file `data-platform-k8s/03_setup_k8s_platform/vars/webgis_postgis.yml`.
 
 If you use the default values, then PostGIS can be accessed via port 5432 on the following DNS name from within your cluster:
 
-`geodata-webgis-postgis.smart-city-txl.svc.cluster.local`
+`geodata-postgis-webgis-postgis.smart-city-txl.svc.cluster.local`
 
 To get the PostGIS user run:
 ```
 export POSTGRES_USER=$(
     kubectl get secret --namespace smart-city-txl \
-    geodata-webgis-postgis \
+    geodata-postgis-webgis-postgis \
     -o jsonpath="{.data.postgres_user}" | base64 -d
 )
 ```
@@ -122,14 +119,14 @@ To get the password for this user run:
 ```
 export POSTGRES_PASSWORD=$(
     kubectl get secret --namespace smart-city-txl \
-    geodata-webgis-postgis \
+    geodata-postgis-webgis-postgis \
     -o jsonpath="{.data.postgres_password}" | base64 -d)
 ```
 
 To connect to your database from outside the cluster execute the following commands:
 ```
 kubectl port-forward --namespace smart-city-txl \
-    svc/geodata-webgis-postgis 5432:5432 &
+    svc/geodata-postgis-webgis-postgis 5432:5432 &
 
 PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" psql \
     --host 127.0.0.1 \
