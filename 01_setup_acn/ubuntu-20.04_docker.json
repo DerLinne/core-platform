@@ -35,7 +35,9 @@
         "ENV FUTR_HUB_GIT_BRANCH {{user `futr_hub_git_branch`}}",
         "ENV FUTR_HUB_GIT_CLONE_DIR {{user `futr_hub_git_clone_dir`}}",
         "ENV FUTR_HUB_GIT_SSHKEY {{user `futr_hub_git_sshkey`}}",
-        "ENV FUTR_HUB_GIT_SSHKEY_PATH /home/acn/.ssh/"
+        "ENV FUTR_HUB_GIT_SSHKEY_PATH /home/acn/.ssh/",
+        "ENV FUTR_HUB_ACN_SSHKEY {{ user `futr_hub_acn_sshkey`}}",
+        "ENV FUTR_HUB_ACN_SSHKEY_PATH /home/acn/.ssh/"
       ]
     }
   ],

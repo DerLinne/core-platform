@@ -1,5 +1,6 @@
 ---
 # file: main.yml
 - import_playbook: "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/01_setup_acn/ansible/playbook.yml"
-- import_playbook: "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/02_setup_k8s/playbook.yml"
-- import_playbook: "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/03_setup_k8s_platform/playbook.yml"
+# @TODO: import the following playbooks in the future
+#- import_playbook: "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/02_setup_k8s/playbook.yml"
+#- import_playbook: "{{ lookup('env', 'FUTR_HUB_GIT_CLONE_DIR') }}/03_setup_k8s_platform/playbook.yml"

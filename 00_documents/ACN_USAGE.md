@@ -30,14 +30,16 @@ ARE NOT SET YOU HAVE TO SET THEM BEFORE YOU CONTINUE!
 -------------------------------------------------------------------------------
 To continue the installation, please execute the following commands.
 
+  eval "$(ssh-agent -s)"
+  ssh-add ~/.ssh/"${FUTR_HUB_ACN_SSHKEY}"
+
   ansible-playbook -i inventory prepare.yml
   ansible-playbook -i inventory main.yml
 
 If you use a SSH-Key to access the Git repository, please
 - set FUTR_HUB_GIT_SSHKEY accordingly
-- execute the following commands beforehand.
+- execute the following command beforehand.
 
-  eval "$(ssh-agent -s)"
   ssh-add ~/.ssh/"${FUTR_HUB_GIT_SSHKEY}"
 
 Good luck!

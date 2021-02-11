@@ -1,5 +1,5 @@
 ---
 # file vars/acn.yml
 
-sys_packages: [ 'curl', 'vim', 'git', 'less', 'iputils-ping']
+sys_packages: [ 'curl', 'vim', 'git', 'less', 'iputils-ping', 'sshpass']
 python_packages: [ 'openshift', 'jmespath', 'docker']
