@@ -1,0 +1,111 @@
+---
+
+- name: Delete ssh host from known_hosts
+  delegate_to: localhost
+  become: no
+  known_hosts:
+    name: "{{ ansible_host }}"
+    state: absent
+
+- name: get port, default 22
+  delegate_to: localhost
+  set_fact:
+    ansible_ssh_port: "{{ hostvars[inventory_hostname]['ansible_ssh_port'] | default('22') }}"
+
+- name: Ensure ssh host key for k8s-master is known
+  delegate_to: localhost
+  become: no
+  lineinfile:
+    dest: ~/.ssh/known_hosts
+    create: yes
+    state: present
+    mode: 0600
+    line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + hostvars['k8s-master']['ansible_host']) }}"
+
+
+# Check root login
+- name: Check root login
+  command: hostname
+  register: root_login
+  ignore_unreachable: yes
+  changed_when: False
+
+- name: "Fail if target host cannot be reached."
+  fail:
+    msg: "Could not reach target host."
+  when: "root_login.unreachable is defined and not ('Permission denied' in root_login.msg)"
+
+- debug:
+    msg:
+      - "Could not log in with root user. This is probably since you already configured the user 'acn'."
+      - "If this is not the case, please check if root login is allowed on your target host and that the root password is correct."
+  when: root_login.unreachable is defined
+
+
+# Install APT
+- name: Install Prerequisites
+  apt: name=aptitude update_cache=yes state=present force_apt_get=yes
+  when: not (root_login.unreachable is defined)
+
+- name: Install sudo
+  apt: name=sudo state=present
+  when: not (root_login.unreachable is defined)
+
+# Sudo Group Setup
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+  when: not (root_login.unreachable is defined)
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+  when: not (root_login.unreachable is defined)
+
+# User + Key Setup
+- name: Create a new regular user with sudo privileges
+  user:
+    name: acn
+    state: present
+    groups: wheel
+    append: true
+    create_home: true
+    shell: /bin/bash
+  when: not (root_login.unreachable is defined)
+
+- name: Check if ssh key already exists
+  delegate_to: localhost
+  stat: path={{ copy_local_key }}
+  register: result
+  become: no
+  when: not (root_login.unreachable is defined)
+
+- name: "Fail if root cannot login with password or ssh key."
+  fail:
+    msg: "Root login failed but local ssh key to connect to target host does not exist."
+  when: root_login.unreachable is defined and not result.stat.exists
+
+- name: Set authorized key for remote user 'acn'
+  authorized_key:
+    user: acn
+    state: present
+    key: "{{ copy_local_pub_key }}"
+  when: not (root_login.unreachable is defined)
+
+- name: Disable password authentication for root
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin prohibit-password'
+  when: not (root_login.unreachable is defined)
+
+- name: Restart sshd
+  service: name=sshd state=restarted
+  when: not (root_login.unreachable is defined)
+

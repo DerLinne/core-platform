@@ -3,16 +3,20 @@
 This document describes how to:
 
 + create the Docker image for the [Ansible Control Node](#installation-of-acn) (ACN) that is used to setup a Kubernetes cluster and deploy the Urban Data Platform into that cluster.
-+ install the [WebGIS prototype](#webgis-prototype)
++ install [MicroK8s](#microk8s) on a Linux server, running Debian or Ubuntu .
++ install the [WebGIS prototype](#webgis-prototype).
 
 ## Prerequisites
 - [git](https://git-scm.com)
 - [docker](https://www.docker.com/)
 - a ([locale](http://localhost:5000/v2/_catalog)) Docker-Registry
 - [Packer](https://packer.io)
-- a [good](https://neovim.io/), [command line usable](https://www.vim.org/) Editor
+- a [good](https://neovim.io/), [command line usable](https://www.vim.org/) Editor.
 - a SSH key pair for the ACN user _acn_.
 - a SSH key pair to access this Git repository, since it is set to _private_.
+- IP address of the Linux server you want to install [MicroK8s](https://microk8s.io).
+- Credentials to access the Linux server.
+- An email address for [cert-manager](https://cert-manager.io)
 
 
 ## Installation of ACN
@@ -66,6 +70,75 @@ and edit the configuration of your Docker Daemon like the following.
   ]
 ```
 
+## MicroK8s
+This section describes how to install [MicroK8s](https://microk8s.io) on a Linux server via Ansible.
+
+**NOTE**
+> The installation is suited for Debian/Ubuntu If you use a different Linux distribution, the installation might fail!
+
+All required files are located in the folder `~/data-platform-k8s/02_setup_k8s`.
+
+### Prerequisites
+You need to make a copy of the file
+`~/data-platform-k8s/02_setup_k8s/inventory.default`
+and set proper values for:
+
+- k8s-master ansible_host
+- ansible_password
+- cert_manager_le_mail
+
+before you run the Ansible playbook.
+
+```
+cd ~/data-platform-k8s/02_setup_k8s
+
+cp inventory.default inventory
+
+# edit the values for the above mentioned variables.
+vim inventory
+```
+
+### Installation
+Please, execute the following steps to install MicroK8s.
+
+```
+# run the Ansible playbooks
+cd ~/data-platform-k8s/02_setup_k8s
+
+ansible-playbook -i inventory -u root playbook.yml
+
+# Wait ...
+```
+**NOTE**
+> If you do not login as user 'root' onto the Linux server, you have to use your login-name with the option '-u'.
+
+**IMPORTANT**
+> During the installation, the SSHD of the Linux server will be configured in a way, so that the user 'root' can no longer login with a password.
+
+After Ansible has finished the installation, you will find the file
+`/home/acn/.kube/k8s-master_config`
+in the ACN container. This file will also be available in the home-directory of the user _acn_, on the Linux server where you installed MicroK8s.
+
+### Verification
+To verify the installation of MicroK8s was successfull, please execute the following command.
+```
+kubectl --kubeconfig=$HOME/.kube/k8s-master_config cluster-info
+```
+
+You should the following output:
+```
+Kubernetes control plane is running at https://1.2.3.4:16443
+CoreDNS is running at https://1.2.3.4:16443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Metrics-server is running at https://1.2.3.4:16443/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+```
+
+**NOTE**
+> The IP address should match the one of your Linux server.
+
+
+
 ## WebGIS prototype
 This section describes how to install the following components:
 
@@ -85,17 +158,23 @@ cd ~/data-platform-k8s/03_setup_k8s_platform
 ansible-playbook -i inventory start_cm_playbook.yml
 ```
 
-You need to create a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
+You need to have a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
+If you installed MicroK8s from within the ACN, you will already have a kubeconfig-file in the directory `~/.kube/`.
 
 **NOTE**
-> If you use microk8s simply run `microk8s config > config_for_acn` and paste the content of this file into `~/.kube/config` within the ACN. Right now you have to create the directory `~/.kube` yourself. In the future a kubeconfig-file will be created for you.
+> If you use a local installation of microk8s, simply run
+
+`microk8s config > config_for_acn`
+
+and paste the content of this file into `~/.kube/config` within the ACN. Right now you have to create the directory `~/.kube` yourself.
 
 **IMPORTANT!**
-MAKE SURE THE FILE `~/.kube/config` HAS THE PERMISSIONS SET TO `0600`!
+MAKE SURE THE kubeconfig FILE HAS THE PERMISSIONS SET TO `0600`!
 ***
 
 To verify you can connect to your K8s API server and all necessary Pods, simply run the following commands.
 ```
+export KUBECONFIG=$HOME/.kube/<name_of_your_kubeconfig>
 kubectl cluster-info
 
 kubectl get pods --namespace kube-system

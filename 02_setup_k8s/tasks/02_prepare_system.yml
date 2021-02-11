@@ -1,0 +1,107 @@
+---
+
+# Update Repositories
+- name: Update apt cache
+  raw: apt-get -y update
+
+# Install Dependencies
+- name: Install required system packages
+  apt: name={{ sys_packages }} state=present
+  become: yes
+  when: not (root_login.unreachable is defined)
+
+# Install required Python modules
+- name: Install required Python modules
+  pip: name={{ item }}
+  loop: [ 'PyYAML','openshift']
+  become: yes
+  when: not (root_login.unreachable is defined)
+
+# Install Helm3 as a snap
+- name: Install Helm3 via snap
+  snap:
+    name: helm3
+    classic: yes
+    state: present
+  become: yes
+  when: not (root_login.unreachable is defined)
+
+# Create soft-link from /snap/bin/helm /usr/local/sbin/helm
+- name: Create soft-link from /snap/bin/helm to /usr/local/sbin/helm
+  ansible.builtin.file:
+    src: /snap/bin/helm3
+    dest: /usr/local/bin/helm
+    owner: root
+    group: root
+    state: link
+  become: yes
+  when: not (root_login.unreachable is defined)
+
+# Configure ufw
+- name: Set logging
+  community.general.ufw:
+    logging: 'on'
+
+- name: Reject everything and enable UFW
+  community.general.ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow all access to tcp port 22
+  community.general.ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+
+- name: Allow all access to tcp port 80
+  community.general.ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+
+- name: Allow all access to tcp port 443
+  community.general.ufw:
+    rule: allow
+    port: '443'
+    proto: tcp
+
+- name: Allow all access to tcp port 16443
+  community.general.ufw:
+    rule: allow
+    port: '16443'
+    proto: tcp
+
+- name: Allow pod to pod traffic in
+  community.general.ufw:
+    rule: allow
+    interface: cn0
+    direction: in
+
+- name: Allow pod to pod traffic out
+  community.general.ufw:
+    rule: allow
+    interface: cn0
+    direction: out
+
+- name: Allow pod to pod traffic in
+  community.general.ufw:
+    rule: allow
+    interface: vxlan.calico
+    direction: in
+
+- name: Allow pod to pod traffic out
+  community.general.ufw:
+    rule: allow
+    interface: vxlan.calico
+    direction: out
+
+# Enbale IP Forwaring
+- name: Set ip forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+
+# Diable Swap
+- name: Disable Swap
+  command: swapoff -a

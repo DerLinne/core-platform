@@ -1,0 +1,82 @@
+---
+
+- name: Configure ingress load balancer
+  community.kubernetes.k8s:
+    state: present
+    namespace: "ingress"
+    definition:
+      kind: Service
+      apiVersion: v1
+      metadata:
+        name: ingress-nginx
+        namespace: ingress
+        labels:
+          app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/part-of: ingress-nginx
+      spec:
+        externalTrafficPolicy: Cluster
+        type: LoadBalancer
+        externalIPs:
+          - "{{hostvars['k8s-master']['ansible_host']}}"
+        selector:
+          app.kubernetes.io/name: ingress-nginx
+          app.kubernetes.io/part-of: ingress-nginx
+        ports:
+          - name: http
+            port: 80
+            protocol: TCP
+            targetPort: http
+          - name: https
+            port: 443
+            protocol: TCP
+            targetPort: https
+
+# From repository
+- name: Add Jetstack Repo
+  community.kubernetes.helm_repository:
+    repo_name: jetstack
+    repo_url: "https://charts.jetstack.io"
+
+- name: Create a k8s namespace
+  community.kubernetes.k8s:
+    name: "{{ cert_manager_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Deploy stable version of cert-manager chart
+  community.kubernetes.helm:
+    name: cert-manager
+    chart_ref: jetstack/cert-manager
+    release_namespace: "{{ cert_manager_namespace }}"
+    create_namespace: false
+    values: "{{ lookup('template', 'cert-manager_values.yaml.j2') | from_yaml }}"
+
+- name: Create LE Issuer Prod
+  community.kubernetes.k8s:
+    state: present
+    #namespace: "{{ cert_manager_namespace }}"
+    definition:
+      api_version: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+      spec:
+        acme:
+          # You must replace this email address with your own.
+          # Let's Encrypt will use this to contact you about expiring
+          # certificates, and issues related to your account.
+          email: "{{ cert_manager_le_mail }}"
+          server: https://acme-v02.api.letsencrypt.org/directory
+          privateKeySecretRef:
+            # Secret resource that will be used to store the account's private key.
+            name: le-prod-key
+          # Add a single challenge solver, HTTP01 using nginx
+          solvers:
+          - http01:
+              selector: {}
+              ingress:
+                class: public
+
+
+

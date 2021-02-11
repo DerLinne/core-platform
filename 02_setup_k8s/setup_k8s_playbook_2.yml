@@ -1,0 +1,15 @@
+---
+# file: 02_setup_k8s/setup_k8s_playbook_2.yml
+
+- hosts: k8s-master
+  gather_facts: false
+  become: true
+  become_user: acn
+
+  vars_files:
+    - vars/default.yml
+
+  environment: "{{ proxy_env }}"
+
+  tasks:
+    - import_tasks: tasks/05_cert_manager.yml
