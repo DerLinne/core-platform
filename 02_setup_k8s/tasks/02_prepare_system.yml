@@ -26,8 +26,8 @@
   become: yes
   when: not (root_login.unreachable is defined)
 
-# Create soft-link from /snap/bin/helm /usr/local/sbin/helm
-- name: Create soft-link from /snap/bin/helm to /usr/local/sbin/helm
+# Create soft-link from /snap/bin/helm3 /usr/local/bin/helm
+- name: Create soft-link from /snap/bin/helm3 to /usr/local/bin/helm
   ansible.builtin.file:
     src: /snap/bin/helm3
     dest: /usr/local/bin/helm
