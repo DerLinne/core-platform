@@ -144,6 +144,7 @@ This section describes how to install the following components:
 
 + [PostGIS](#postgis)
 + [pgAdmin](#pgadmin)
++ [MasterPortal](#masterportal)
 
 ### Prerequisites
 Make sure that ChartMuseum is running.
@@ -302,4 +303,76 @@ If you changed one of those values, you have to either edit the file `vars/webgi
 At the moment you have to enter the password for the PostGIS user manually, if you want to connect to the PostGIS database.
 
 The default password for the default PostGIS user `postgres` is `postgres123`.
+
+
+### MasterPortal
+To install [MasterPortal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml` from within the ACN.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_masterportal_playbook.yml
+```
+
+After a view minutes the deployment should be finished.
+
+To access the MasterPortal you will have to execute the following command:
+```
+kubectl --namespace smart-city-txl port-forward \
+    svc/geodata-masterportal-webgis-masterportal 12345:80
+```
+and open the URL [http://127.0.0.1:12345/webgis-masterportal/](http://127.0.0.1:12345/webgis-masterportal/) in your Web browser.
+
+---
+**IMPORTANT**
+Since there is no official Docker image for MasterPort you will have to create your own and deploy it into the local K8s registry of MicroK8s!
+
+How to create and deploy such an image will be described below!
+
+---
+
+#### How to build the MasterPortal Docker image
+
+---
+**IMPORTANT**
+AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
+PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
+YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
+
+---
+
+To build the Docker image, please execute the following commands:
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform/files/webgis-masterportal/
+
+docker build -t webgis-masterportal:local .
+```
+**NOTE**
+> It is mandatory, that you tag the image with `local`!
+
+Next, you will need to save this image, so we can import it.
+```
+docker save webgis-masterportal:local > /tmp/webgis-masterportal.tar
+```
+
+
+#### How to deploy the Docker image into the MicroK8s registry
+First, you need to transmit the file `/tmp/webgis-masterportal.tar` to your MicroK8s server and then log onto that server.
+```
+scp /tmp/webgis-masterportal.tar acn@<your_microk8s_server>:
+ssh acn@<your_microk8s_server>
+```
+**NOTE**
+> If you did not deploy a MicroK8s server through the ACN, you need to change your login-name of course.
+
+Next, import the saved Docker image into the registry of MicroK8s, by executing the following commands on your MicroK8s server:
+```
+sudo microk8s ctr images import webgis-masterportal.tar
+sudo microk8s ctr images list | grep webgis
+
+# You should see the image webgis-masterportal listed
+```
+
+
 

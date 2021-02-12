@@ -1,0 +1,14 @@
+---
+# file: 03_setup_k8s_platform/vars/webgis_masterportal.yml
+
+HELM_CHART_NAME: webgis-masterportal
+HELM_RELEASE_NAME: geodata-masterportal
+
+replicaCount: 1
+image_registry: docker.io
+image_repository: webgis-masterportal
+image_tag: local
+image_pullPolicy: Never
+
+service_type: ClusterIP
+service_port: 80
