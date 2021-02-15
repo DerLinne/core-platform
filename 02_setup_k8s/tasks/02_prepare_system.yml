@@ -75,13 +75,13 @@
     interface: vxlan.calico
     direction: out
 
-# Enbale IP Forwaring
+# Enbale IP Forwarding
 - name: Set ip forwarding
   sysctl:
     name: net.ipv4.ip_forward
     value: '1'
     sysctl_set: yes
 
-# Diable Swap
+# Disable Swap
 - name: Disable Swap
   command: swapoff -a

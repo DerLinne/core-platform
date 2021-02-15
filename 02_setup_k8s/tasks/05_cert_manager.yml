@@ -55,7 +55,7 @@
 - name: Create LE Issuer Prod
   community.kubernetes.k8s:
     state: present
-    #namespace: "{{ cert_manager_namespace }}"
+    namespace: "{{ cert_manager_namespace }}"
     definition:
       api_version: cert-manager.io/v1
       kind: ClusterIssuer
