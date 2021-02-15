@@ -17,26 +17,6 @@
   become: yes
   when: not (root_login.unreachable is defined)
 
-# Install Helm3 as a snap
-- name: Install Helm3 via snap
-  snap:
-    name: helm3
-    classic: yes
-    state: present
-  become: yes
-  when: not (root_login.unreachable is defined)
-
-# Create soft-link from /snap/bin/helm3 /usr/local/bin/helm
-- name: Create soft-link from /snap/bin/helm3 to /usr/local/bin/helm
-  ansible.builtin.file:
-    src: /snap/bin/helm3
-    dest: /usr/local/bin/helm
-    owner: root
-    group: root
-    state: link
-  become: yes
-  when: not (root_login.unreachable is defined)
-
 # Configure ufw
 - name: Set logging
   community.general.ufw:
