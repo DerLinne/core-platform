@@ -3,10 +3,10 @@
 #########################################
 
 #########################################################################
-# The "servers" groups contains the remote hosts
+# The "k8s_cluster" groups contains the remote hosts
 #########################################################################
 
-[servers]
+[k8s_cluster]
 k8s-master ansible_host=<ip-address>
 
 
@@ -16,7 +16,7 @@ k8s-master ansible_host=<ip-address>
 
 ##########################################################################
 # Makes sure we use Python 3 (/usr/bin/python3) on remote hosts.
-# [servers:vars] sets global values for all nodes in the "servers" group.
+# [k8s_cluster:vars] sets global values for all nodes in the "k8s_cluster" group.
 # This is necessary because by default Ansible will try to use
 # /usr/bin/python, which is not available on newer Ubuntu versions.
 #########################################################################
@@ -26,7 +26,7 @@ k8s-master ansible_host=<ip-address>
 ansible_python_interpreter="{{ ansible_playbook_python }}"
 
 
-[servers:vars]
+[k8s_cluster:vars]
 ansible_python_interpreter=/usr/bin/python3
 ansible_password=<root_password_before_setup>
 
@@ -36,12 +36,16 @@ ansible_password=<root_password_before_setup>
 
 [all:vars]
 # Common Data
+kubeconfig_file=k8s-master_config
 
 # (Sub-)Domain for the Installation
 DOMAIN='<DOMAIN>'
 
 # microk8s Config
-microk8s_version = '1.20/stable'
+microk8s_version='1.20/stable'
+
+# K8s Config
+k8s_ingress_class="public"
 
 # Cert Manager
 # cert-manager namespace

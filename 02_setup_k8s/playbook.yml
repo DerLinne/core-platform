@@ -4,5 +4,6 @@
   gather_facts: false
   connection: local
 
-- import_playbook: setup_k8s_playbook.yml
-- import_playbook: setup_k8s_playbook_2.yml
+- import_playbook: setup_k8s_playbook_01.yml
+- import_playbook: setup_k8s_playbook_02.yml
+- import_playbook: setup_k8s_playbook_03.yml

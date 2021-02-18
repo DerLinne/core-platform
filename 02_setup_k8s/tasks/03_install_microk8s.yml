@@ -34,6 +34,11 @@
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.start
   args:
     executable: /bin/bash
+  register: result
+  until: result is succeeded
+  retries: 3
+  delay: 10
+  ignore_errors: false
 
 - name: Microk8s status
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.status --wait-ready

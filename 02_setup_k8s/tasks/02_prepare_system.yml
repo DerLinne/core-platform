@@ -7,15 +7,11 @@
 # Install Dependencies
 - name: Install required system packages
   apt: name={{ sys_packages }} state=present
-  become: yes
-  when: not (root_login.unreachable is defined)
 
 # Install required Python modules
 - name: Install required Python modules
   pip: name={{ item }}
   loop: [ 'PyYAML','openshift']
-  become: yes
-  when: not (root_login.unreachable is defined)
 
 # Configure ufw
 - name: Set logging
@@ -74,6 +70,12 @@
     rule: allow
     interface: vxlan.calico
     direction: out
+
+- name: 'Allow MicroK8s/Docker DEFAULT_FORWARD_POLICY=ACCEPT'
+  community.general.ufw:
+    direction: routed
+    default: allow
+    route: yes
 
 # Enbale IP Forwarding
 - name: Set ip forwarding

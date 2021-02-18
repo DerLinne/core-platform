@@ -1,0 +1,13 @@
+---
+# file: 02_setup_k8s/setup_k8s_playbook_01.yml
+- hosts: k8s_cluster
+  become: true
+  become_user: root
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+
+    - import_tasks: tasks/01_user_setup.yml

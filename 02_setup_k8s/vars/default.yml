@@ -10,4 +10,4 @@ sys_packages: [ 'curl', 'vim', 'snapd', 'python3', 'python3-pip', 'ufw', 'htop',
 
 # Set K8s kubeconfig
 proxy_env:
-  K8S_AUTH_KUBECONFIG: "/home/acn/.kube/k8s-master_config"
+  K8S_AUTH_KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/{{ kubeconfig_file }}"

@@ -1,10 +1,9 @@
 ---
-# file: 02_setup_k8s/setup_k8s_playbook_2.yml
+# file: 02_setup_k8s/setup_k8s_playbook_03.yml
 
 - hosts: localhost
+  become: false
   gather_facts: false
-  become: true
-  become_user: acn
 
   vars_files:
     - vars/default.yml

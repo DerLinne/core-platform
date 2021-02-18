@@ -76,7 +76,9 @@
           - http01:
               selector: {}
               ingress:
-                class: public
-
-
-
+                class: "{{ k8s_ingress_class }}"
+  register: result
+  until: result is succeeded
+  retries: 10
+  delay: 10
+  ignore_errors: false

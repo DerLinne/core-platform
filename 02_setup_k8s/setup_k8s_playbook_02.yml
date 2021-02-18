@@ -1,15 +1,13 @@
 ---
-# file: 02_setup_k8s/setup_k8s_playbook.yml
-- hosts: servers
-  gather_facts: false
+# file: 02_setup_k8s/setup_k8s_playbook_02.yml
+- hosts: k8s_cluster
   become: true
+  gather_facts: false
 
   tasks:
     - name: Read default values
       ansible.builtin.include_vars:
         file: default.yml
-
-    - import_tasks: tasks/01_user_setup.yml
 
     - import_tasks: tasks/02_prepare_system.yml
 
