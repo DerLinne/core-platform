@@ -105,31 +105,34 @@ Please, execute the following steps to install MicroK8s.
 # run the Ansible playbooks
 cd ~/data-platform-k8s/02_setup_k8s
 
-ansible-playbook -i inventory -u root playbook.yml
+ansible-playbook -i inventory playbook.yml
 
 # Wait ...
 ```
 **NOTE**
-> If you do not login as user 'root' onto the Linux server, you have to use your login-name with the option '-u'.
+> The file `playbook.yml` just imports the three files `setup_k8s_playbook_0[1-3]`.
 
 **IMPORTANT**
 > During the installation, the SSHD of the Linux server will be configured in a way, so that the user 'root' can no longer login with a password.
 
 After Ansible has finished the installation, you will find the file
 `/home/acn/.kube/k8s-master_config`
-in the ACN container. This file will also be available in the home-directory of the user _acn_, on the Linux server where you installed MicroK8s.
+in the ACN container. This file will also be available in the directory `/home/acn/.kube/`, on the Linux server where you installed MicroK8s.
+
+**NOTE**
+> YOU SHOULD COPY THIS KUBECONFIG FILE TO YOUR LOCAL WORKSTATION!
 
 ### Verification
-To verify the installation of MicroK8s was successfull, please execute the following command.
+To verify the installation of MicroK8s was successfull, please execute the following command within the ACN container.
 ```
 kubectl --kubeconfig=$HOME/.kube/k8s-master_config cluster-info
 ```
 
 You should the following output:
 ```
-Kubernetes control plane is running at https://1.2.3.4:16443
-CoreDNS is running at https://1.2.3.4:16443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-Metrics-server is running at https://1.2.3.4:16443/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
+Kubernetes control plane is running at https://<ip_of_your_server>:16443
+CoreDNS is running at https://<ip_of_your_server>:16443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Metrics-server is running at https://<ip_of_your_server>:16443/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
