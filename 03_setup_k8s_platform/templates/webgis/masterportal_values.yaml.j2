@@ -10,7 +10,7 @@ image:
   tag: {{ masterportal.image_tag }}
   pullPolicy: {{ masterportal.image_pullPolicy }}
 
-imagePullSecrets: []
+imagePullSecrets: [{"name": "gitlab-registry"}]
 nameOverride: ""
 fullnameOverride: ""
 
@@ -41,17 +41,20 @@ service:
   port: {{ masterportal.service_port }}
 
 ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  enabled: {{ masterportal.ingress_enabled }}
+  annotations:
+    kubernetes.io/ingress.class: "{{ masterportal.ingress_class }}"
+    kubernetes.io/tls-acme: "{{ masterportal.ingress_tls_acme }}"
+
   hosts:
-    - host: webgis-masterportal.local
-      paths: []
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - host: {{ masterportal.ingress_host }}
+      paths:
+        - path: {{ masterportal.ingress_host_path }}
+
+  tls:
+    - secretName: {{ masterportal.ingress_tls_secret }}
+      hosts:
+        - {{ masterportal.ingress_host }}
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

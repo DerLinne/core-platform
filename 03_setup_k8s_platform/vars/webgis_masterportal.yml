@@ -5,10 +5,17 @@ HELM_CHART_NAME: webgis-masterportal
 HELM_RELEASE_NAME: geodata-masterportal
 
 replicaCount: 1
-image_registry: docker.io
-image_repository: webgis-masterportal
-image_tag: local
-image_pullPolicy: Never
+image_registry: "registry.gitlab.com/"
+image_repository: "registry.gitlab.com/berlintxl/futr-hub/platform/masterportal_customizing"
+image_tag: "webgis-masterportal"
+image_pullPolicy: Always
 
-service_type: ClusterIP
+service_type: NodePort
 service_port: 80
+
+ingress_enabled: true
+ingress_class: public
+ingress_tls_acme: true
+ingress_host: "masterportal.utr-k8s.urban-data.cloud"
+ingress_host_path: "/"
+ingress_tls_secret: "masterportal.utr-k8s.urban-data.cloud-tls"

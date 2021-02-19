@@ -1,0 +1,10 @@
+{
+    "auths": {
+        "{{ docker_server }}": {
+            "username": "{{ docker_username }}",
+            "password": "{{ docker_password }}",
+            "email": "{{ docker_email }}",
+            "auth": "{{ docker_credentials | b64encode }}"
+        }
+    }
+}

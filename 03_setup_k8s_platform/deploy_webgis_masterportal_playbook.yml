@@ -35,8 +35,41 @@
         masterportal_helm_chart_name: "{{ masterportal.HELM_CHART_NAME }}"
         masterportal_helm_release_name: "{{ masterportal.HELM_RELEASE_NAME }}"
 
+    - name: Log into GitLab registry and reauthorize
+      community.general.docker_login:
+        registry_url: registry.gitlab.com
+        username: "{{ GITLAB_REGISTRY_ACCESS_USER }}"
+        password: "{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
+        reauthorize: yes
+
+    - name: Set facts for dockerconfigjson
+      ansible.builtin.set_fact:
+        docker_registry: gitlab-registry
+        docker_server: registry.gitlab.com/
+        docker_email: "{{ GITLAB_REGISTRY_ACCESS_USER_EMAIL }}"
+        docker_username: "{{ GITLAB_REGISTRY_ACCESS_USER }}"
+        docker_password: "{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
+        docker_credentials: "{{ GITLAB_REGISTRY_ACCESS_USER }}:{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
+
+    - name: Create dockerconfigjson
+      ansible.builtin.set_fact:
+        dockerconfigjson: "{{ lookup('template', 'templates/webgis/masterportal_dockerjson.json.j2') | to_json }}"
+
+    - name: Create docker-registry secret for GitLab registry
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: secret
+          type: "kubernetes.io/dockerconfigjson"
+          metadata:
+            name: "gitlab-registry"
+            namespace: "{{ k8s_namespace | lower }}"
+          data:
+            .dockerconfigjson: "{{ dockerconfigjson | b64encode }}"
+
     - name: Install Helm package with values loaded from template
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         name: "{{ masterportal_helm_release_name }}"
         # chart_ref: "{{ helm_repo_name }}/{{ masterportal_helm_chart_name }}"
         chart_ref: "files/helmcharts/{{ masterportal_helm_chart_name }}"
@@ -46,5 +79,3 @@
         update_repo_cache: true
         create_namespace: true
         values: "{{ lookup('template', 'templates/webgis/masterportal_values.yaml.j2') | from_yaml }}"
-
-
