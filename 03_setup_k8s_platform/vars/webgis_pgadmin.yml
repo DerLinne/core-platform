@@ -11,7 +11,7 @@ image_repository: dpage/pgadmin4
 image_tag: "4.29"
 image_pullPolicy: IfNotPresent
 
-service_type: ClusterIP
+service_type: NodePort
 service_port: 80
 service_targetPort: http
 service_portName: http
@@ -21,20 +21,23 @@ serverDefinitions_Name: WebGIS Prototyp – PostGIS
 serverDefinitions_Group: Servers
 serverDefinitions_Port: 5432
 serverDefintions_Username: "{{ lookup('env','POSTGIS_USER') | default('postgres', true) }}"
-serverDefintions_Host: "{{ lookup('env', 'POSTGIS_HOST') | default('geodata-postgis-webgis-postgis.smart-city-txl', true) }}"
+serverDefintions_Host: "{{ lookup('env', 'POSTGIS_HOST') | default('geodata-postgis-webgis-postgis', true) }}"
 serverDefinitions_SSLMode: prefer
 serverDefinitions_MaintenanceDB: "{{ serverDefinitions_MaintenanceDB }}"
 
 networkPolicy_enabled: true
 
-ingress_enabled: false
-ingres_host:
+ingress_enabled: true
+ingress_class: public
+ingres_host: pgadmin.utr-k8s.urban-data.cloud
+tls_acme: true
+tls_secretName: pgadmin.utr-k8s.urban-data.cloud-tls
 
 existingSecret: ""
 
 env_email: "{{ lookup('env','PGADMIN_DEFAULT_EMAIL') | default('max@mustermann.de', true) }}"
 env_password: "{{ lookup('env','PGADMIN_DEFAULT_PASSWORD') | default('pgadmin123', true) }}"
-env_enhanced_cookie_protection: "{{ lookup('env','PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION') | default('False', true) }}"
+env_enhanced_cookie_protection: "{{ lookup('env','PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION') | default('True', true) }}"
 # Add more env variables if necessary, e.g.
 # PGADMIN_ENABLE_TLS: "{{ lookup('env','PGADMIN_ENABLE_TLS') | default('false', true) }}"
 
