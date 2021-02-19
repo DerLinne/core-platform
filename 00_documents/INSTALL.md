@@ -105,7 +105,7 @@ Please, execute the following steps to install MicroK8s.
 # run the Ansible playbooks
 cd ~/data-platform-k8s/02_setup_k8s
 
-ansible-playbook -i inventory playbook.yml
+ansible-playbook -i inventory -u root playbook.yml
 
 # Wait ...
 ```
