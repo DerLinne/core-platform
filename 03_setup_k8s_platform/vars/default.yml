@@ -12,6 +12,6 @@ HELM_REPO_URL: http://127.0.0.1
 HELM_REPO_NAME: futr-hub
 
 # Kubernetes
-K8S_KUBECONFIG: ~/.kube/config
+K8S_KUBECONFIG: ~/.kube/k8s-master_config
 K8S_CONTEXT: microk8s
 K8S_NAMESPACE: smart-city-txl
