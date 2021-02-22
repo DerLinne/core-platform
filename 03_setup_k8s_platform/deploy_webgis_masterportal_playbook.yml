@@ -35,13 +35,6 @@
         masterportal_helm_chart_name: "{{ masterportal.HELM_CHART_NAME }}"
         masterportal_helm_release_name: "{{ masterportal.HELM_RELEASE_NAME }}"
 
-    - name: Log into GitLab registry and reauthorize
-      community.general.docker_login:
-        registry_url: registry.gitlab.com
-        username: "{{ GITLAB_REGISTRY_ACCESS_USER }}"
-        password: "{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
-        reauthorize: yes
-
     - name: Set facts for dockerconfigjson
       ansible.builtin.set_fact:
         docker_registry: gitlab-registry
