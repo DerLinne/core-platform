@@ -23,7 +23,7 @@
 
     - name: Set facts for ChartMuseum
       ansible.builtin.set_fact:
-        cm_port: "{{ default.CM_PORT}}"
+        cm_port: "{{ default.CM_PORT }}"
         cm_storage: "{{ default.CM_STORAGE }}"
         cm_storage_local_rootdir: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
         cm_context_path: "{{ default.CM_CONTEXT_PATH }}"
@@ -35,6 +35,14 @@
         masterportal_helm_chart_name: "{{ masterportal.HELM_CHART_NAME }}"
         masterportal_helm_release_name: "{{ masterportal.HELM_RELEASE_NAME }}"
 
+    - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: "gitlab-registry"
+        namespace: "{{ k8s_namespace }}"
+      register: gitlab_registry_secret
+
     - name: Set facts for dockerconfigjson
       ansible.builtin.set_fact:
         docker_registry: gitlab-registry
@@ -43,10 +51,12 @@
         docker_username: "{{ GITLAB_REGISTRY_ACCESS_USER }}"
         docker_password: "{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
         docker_credentials: "{{ GITLAB_REGISTRY_ACCESS_USER }}:{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
+      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
 
     - name: Create dockerconfigjson
       ansible.builtin.set_fact:
-        dockerconfigjson: "{{ lookup('template', 'templates/webgis/masterportal_dockerjson.json.j2') | to_json }}"
+        dockerconfigjson: "{{ lookup('template', 'templates/webgis/gitlab_dockerjson.json.j2') | to_json }}"
+      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
 
     - name: Create docker-registry secret for GitLab registry
       kubernetes.core.k8s:
@@ -60,6 +70,7 @@
             namespace: "{{ k8s_namespace | lower }}"
           data:
             .dockerconfigjson: "{{ dockerconfigjson | b64encode }}"
+      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
 
     - name: Install Helm package with values loaded from template
       kubernetes.core.helm:

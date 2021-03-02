@@ -23,7 +23,7 @@
 
     - name: Set facts for ChartMuseum
       ansible.builtin.set_fact:
-        cm_port: "{{ default.CM_PORT}}"
+        cm_port: "{{ default.CM_PORT }}"
         cm_storage: "{{ default.CM_STORAGE }}"
         cm_storage_local_rootdir: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
         cm_context_path: "{{ default.CM_CONTEXT_PATH }}"
