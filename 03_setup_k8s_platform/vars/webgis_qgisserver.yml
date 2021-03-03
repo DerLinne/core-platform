@@ -1,0 +1,49 @@
+---
+# file: 03_setup_k8s_platform/vars/webgis_qgisserver.yml
+
+HELM_CHART_NAME: webgis-qgisserver
+HELM_RELEASE_NAME: geodata-qgisserver
+
+# Helm sepcific settings
+qgis_data_dir: "/data/qgis"
+nginx_default_conf: "/etc/nginx/conf.d/"
+nginx_qgis_conf: "qgis-nginx.conf"
+
+# QGIS Server
+server_replicaCount: 1
+server_image_registry: "registry.gitlab.com"
+server_image_repository: "berlintxl/futr-hub/platform/qgis-server-customizing"
+server_image_tag: "webgis-qgisserver"
+server_image_pullPolicy: Always
+server_image_pullSecrets: "gitlab-registry"
+server_service_port: 5555
+server_target_port: 5555
+
+# QGIS-HTTP-Server
+http_replicaCount: 1
+http_service_port: 80
+http_target_port: 80
+http_service_nodePort: 30080
+
+# QGIS environment variables
+env_QGIS_LANG: "en_EN.UTF-8"
+env_QGIS_PROJECT_FILE: "project.qgs"
+env_QGIS_SERVER_LOG_LEVEL: "0"
+env_DEBUG: "1"
+
+# QGIS: values for file 'pg_service.conf'
+postgis_service: "qwc_geodb"
+postgis_host: "geodata-postgis-webgis-postgis"
+postgis_port: 5432
+postgis_dbname: "qwc_demo"
+postgis_user: "{{ postgis_user }}"
+postgis_user_password: "{{ postgis_user_password }}"
+postgis_sslmode: "disable"
+
+# PostGIS: MountPath and Name of 'pg_service.conf' for QGIS Server
+pgservicefile_dir: "/data/postgresql"
+pgservicefile: "qgis-pg-service.conf"
+
+# PostGIS: Credentials of PostGIS admin to create database artefacts for QGIS Server
+postgis_admin: "postgres"
+postgis_admin_password: "postgres123"

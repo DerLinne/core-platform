@@ -1,0 +1,70 @@
+# Values for QGIS Server
+
+# Set name, if you do not want to use the chart name as common base name
+# for any QGIS Server Kubernetes component
+name:
+
+qgis:
+  #----------------------------------
+  # QGIS Server general configuration
+  #----------------------------------
+  data_dir: "{{ qgisserver.qgis_data_dir }}"
+  lang: "{{ qgisserver.env_QGIS_LANG }}"
+  project_file: "{{ qgisserver.env_QGIS_PROJECT_FILE }}"
+  server_log_level: "{{ qgisserver.env_QGIS_SERVER_LOG_LEVEL }}"
+  debug: "{{ qgisserver.env_DEBUG }}"
+
+  # Settings for pg_service.conf
+  pgservicefile_dir: "{{ qgisserver.pgservicefile_dir }}"
+  pgservicefile: "{{ qgisserver.pgservicefile }}"
+
+  # Values for pg_service.conf
+  postgis_service: "{{ qgisserver.postgis_service }}"
+  postgis_host: "{{ qgisserver.postgis_host }}"
+  postgis_port: {{ qgisserver.postgis_port }}
+  postgis_dbname: "{{ qgisserver.postgis_dbname }}"
+  postgis_user: "{{ qgisserver.postgis_user }}"
+  postgis_user_password: "{{ qgisserver.postgis_user_password }}"
+  postgis_sslmode: "{{ qgisserver.postgis_sslmode }}"
+
+  #----------------------------------
+  # QGIS Server configuration
+  #----------------------------------
+  server:
+    image:
+      registry: "{{ qgisserver.server_image_registry }}"
+      repository: "{{ qgisserver.server_image_repository }}"
+      tag: "{{ qgisserver.server_image_tag }}"
+      pullPolicy: {{ qgisserver.server_image_pullPolicy }}
+
+    imagePullSecrets: [{"name": "{{ qgisserver.server_image_pullSecrets }}"}]
+
+    # Deployment settings
+    replicas: {{ qgisserver.server_replicaCount }}
+    ports:
+      servicePort: {{ qgisserver.server_service_port }}
+      targetPort: {{ qgisserver.server_target_port }}
+
+  #----------------------------------
+  # QGIS HTTP configuration
+  #----------------------------------
+  http:
+    image:
+      registry: docker.io
+      repository: nginx
+      tag: stable
+      pullPolicy: IfNotPresent
+
+    # Deployment settings
+    replicas: {{ qgisserver.http_replicaCount }}
+    ports:
+      servicePort: {{ qgisserver.http_service_port }}
+      targetPort: {{ qgisserver.http_target_port}}
+      nodePort: {{ qgisserver.http_service_nodePort }}
+
+nginx:
+  #----------------------------------
+  # Nginx configuration
+  #----------------------------------
+  default_conf: "{{ qgisserver.nginx_default_conf }}"
+  qgis_conf: "{{ qgisserver.nginx_qgis_conf }}"

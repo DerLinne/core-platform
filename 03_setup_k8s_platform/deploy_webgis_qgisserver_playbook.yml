@@ -1,0 +1,169 @@
+---
+# file: 03_setup_k8s_platform/deploy_webgis_qgisserver_playbook.yml
+- name: Deploy QGIS Server for WebGIS
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read QGIS Server values
+      ansible.builtin.include_vars:
+        file: webgis_qgisserver.yml
+        name: qgisserver
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE }}"
+        kubectl_pid_file: "/tmp/kubectl_pid"
+
+    - name: Set facts for ChartMuseum
+      ansible.builtin.set_fact:
+        cm_port: "{{ default.CM_PORT }}"
+        cm_storage: "{{ default.CM_STORAGE }}"
+        cm_storage_local_rootdir: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
+        cm_context_path: "{{ default.CM_CONTEXT_PATH }}"
+        helm_repo_url: "{{ default.HELM_REPO_URL }}"
+        helm_repo_name: "{{ default.HELM_REPO_NAME }}"
+
+    - name: Set facts for QGIS Server
+      ansible.builtin.set_fact:
+        qgisserver_helm_chart_name: "{{ qgisserver.HELM_CHART_NAME }}"
+        qgisserver_helm_release_name: "{{ qgisserver.HELM_RELEASE_NAME }}"
+        qgisserver_postgis_admin: "{{ qgisserver.postgis_admin }}"
+        qgisserver_postgis_admin_password: "{{ qgisserver.postgis_admin_password }}"
+        qgisserver_postgis_host: "{{ qgisserver.postgis_host }}"
+        qgisserver_postgis_port: "{{ qgisserver.postgis_port }}"
+        qgisserver_postgis_dbname: "{{ qgisserver.postgis_dbname }}"
+        qgisserver_postgis_user: "{{ qgisserver.postgis_user }}"
+        qgisserver_postgis_user_password: "{{ qgisserver.postgis_user_password }}"
+        qgisserver_postgis_sslmode: "{{ qgisserver.postgis_sslmode }}"
+
+    - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: "gitlab-registry"
+        namespace: "{{ k8s_namespace }}"
+      register: gitlab_registry_secret
+
+    - name: Set facts for dockerconfigjson
+      ansible.builtin.set_fact:
+        docker_registry: gitlab-registry
+        docker_server: registry.gitlab.com/
+        docker_email: "{{ GITLAB_REGISTRY_ACCESS_USER_EMAIL }}"
+        docker_username: "{{ GITLAB_REGISTRY_ACCESS_USER }}"
+        docker_password: "{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
+        docker_credentials: "{{ GITLAB_REGISTRY_ACCESS_USER }}:{{ GITLAB_REGISTRY_ACCESS_TOKEN }}"
+      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
+
+    - name: Create dockerconfigjson
+      ansible.builtin.set_fact:
+        dockerconfigjson: "{{ lookup('template', 'templates/webgis/gitlab_dockerjson.json.j2') | to_json }}"
+      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
+
+    - name: Create docker-registry secret for GitLab registry
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: secret
+          type: "kubernetes.io/dockerconfigjson"
+          metadata:
+            name: "gitlab-registry"
+            namespace: "{{ k8s_namespace | lower }}"
+          data:
+            .dockerconfigjson: "{{ dockerconfigjson | b64encode }}"
+      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
+
+    - name: Remove old PID files before running kubectl port-forward
+      ansible.builtin.file:
+        path: "{{ kubectl_pid_file }}"
+        state: absent
+
+    - name: Run kubectl port-forward to PostGIS K8s service
+      ansible.builtin.shell: |
+        nohup kubectl --kubeconfig="$HOME/.kube/k8s-master_config" port-forward --namespace smart-city-txl svc/geodata-postgis-webgis-postgis 5432:5432 </dev/null >/dev/null 2>&1 &
+        echo "$!" >{{ kubectl_pid_file | quote }}
+      args:
+        executable: /bin/bash
+        creates: "{{ kubectl_pid_file }}"
+
+    - name: Wait for handling connections to PostGIS K8s service ...
+      ansible.builtin.pause:
+        seconds: 15
+
+    - name: Check connection to PostGIS Server
+      community.general.postgresql_ping:
+        db: "postgres"
+        login_host: "127.0.0.1"
+        login_user: "{{ qgisserver_postgis_admin }}"
+        login_password: "{{ qgisserver_postgis_admin_password }}"
+        port: "{{ qgisserver_postgis_port }}"
+        ssl_mode: "{{ qgisserver_postgis_sslmode }}"
+
+    - name: "Create PostGIS user {{ qgisserver_postgis_user }} for QGIS Server"
+      community.general.postgresql_user:
+        db: "postgres"
+        login_host: "127.0.0.1"
+        login_user: "{{ qgisserver_postgis_admin }}"
+        login_password: "{{ qgisserver_postgis_admin_password }}"
+        port: "{{ qgisserver_postgis_port }}"
+        ssl_mode: "{{ qgisserver_postgis_sslmode }}"
+        name: "{{ qgisserver_postgis_user }}"
+        password: "{{ qgisserver_postgis_user_password }}"
+        role_attr_flags: LOGIN,NOSUPERUSER,CREATEDB,NOCREATEROLE,INHERIT,NOREPLICATION
+        state: present
+      environment:
+        PGOPTIONS: "-c password_encryption=scram-sha-256"
+
+    - name: Disconnect template_postgis from database postgres
+      community.general.postgresql_query:
+        db: "postgres"
+        login_host: "127.0.0.1"
+        login_user: "{{ qgisserver_postgis_admin }}"
+        login_password: "{{ qgisserver_postgis_admin_password }}"
+        port: "{{ qgisserver_postgis_port }}"
+        ssl_mode: "{{ qgisserver_postgis_sslmode }}"
+        query: SELECT *, pg_terminate_backend(pid) FROM pg_stat_activity WHERE pg_stat_activity.datname='template_postgis'
+
+    - name: "Create PostGIS database {{ qgisserver_postgis_dbname }} for QGIS Server"
+      community.general.postgresql_db:
+        db: "postgres"
+        login_host: "127.0.0.1"
+        login_user: "{{ qgisserver_postgis_admin }}"
+        login_password: "{{ qgisserver_postgis_admin_password }}"
+        port: "{{ qgisserver_postgis_port }}"
+        ssl_mode: "{{ qgisserver_postgis_sslmode }}"
+        name: "{{ qgisserver_postgis_dbname }}"
+        owner: "{{ qgisserver_postgis_user }}"
+        encoding: UTF-8
+        template: template_postgis
+        state: present
+
+    - name: Install Helm package with values loaded from template
+      kubernetes.core.helm:
+        name: "{{ qgisserver_helm_release_name }}"
+        # chart_ref: "{{ helm_repo_name }}/{{ qgisserver_helm_chart_name }}"
+        chart_ref: "files/helmcharts/{{ qgisserver_helm_chart_name }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        release_namespace: "{{ k8s_namespace }}"
+        update_repo_cache: true
+        create_namespace: true
+        values: "{{ lookup('template', 'templates/webgis/qgisserver_values.yaml.j2') | from_yaml }}"
+
+    - name: Stop kubectl port-forward to PostGIS K8s service
+      ansible.builtin.shell: |
+        kill "$(cat {{ kubectl_pid_file|quote }})" || true
+        rm -f {{ kubectl_pid_file | quote }}
+      args:
+        executable: /bin/bash
+        removes: "{{ kubectl_pid_file }}"
+      tags:
+      - always
