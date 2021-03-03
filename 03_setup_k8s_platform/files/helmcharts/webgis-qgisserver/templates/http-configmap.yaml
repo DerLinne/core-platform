@@ -1,0 +1,23 @@
+{{- $tier := "server" -}}
+{{- $fullName := include "webgis-qgisserver.fullname" (merge (dict "tier" $tier) .) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.nginx.qgis_conf | quote }}
+data:
+  default.conf: |
+    server {
+      listen {{ .Values.qgis.http.ports.servicePort }};
+      server_name _;
+      location / {
+        root  /usr/share/nginx/html;
+        index index.html index.htm;
+      }
+      location /qgis-server {
+        proxy_buffers 16 16k;
+        proxy_buffer_size 16k;
+        gzip off;
+        include fastcgi_params;
+        fastcgi_pass {{ $fullName }}:{{ .Values.qgis.server.ports.servicePort }};
+      }
+    }

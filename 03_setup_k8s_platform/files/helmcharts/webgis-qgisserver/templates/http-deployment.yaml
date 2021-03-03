@@ -1,0 +1,45 @@
+{{- $tier := "http" -}}
+{{- $fullName := include "webgis-qgisserver.fullname" (merge (dict "tier" $tier) .) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ include "webgis-qgisserver.chart" . }}
+    app: {{ include "webgis-qgisserver.name" . }}
+    component: {{ $tier }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app: {{ include "webgis-qgisserver.name" . }}
+      component: {{ $tier }}
+  replicas: {{ .Values.qgis.http.replicas }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        helm.sh/chart: {{ include "webgis-qgisserver.chart" . }}
+        app: {{ include "webgis-qgisserver.name" . }}
+        component: {{ $tier }}
+    spec:
+      containers:
+        - name: {{ $fullName }}
+          image: "{{ .Values.qgis.http.image.registry }}/{{ .Values.qgis.http.image.repository }}:{{ .Values.qgis.http.image.tag }}"
+          imagePullPolicy: {{ .Values.qgis.http.image.pullPolicy | quote }}
+          ports:
+            - containerPort: {{ .Values.qgis.http.ports.servicePort }}
+          volumeMounts:
+            - name: qgis-http-conf
+              mountPath: {{ .Values.nginx.default_conf | quote }}
+      volumes:
+        - name: qgis-http-conf
+          configMap:
+            name: {{ .Values.nginx.qgis_conf | quote }}
+            items:
+              - key: default.conf
+                path: default.conf

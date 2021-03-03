@@ -1,0 +1,66 @@
+{{- $tier := "server" -}}
+{{- $fullName := include "webgis-qgisserver.fullname" (merge (dict "tier" $tier) .) -}}
+{{- $secretName := include "webgis-qgisserver.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ include "webgis-qgisserver.chart" . }}
+    app: {{ include "webgis-qgisserver.name" . }}
+    component: {{ $tier }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app: {{ include "webgis-qgisserver.name" . }}
+      component: {{ $tier }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        helm.sh/chart: {{ include "webgis-qgisserver.chart" . }}
+        app: {{ include "webgis-qgisserver.name" . }}
+        component: {{ $tier }}
+    spec:
+      {{- with .Values.qgis.server.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $fullName }}
+          image: "{{ .Values.qgis.server.image.registry }}/{{ .Values.qgis.server.image.repository }}:{{ .Values.qgis.server.image.tag }}"
+          imagePullPolicy: {{ .Values.qgis.server.image.pullPolicy | quote }}
+          ports:
+            - containerPort: {{ .Values.qgis.server.ports.servicePort }}
+          env:
+            - name: QGIS_LANG
+              value: {{ .Values.qgis.lang | quote }}
+            - name: QGIS_PROJECT_FILE
+              value: "{{ .Values.qgis.data_dir }}/{{ .Values.qgis.project_file }}"
+            - name: QGIS_SERVER_LOG_LEVEL
+              value: {{ .Values.qgis.server_log_level | quote }}
+            - name: DEBUG
+              value: {{ .Values.qgis.debug | quote }}
+            - name: PGSERVICEFILE
+              value: "{{ .Values.qgis.pgservicefile_dir}}/pg_service.conf"
+          volumeMounts:
+            - name: qgis-project-file
+              mountPath: {{ .Values.qgis.data_dir | quote }}
+            - name: qgis-pgserviceconf-file
+              mountPath: {{ .Values.qgis.pgservicefile_dir | quote }}
+              readOnly: true
+      volumes:
+        - name: qgis-project-file
+          configMap:
+            name: {{ .Values.qgis.project_file | quote }}
+        - name: qgis-pgserviceconf-file
+          secret:
+            secretName: {{ $secretName }}
+            items:
+              - key: pg_service.conf
+                path: pg_service.conf

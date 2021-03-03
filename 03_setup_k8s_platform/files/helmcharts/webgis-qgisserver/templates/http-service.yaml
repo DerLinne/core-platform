@@ -1,0 +1,24 @@
+{{- $tier := "http" -}}
+{{- $fullName := include "webgis-qgisserver.fullname" (merge (dict "tier" $tier) .) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ include "webgis-qgisserver.chart" . }}
+    app: {{ include "webgis-qgisserver.name" . }}
+    component: {{ $tier }}
+spec:
+  selector:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ include "webgis-qgisserver.chart" . }}
+    app: {{ include "webgis-qgisserver.name" . }}
+    component: {{ $tier }}
+  type: NodePort
+  ports:
+    - port: {{ .Values.qgis.http.ports.servicePort }}
+      targetPort: {{ .Values.qgis.http.ports.targetPort }}
+      nodePort: {{ .Values.qgis.http.ports.nodePort }}

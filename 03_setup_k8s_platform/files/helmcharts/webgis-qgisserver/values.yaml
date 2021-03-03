@@ -1,0 +1,70 @@
+# Values for QGIS Server
+
+# Set name, if you do not want to use the chart name as common base name
+# for any QGIS Server Kubernetes component
+name:
+
+qgis:
+  #----------------------------------
+  # QGIS Server general configuration
+  #----------------------------------
+  data_dir: "/data/qgis"
+  lang: "en_EN.UTF-8"
+  project_file: "project.qgs"
+  server_log_level: "0"
+  debug: "1"
+
+  # Settings for pg_service.conf
+  pgservicefile_dir: "/data/postgresql"
+  pgservicefile: "qgis-pg-service.conf"
+
+  # Values for pg_service.conf
+  postgis_service: "qwc_geodb"
+  postgis_host: "geodata-postgis-webgis-postgis"
+  postgis_port: 5432
+  postgis_dbname: "qwc_demo"
+  postgis_user: "qgis_server"
+  postgis_user_password: "qgis_server123"
+  postgis_sslmode: "disable"
+
+  #----------------------------------
+  # QGIS Server configuration
+  #----------------------------------
+  server:
+    image:
+      registry: "registry.gitlab.com"
+      repository: "berlintxl/futr-hub/platform/qgis-server-customizing"
+      tag: "webgis-qgisserver"
+      pullPolicy: Always
+
+    imagePullSecrets: [{"name": "gitlab-registry"}]
+
+    # Deployment settings
+    replicas: 1
+    ports:
+      servicePort: 5555
+      targetPort: 5555
+
+  #----------------------------------
+  # QGIS HTTP configuration
+  #----------------------------------
+  http:
+    image:
+      registry: docker.io
+      repository: nginx
+      tag: stable
+      pullPolicy: IfNotPresent
+
+    # Deployment settings
+    replicas: 1
+    ports:
+      servicePort: 80
+      targetPort: 80
+      nodePort: 30080
+
+nginx:
+  #----------------------------------
+  # Nginx configuration
+  #----------------------------------
+  default_conf: "/etc/nginx/conf.d/"
+  qgis_conf: "qgis-nginx.conf"
