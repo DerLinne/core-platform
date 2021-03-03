@@ -1,11 +1,6 @@
 ---
 # file: tasks/kubectl.yml
 
-- debug:
-    msg:
-      - "Executing kubectl tasks"
-      - msg: "Version of 'kubectl' is {{ kubectl.version }}"
-
 - name: Get apt-key for package 'kubectl'
   apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg

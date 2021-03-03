@@ -2,4 +2,4 @@
 # file vars/acn.yml
 
 sys_packages: [ 'curl', 'vim', 'git', 'less', 'iputils-ping', 'sshpass']
-python_packages: [ 'openshift', 'jmespath', 'docker']
+python_packages: [ 'openshift', 'jmespath', 'docker', psycopg2-binary]
