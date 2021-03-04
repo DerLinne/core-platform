@@ -148,8 +148,37 @@ This section describes how to install the following components:
 + [PostGIS](#postgis)
 + [pgAdmin](#pgadmin)
 + [MasterPortal](#masterportal)
++ [QGIS Server](#qgis-server)
 
 ### Prerequisites
+- Your DNS server is setup properly to create [Let's Encrypt](https://letsencrypt.org/) certificats for the Linux server, where you deployed your Kubernetes cluster onto.
+
+- You have created an [access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) to have read-/write-access to the GitLab container registry.
+
+- You need to have a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
+
+
+**NOTE**
+> If you installed MicroK8s from within the ACN, you will already have a kubeconfig-file in the directory `~/.kube/` with the name `k8s-master_config`.
+
+You need to make a copy of the file
+`~/data-platform-k8s/03_setup_k8s/inventory.default`
+and set proper values for:
+
+- GITLAB_REGISTRY_ACCESS_USER_EMAIL
+- GITLAB_REGISTRY_ACCESS_USER
+- GITLAB_REGISTRY_ACCESS_TOKEN
+
+before you run the Ansible playbook.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+cp inventory.default inventory
+
+# edit the values for the above mentioned variables.
+vim inventory
+```
+
 Make sure that ChartMuseum is running.
 ```
 ps aux | grep 'helm servecm' | grep -v grep
@@ -162,23 +191,11 @@ cd ~/data-platform-k8s/03_setup_k8s_platform
 ansible-playbook -i inventory start_cm_playbook.yml
 ```
 
-You need to have a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
-If you installed MicroK8s from within the ACN, you will already have a kubeconfig-file in the directory `~/.kube/`.
 
-**NOTE**
-> If you use a local installation of microk8s, simply run
-
-`microk8s config > config_for_acn`
-
-and paste the content of this file into `~/.kube/config` within the ACN. Right now you have to create the directory `~/.kube` yourself.
-
-**IMPORTANT!**
-MAKE SURE THE kubeconfig FILE HAS THE PERMISSIONS SET TO `0600`!
-***
 
 To verify you can connect to your K8s API server and all necessary Pods, simply run the following commands.
 ```
-export KUBECONFIG=$HOME/.kube/<name_of_your_kubeconfig>
+export KUBECONFIG=$HOME/.kube/k8s-master_config
 kubectl cluster-info
 
 kubectl get pods --namespace kube-system
@@ -378,4 +395,138 @@ sudo microk8s ctr images list | grep webgis
 ```
 
 
+### QGIS Server
+
+To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_qgisserver_playbook.yml
+```
+
+After a view minutes the deployment should be finished.
+
+The deployment creates two new ConfigMaps
+
+- project.qgs
+- qgis-nginx.conf
+
+and the Secret _geodata-qgisserver-webgis-qgisserver_.
+The later one contains the values for the file `pg_service.conf` that is mounted into the QGIS Server pod. An according database and its user will be created within the PostGIS Pod.
+
+The file `pg_service.conf` has the following content.
+```ini
+[qwc_geodb]
+host=geodata-postgis-webgis-postgis
+port=5432
+dbname=qwc_demo
+user=qgis_server
+password=qgis_server123
+sslmode=disable
+```
+
+The ConfigMap `project.qgs` contains the content of your QGIS project file. To update, simply edit the ConfigMap and delete the Pod `geodata-qgisserver-webgis-qgisserver-server-xxxxxxxxxx-yyyyy`. After a few seconds a new Pod with the new QGIS project files will ready.
+
+---
+**IMPORTANT**
+As of now, there is a problem with the QGIS project file, that gets created as a ConfigMap. To work around that you have to follow the steps, mentioned in the section [QGIS project file – Workaround](#workaround).
+
+---
+
+To verify the installation you will have to execute the following command:
+```
+kubectl --namespace smart-city-txl port-forward \
+    svc/geodata-qgisserver-webgis-qgisserver-http 30080:80
+```
+and open the URL [http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
+
+---
+#### Workaround
+- Get a copy of the QGIS project within the ACN (There is a demo file under `03_setup_k8s_platform/files/webgis-qgisserver/qgis-sample.qgs`).
+- Run `kubectl create configmap tmp-project.qgs --from-file=./path/to/your/project.qgs`
+- Run `kubectl describe configmap tmp-project.qgs` and copy everything under the single-dash-line '----' until the closing tag `</qgis>`
+- Edit the config-map _project.qgs_, created by the Helm chart.
+  - Run `kubectl -n <Your_Namespace> edit configmap project.qgs`
+- Delete everything between the lines `project.qgs |` and `kind: ConfigMap`.
+- Paste everything you copied before between the lines `project.qgs |` and `kind: ConfigMap` and save.
+- Delete the currently running Pod with the name _geodata-qgisserver-webgis-qgisserver-server-xxxxxxxxxx-yyyyy_
+
+```
+$ kubectl describe configmap tmp-project.qgs
+
+Name:         tmp-project.qgs
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+project.qgs:
+----
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis version="3.0.0-Girona" projectname="">
+  <title></title>
+...
+  </properties>
+  <visibility-presets/>
+  <transformContext/>
+  <Annotations/>
+  <Layouts/>
+</qgis>
+```
+**NOTE**
+> Copy all below the `----` and paste it into the ConfigMap `project.qgs`.
+
+
+---
+**IMPORTANT**
+Since there is no official Docker image for QGIS Server you will have to create your own and deploy it into the local K8s registry of MicroK8s!
+
+How to create and deploy such an image will be described below!
+
+---
+
+#### How to build the QGIS Server Docker image
+
+---
+**IMPORTANT**
+AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
+PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
+YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
+
+---
+
+To build the Docker image, please execute the following commands:
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform/files/webgis-qgisserver/
+
+docker build -t webgis-qgisserver:local .
+```
+**NOTE**
+> It is mandatory, that you tag the image with `local`!
+
+Next, you will need to save this image, so we can import it.
+```
+docker save webgis-qgisserver:local > /tmp/webgis-qgisserver.tar
+```
+
+
+#### How to deploy the Docker image into the MicroK8s registry
+First, you need to transmit the file `/tmp/webgis-qgisserver.tar` to your MicroK8s server and then log onto that server.
+```
+scp /tmp/webgis-qgisserver.tar acn@<your_microk8s_server>:
+ssh acn@<your_microk8s_server>
+```
+**NOTE**
+> If you did not deploy a MicroK8s server through the ACN, you need to change your login-name of course.
+
+Next, import the saved Docker image into the registry of MicroK8s, by executing the following commands on your MicroK8s server:
+```
+sudo microk8s ctr images import webgis-qgisserver.tar
+sudo microk8s ctr images list | grep webgis
+
+# You should see the image webgis-qgisserver listed
+```
 
