@@ -32,12 +32,12 @@ qgis:
   #----------------------------------
   server:
     image:
-      registry: "registry.gitlab.com"
-      repository: "berlintxl/futr-hub/platform/qgis-server-customizing"
-      tag: "webgis-qgisserver"
-      pullPolicy: Always
+      registry: ""
+      repository: ""
+      tag: ""
+      pullPolicy: IfNotPresent
 
-    imagePullSecrets: [{"name": "gitlab-registry"}]
+    imagePullSecrets: []
 
     # Deployment settings
     replicas: 1
