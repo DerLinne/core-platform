@@ -1,0 +1,309 @@
+# Default values for CKAN Helm chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  registry: {{ ckan.image_registry }}
+  repository: {{ ckan.image_repository }}
+  tag: {{ ckan.image_tag }}
+  pullPolicy: {{ ckan.image_pullPolicy }}
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "ckan"
+
+pvc:
+  enabled: {{ ckan.pvc_enabled }}
+  size: "{{ ckan.pvc_size }}"
+
+# DBDeploymentName -- Variable for name override for postgres deployment
+DBDeploymentName: &DBDeploymentName {{ ckan.DBDeploymentName }}
+
+# RedisName -- Variable for name override for redis deployment
+RedisName: &RedisName {{ ckan.RedisName }}
+
+# SolrName -- Variable for name override for solr deployment
+SolrName: &SolrName {{ ckan.SolrName }}
+
+# DatapusherName -- Variable for name override for datapusher deployment
+DatapusherName: &DatapusherName {{ ckan.DatapusherName}}
+
+# DBHost -- Variable for name of headless svc from postgres deployment
+DBHost: &DBHost {{ ckan.DBHost }}
+# MasterDBName -- Variable for name of the master user database in PostgreSQL
+MasterDBName: &MasterDBName {{ ckan.MasterDBName }}
+# MasterDBUser -- Variable for master user name for PostgreSQL
+MasterDBUser: &MasterDBUser {{ ckan.MasterDBUser }}
+# MasterDBPass -- Variable for password for the master user in PostgreSQL
+MasterDBPass: &MasterDBPass {{ ckan.MasterDBPass }}
+
+# CkanDBName -- Variable for name of the database used by CKAN
+CkanDBName: &CkanDBName {{ ckan.CkanDBName }}
+# CkanDBUser -- Variable for username for the owner of the CKAN database
+CkanDBUser: &CkanDBUser {{ ckan.CkanDBUser }}
+# CkanDBPass -- Variable for password for the CKAN database owner
+CkanDBPass: &CkanDBPass {{ ckan.CkanDBPass }}
+# DatastoreDBName -- Variable for name of the database used by Datastore
+DatastoreDBName: &DatastoreDBName {{ ckan.DatastoreDBName }}
+# DatastoreRWDBUser -- Variable for username for the user with write access to the datastore database
+DatastoreRWDBUser: &DatastoreRWDBUser {{ ckan.DatastoreRWDBUser }}
+# DatastoreRWDBPass -- Variable for password for the datastore database user with write access
+DatastoreRWDBPass: &DatastoreRWDBPass {{ ckan.DatastoreRWDBPass }}
+# DatastoreRODBUser -- Variable for username for the user with read access to the datastore database
+DatastoreRODBUser: &DatastoreRODBUser {{ ckan.DatastoreRODBUser }}
+# DatastoreRODBPass -- Variable for password for the datastore database user with read access
+DatastoreRODBPass: &DatastoreRODBPass {{ ckan.DatastoreRODBPass }}
+
+ckan:
+  # ckan.sysadminName -- CKAN system admin username
+  sysadminName: "{{ ckan.ckan_sysadminName }}"
+  # ckan.sysadminPassword -- CKAN system admin password
+  sysadminPassword: "{{ ckan.ckan_sysadminPassword }}"
+  # ckan.sysadminApiToken -- CKAN system admin API token
+  # Needs to be generated via the CKAN UI and replaced after initial deployment
+  sysadminApiToken: "{{ ckan.ckan_sysadminApiToken }}"
+  # ckan.sysadminEmail -- CKAN system admin email
+  sysadminEmail: "{{ ckan.ckan_sysadminEmail }}"
+  # ckan.siteTitle -- Site title for the instance
+  siteTitle: "{{ ckan.ckan_siteTitle }}"
+  # ckan.siteId -- Site id
+  siteId: "{{ ckan.ckan_siteId }}"
+  # ckan.siteUrl -- Url for the CKAN instance
+  siteUrl: "{{ ckan.ckan_siteUrl }}"
+  # ckan.ckanPlugins -- List of plugins to be used by the instance
+  ckanPlugins: "{{ ckan.ckan_ckanPlugins }}"
+  # ckan.storagePath -- Storage path to be used by the instance
+  storagePath: "{{ ckan.ckan_storagePath }}"
+  activityStreamsEmailNotifications: "{{ ckan.ckan_activityStreamsEmailNotifications }}"
+  debug: "{{ ckan.ckan_debug }}"
+  # ckan.maintenanceMode -- Set to true to disable CKAN from starting and serve a maintenance page
+  maintenanceMode: "{{ ckan.ckan_maintenanceMode }}"
+  psql:
+    # ckan.psql.initialize -- Flag whether to initialize the PostgreSQL instance with the provided users and databases
+    initialize: {{ ckan.psql_initialize }}
+    # ckan.psql.masterUser -- PostgreSQL master username
+    masterUser: *MasterDBUser
+    # ckan.psql.masterPassword -- PostgreSQL master user password
+    masterPassword: *MasterDBPass
+    # ckan.psql.masterDatabase -- PostgreSQL database for the master user
+    masterDatabase: *MasterDBName
+  db:
+    # ckan.db.ckanDbUrl -- Url of the PostgreSQL server where the CKAN database is hosted
+    ckanDbUrl: *DBHost
+    # ckan.db.ckanDbName -- Name of the database to be used by CKAN
+    ckanDbName: *CkanDBName
+    # ckan.db.ckanDbUser -- Username of the database to be used by CKAN
+    ckanDbUser: *CkanDBUser
+    # ckan.db.ckanDbPassword -- Password of the user for the database to be used by CKAN
+    ckanDbPassword: *CkanDBPass
+  datastore:
+    # ckan.datastore.RwDbUrl -- Url of the PostgreSQL server where the datastore database is hosted
+    RwDbUrl: *DBHost
+    # ckan.datastore.RwDbName -- Name of the database to be used for Datastore
+    RwDbName: *DatastoreDBName
+    # ckan.datastore.RwDbUser -- Username for the datastore database with write permissions
+    RwDbUser: *DatastoreRWDBUser
+    # ckan.datastore.RwDbPassword -- Password for the datastore write permissions user
+    RwDbPassword: *DatastoreRWDBPass
+    # ckan.datastore.RoDbUrl -- Url of the PostgreSQL server where the datastore database is hosted
+    RoDbUrl: *DBHost
+    # ckan.datastore.RoDbName -- Name of the database to be used for Datastore
+    RoDbName: *DatastoreDBName
+    # ckan.datastore.RoDbUser -- Username for the datastore database with read permissions
+    RoDbUser: *DatastoreRODBUser
+    # ckan.datastore.RoDbPassword -- Password for the datastore read permissions user
+    RoDbPassword: *DatastoreRODBPass
+  # ckan.solr -- Location of SOLR collection used by the instance
+  solr: "{{ ckan.solr_url }}"
+  # ckan.redis -- Location of the Redis service to be used by the CKAN instance
+  redis: "{{ ckan.redis_url }}"
+  spatialBackend: "{{ ckan.spatialBackend }}"
+  locale:
+    offered: "{{ ckan.locale_offered }}"
+    default: "{{ ckan.locale_default }}"
+  # ckan.datapusherUrl -- Location of the datapusher service to be used by the CKAN instance
+  datapusherUrl: "{{ ckan.datapusherUrl }}"
+  # ckan.datapusherCallbackUrlBase -- Location of the CKAN k8s service to be used by the Datapusher, overriding the default site url route.
+  datapusherCallbackUrlBase: {{ ckan.datapusherCallbackUrlBase }}
+  smtp:
+    server: "{{ ckan.smtp_server }}"
+    user: "{{ ckan.smtp_user }}"
+    password: "{{ ckan.smtp_password }}"
+    mailFrom: "{{ ckan.smtp_mailFrom }}"
+    tls: "{{ ckan.smtp_tls }}"
+    starttls: "{{ ckan.smtp_starttls }}"
+  issues:
+    sendEmailNotifications: "{{ ckan.issues_sendEmailNotifications }}"
+
+  # ckan.extraEnv -- An array to add extra environment variables
+  # For example:
+  # extraEnv:
+  #   - name: FOO
+  #     value: "bar"
+  #
+  extraEnv: {{ ckan.extraEnv }}
+
+  readiness:
+    # ckan.readiness.initialDelaySeconds -- Inital delay seconds for the readiness probe
+    initialDelaySeconds: {{ ckan.readiness_initialDelaySeconds }}
+    #  ckan.readiness.periodSeconds -- Check interval for the readiness probe
+    periodSeconds: {{ ckan.readiness_periodSeconds }}
+    # ckan.readiness.failureThreshold -- Failure threshold for the readiness probe
+    failureThreshold: {{ ckan.readiness_failureThreshold }}
+    # ckan.readiness.timeoutSeconds -- Timeout interval for the readiness probe
+    timeoutSeconds: {{ ckan.readiness_timeoutSeconds }}
+  liveness:
+    # ckan.liveness.initialDelaySeconds -- Initial delay for the liveness probe
+    initialDelaySeconds: {{ ckan.liveness_initialDelaySeconds }}
+    # ckan.liveness.periodSeconds -- Check interval for the liveness probe
+    periodSeconds: {{ ckan.liveness_periodSeconds }}
+    # ckan.liveness.failureThreshold -- Failure threshold for the liveness probe
+    failureThreshold: {{ ckan.liveness_failureThreshold }}
+    # ckan.liveness.timeoutSeconds -- Timeout interval for the liveness probe
+    timeoutSeconds: {{ ckan.liveness_timeoutSeconds }}
+
+serviceAccount:
+  # serviceAccount.create -- Specifies whether a service account should be created
+  create: {{ ckan.serviceAccount_create }}
+  # serviceAccount.annotations -- Annotations to add to the service account
+  annotations: {{ ckan.serviceAccount_annotations }}
+  # serviceAccount.name -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: {{ ckan.serviceAccount_name }}
+
+podSecurityContext: {{ ckan.podSecurityContext }}
+  # fsGroup: 2000
+
+securityContext: {{ ckan.securityContext }}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # service.type -- Type of the service created for the CKAN pod
+  type: {{ ckan.service_type }}
+  port: {{ ckan.service_port }}
+
+ingress:
+  enabled: {{ ckan.ingress_enabled }}
+  annotations:
+    kubernetes.io/ingress.class: "{{ ckan.ingress_class }}"
+    kubernetes.io/tls-acme: "{{ ckan.tls_acme }}"
+  hosts:
+    - host: {{ ckan.ingress_host }}
+      paths:
+        - /
+  tls:
+   - secretName: {{ ckan.tls_secretName }}
+     hosts:
+       - {{ ckan.ingress_host }}
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+datapusher:
+  # datapusher.enabled -- Flag to control whether to deploy the datapusher
+  enabled: {{ ckan.datapusher_enabled }}
+  # datapusher.fullnameOverride -- Name override for the datapusher deployment
+  fullnameOverride: *DatapusherName
+  datapusher:
+    # datapusher.datapusher.maxContentSize -- Maximum size of content to be uploaded in bytes.
+    maxContentLength: "{{ ckan.datapusher_maxContentLength }}"
+    # datapusher.datapusher.chunkSize -- Size of chunks of the data that is being downloaded in bytes
+    chunkSize: "{{ ckan.datapusher_chunkSize }}"
+    # datapusher.datapusher.insertRows -- Number of rows to take from the data and upload them as chunks to datastore
+    insertRows: "{{ ckan.datapusher_insertRows }}"
+    # datapusher.datapusher.downloadTimeout -- Timeout limit of the download request
+    downloadTimeout: "{{ ckan.datapusher_downloadTimeout }}"
+    # datapusher.datapusher.datapusherSslVerify -- Enable or disable (boolean) verification of SSL when trying to get resources. Default: True
+    datapusherSslVerify: "{{ ckan.datapusher_datapusherSslVerify }}"
+    # datapusher.datapusher.datapusherRewriteResources -- Enable or disable (boolean) whether datapusher should rewrite resources uploaded to CKAN's filestore, since datapusher takes the CKAN Site URL value for generating the resource URL. Default: False
+    datapusherRewriteResources: "{{ ckan.datapusherRewriteResources }}"
+    # datapusher.datapusher.datapusherRewriteUrl -- Sets the rewrite URL that datapushed will rewrite resources that are uploaded to CKAN's filestore. Default: http://ckan:5000
+    datapusherRewriteUrl: {{ ckan.datapusher_datapusherRewriteUrl }}
+
+redis:
+  # Please see all available overrides at https://github.com/helm/charts/tree/master/stable/redis
+  # redis.enabled -- Flag to control whether to deploy Redis
+  enabled: {{ ckan.redis_enabled }}
+  # redis.fullnameOverride -- Name override for the redis deployment
+  fullnameOverride: *RedisName
+  cluster:
+    # redis.cluster.enabled -- Cluster mode for Redis
+    enabled: {{ ckan.redis_cluster_enabled }}
+  master:
+    persistence:
+      # redis.master.persistence.enabled -- Enable redis volume claim
+      enabled: {{ ckan.redis_master_persistence_enabled }}
+      # redis.master.persistence.size -- Size of the volume claim
+      size: redis_master_persistence_size
+  # redis.usePassword -- Use password for accessing redis
+  usePassword: {{ ckan.redis_usePassword }}
+
+solr:
+  # Please see all available overrides at https://github.com/helm/charts/tree/master/incubator/solr
+  # solr.enabled -- Flag to control whether to deploy SOLR
+  enabled: {{ ckan.solr_enabled }}
+  initialize:
+    # solr.initialize.enabled -- Flag whether to initialize the SOLR instance with the provided collection name
+    enabled: {{ ckan.solr_initialize_enabled }}
+    # solr.initialize.numShards -- Number of shards for the SOLR collection
+    numShards: {{ ckan.solr_initialize_numShards }}
+    # solr.initialize.replicationFactor -- Number of replicas for each SOLR shard
+    replicationFactor: {{ ckan.solr_initialize_replicationFactor }}
+    # solr.initialize.maxShardsPerNode -- Maximum shards per node
+    maxShardsPerNode: {{ ckan.solr_initialize_maxShardsPerNode }}
+    # solr.initialize.configsetName -- Name of the config set used for initializing
+    configsetName: {{ ckan.solr_initialize_configsetName }}
+  # solr.fullnameOverride -- Name override for the SOLR deployment
+  fullnameOverride: *SolrName
+  # solr.replicaCount -- Number of SOLR instances in the cluster
+  replicaCount: {{ ckan.solr_replicaCount }}
+  volumeClaimTemplates:
+    # solr.volumeClaimTemplates.storageSize -- Size of Solr PVC
+    storageSize: {{ ckan.solr_volumeClaimTemplates_storageSize }}
+  image:
+    # solr.image.repository -- Repository for the SOLR image
+    repository: {{ ckan.solr_image_repository }}
+    # solr.image.tag -- Tag for the SOLR image
+    tag: {{ ckan.solr_image_tag }}
+  zookeeper:
+    # solr.zookeeper.replicaCount -- Numer of Zookeeper replicas in the ZK cluster
+    replicaCount: {{ ckan.solr_zookeeper_replicaCount }}
+    persistence:
+      # solr.zookeeper.persistence.size -- Size of ZK PVC
+      size: {{ ckan.solr_zookeeper_persistence_size }}
+
+postgresql:
+  # postgresql.enabled -- Flag to control whether to deploy PostgreSQL
+  enabled: {{ ckan.postgresql_enabled }}
+  persistence:
+    # postgresql.persistence.size -- Size of the PostgreSQL pvc
+    size: {{ ckan.postgresql_persistence_size }}
+  # postgresql.fullnameOverride -- Name override for the PostgreSQL deployment
+  fullnameOverride: *DBDeploymentName
+  # postgresql.pgPass -- Password for the master PostgreSQL user.
+  # Feeds into the `postgrescredentials` secret that is provided to the PostgreSQL chart
+  pgPass: *MasterDBPass
+  # postgresql.existingSecret -- Name of existing secret that holds passwords for PostgreSQL
+  existingSecret: postgrescredentials

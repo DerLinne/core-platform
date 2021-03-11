@@ -1,0 +1,130 @@
+---
+# file: 03_setup_k8s_platform/vars/ckan_ckan.yml
+
+HELM_REPO_NAME: keitaro-charts
+HELM_REPO_URL: https://keitaro-charts.storage.googleapis.com
+HELM_CHART_NAME: ckan
+HELM_RELEASE_NAME: ckan
+
+image_registry: "docker.io"
+image_repository: "keitaro/ckan"
+image_tag: "2.9.1"
+image_pullPolicy: IfNotPresent
+
+pvc_enabled: true
+pvc_size: "1Gi"
+
+DBDeploymentName: "postgres"
+RedisName: "redis"
+SolrName: "solr"
+DatapusherName: "datapusher"
+DBHost: "postgres"
+MasterDBName: "postgres"
+MasterDBUser: "{{ CKAN_MASTER_DB_USER }}"
+MasterDBPass: "{{ CKAN_MASTER_DB_USER_PASSWORD }}"
+
+CkanDBName: "ckan_default"
+CkanDBUser: "{{ CKAN_DB_USER }}"
+CkanDBPass: "{{ CKAN_DB_USER_PASSWORD }}"
+DatastoreDBName: "datastore_default"
+DatastoreRWDBUser: "{{ CKAN_DATASTORE_RODB_USER }}"
+DatastoreRWDBPass: "{{ CKAN_DATASTORE_RODB_USER_PASSWORD }}"
+DatastoreRODBUser: "{{ CKAN_DATASTORE_RWDB_USER }}"
+DatastoreRODBPass: "{{ CKAN_DATASTORE_RWDB_USER_PASSWORD }}"
+
+ckan_sysadminName: "{{ CKAN_SYSADMIN_NAME }}"
+ckan_sysadminPassword: "{{ CKAN_SYSADMIN_PASSWORD }}"
+ckan_sysadminApiToken: "{{ CKAN_SYSADMIN_APITOKEN }}"
+ckan_sysadminEmail: "olaf.heinemann@omp.de"
+ckan_siteTitle: "Site Title here"
+ckan_siteId: "site-id-here"
+ckan_siteUrl: "http://localhost:5000"
+ckan_ckanPlugins: "envvars image_view text_view recline_view datastore datapusher"
+ckan_storagePath: "/var/lib/ckan/default"
+ckan_activityStreamsEmailNotifications: "false"
+ckan_debug: "false"
+ckan_maintenanceMode: "false"
+
+psql_initialize: true
+
+solr_url: "http://solr-headless:8983/solr/ckancollection"
+
+redis_url: "redis://redis-headless:6379/0"
+
+spatialBackend: "solr"
+
+locale_offered: "en"
+locale_default: "en"
+
+datapusherUrl: "http://datapusher-headless:8000"
+
+datapusherCallbackUrlBase: http://ckan
+
+smtp_server: "smtpServerURLorIP:port"
+smtp_user: "{{ CKAN_SMTP_USER }}"
+smtp_password: "{{ CKAN_SMTP_PASSWORD }}"
+smtp_mailFrom: "postmaster@domain.com"
+smtp_tls : "enabled"
+smtp_starttls: "true"
+
+issues_sendEmailNotifications: "false"
+
+extraEnv: []
+
+readiness_initialDelaySeconds: 10
+readiness_periodSeconds: 10
+readiness_failureThreshold: 6
+readiness_timeoutSeconds: 10
+
+liveness_initialDelaySeconds: 10
+liveness_periodSeconds: 10
+liveness_failureThreshold: 6
+liveness_timeoutSeconds: 10
+
+serviceAccount_create: false
+serviceAccount_annotations: {}
+serviceAccount_name:
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service_type: ClusterIP
+service_port: 80
+
+ingress_enabled: true
+ingress_class: "public"
+ingress_host: "ckan.utr-k8s.urban-data.cloud"
+tls_acme: true
+tls_secretName: "ckan.utr-k8s.urban-data.cloud-tls"
+
+datapusher_enabled: true
+datapusher_maxContentLength: "102400000"
+datapusher_chunkSize: "10240000"
+datapusher_insertRows: "50000"
+datapusher_downloadTimeout: "300"
+datapusher_datapusherSslVerify: "False"
+datapusherRewriteResources: "True"
+datapusher_datapusherRewriteUrl: "http://ckan"
+
+redis_enabled: true
+redis_cluster_enabled: false
+redis_master_persistence_enabled: false
+redis_master_persistence_size: 1Gi
+redis_usePassword: false
+
+solr_enabled: true
+solr_initialize_enabled: true
+solr_initialize_numShards: 2
+solr_initialize_replicationFactor: 1
+solr_initialize_maxShardsPerNode: 10
+solr_initialize_configsetName: ckanConfigSet
+solr_replicaCount: 1
+solr_volumeClaimTemplates_storageSize: 5Gi
+solr_image_repository: solr
+solr_image_tag: "6.6.6"
+solr_zookeeper_replicaCount: 1
+solr_zookeeper_persistence_size: 1Gi
+
+postgresql_enabled: true
+postgresql_persistence_size: 1Gi
