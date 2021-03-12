@@ -4,7 +4,8 @@ This document describes how to:
 
 + create the Docker image for the [Ansible Control Node](#installation-of-acn) (ACN) that is used to setup a Kubernetes cluster and deploy the Urban Data Platform into that cluster.
 + install [MicroK8s](#microk8s) on a Linux server, running Debian or Ubuntu .
-+ install the [WebGIS prototype](#webgis-prototype).
++ deploy the [WebGIS prototype](#webgis-prototype) into MicroK8s.
++ deploy [CKAN](#ckan) into MicroK8s.
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -530,3 +531,180 @@ sudo microk8s ctr images list | grep webgis
 # You should see the image webgis-qgisserver listed
 ```
 
+## CKAN
+
+[CKAN](https://ckan.org) is a data management system and in this chapter we will describe how to deploy it into MicroK8s.
+
+The deployment is done via Ansible, using the Helm chart [keitaro-charts/ckan](https://github.com/keitaroinc/ckan-helm) from [Keitaro](https://keitaro.com/).
+
+To deploy CKAN, simply run the Ansible playbook `deploy_ckan_playbook.yml` from within the ACN. This will deploy CKAN in the K8s namespace _ckan_.
+
+---
+**IMPORTANT**
+Please, make sure you edit the file `vars/ckan_ckan.yml` before you run the playbook!
+Especially keys beginning with
+
++ ckan_ ,
++ smtp_ ,
++ ingress_ and
++ tls_
+
+The FQHN of the key `ckan_siteUrl` should match the FQHN of `ingress_host`!
+
+---
+
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/ckan_ckan.yml
+
+HELM_REPO_NAME: keitaro-charts
+HELM_REPO_URL: https://keitaro-charts.storage.googleapis.com
+HELM_CHART_NAME: ckan
+HELM_RELEASE_NAME: ckan
+
+image_registry: "docker.io"
+image_repository: "keitaro/ckan"
+image_tag: "2.9.1"
+image_pullPolicy: IfNotPresent
+
+pvc_enabled: true
+pvc_size: "1Gi"
+
+DBDeploymentName: "postgres"
+RedisName: "redis"
+SolrName: "solr"
+DatapusherName: "datapusher"
+DBHost: "postgres"
+MasterDBName: "postgres"
+MasterDBUser: "postgres"
+MasterDBPass: "postgres123"
+
+CkanDBName: "ckan_default"
+CkanDBUser: "ckan_default"
+CkanDBPass: "ckan_default123"
+DatastoreDBName: "datastore_default"
+DatastoreRWDBUser: "datastorerw"
+DatastoreRWDBPass: datastorerw123
+DatastoreRODBUser: datastorero
+DatastoreRODBPass: datastorero123
+
+ckan_sysadminName: "ckan_admin"
+ckan_sysadminPassword: "ckan_admin123"
+ckan_sysadminApiToken: "replace_this_with_generated_api_token_for_sysadmin"
+ckan_sysadminEmail: "postmaster@domain.com"
+ckan_siteTitle: "Site Title here"
+ckan_siteId: "site-id-here"
+ckan_siteUrl: "https://ckan.utr-k8s.urban-data.cloud/"
+ckan_ckanPlugins: "envvars image_view text_view recline_view datastore datapusher"
+ckan_storagePath: "/var/lib/ckan/default"
+ckan_activityStreamsEmailNotifications: "false"
+ckan_debug: "false"
+ckan_maintenanceMode: "false"
+
+psql_initialize: true
+
+solr_url: "http://solr-headless:8983/solr/ckancollection"
+
+redis_url: "redis://redis-headless:6379/0"
+
+spatialBackend: "solr"
+
+locale_offered: "en"
+locale_default: "en"
+
+datapusherUrl: "http://datapusher-headless:8000"
+
+datapusherCallbackUrlBase: http://ckan
+
+smtp_server: "smtpServerURLorIP:port"
+smtp_user: "smtpUser"
+smtp_password: "smtpPassword"
+smtp_mailFrom: "postmaster@domain.com"
+smtp_tls : "enabled"
+smtp_starttls: "true"
+
+issues_sendEmailNotifications: "false"
+
+extraEnv: []
+
+readiness_initialDelaySeconds: 10
+readiness_periodSeconds: 10
+readiness_failureThreshold: 6
+readiness_timeoutSeconds: 10
+
+liveness_initialDelaySeconds: 10
+liveness_periodSeconds: 10
+liveness_failureThreshold: 6
+liveness_timeoutSeconds: 10
+
+serviceAccount_create: false
+serviceAccount_annotations: {}
+serviceAccount_name:
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service_type: ClusterIP
+service_port: 80
+
+ingress_enabled: true
+ingress_class: "public"
+ingress_host: "ckan.utr-k8s.urban-data.cloud"
+tls_acme: true
+tls_secretName: "ckan.utr-k8s.urban-data.cloud-tls"
+
+datapusher_enabled: true
+datapusher_maxContentLength: "102400000"
+datapusher_chunkSize: "10240000"
+datapusher_insertRows: "50000"
+datapusher_downloadTimeout: "300"
+datapusher_datapusherSslVerify: "False"
+datapusherRewriteResources: "True"
+datapusher_datapusherRewriteUrl: "http://ckan"
+
+redis_enabled: true
+redis_cluster_enabled: false
+redis_master_persistence_enabled: false
+redis_master_persistence_size: 1Gi
+redis_usePassword: false
+
+solr_enabled: true
+solr_initialize_enabled: true
+solr_initialize_numShards: 2
+solr_initialize_replicationFactor: 1
+solr_initialize_maxShardsPerNode: 10
+solr_initialize_configsetName: ckanConfigSet
+solr_replicaCount: 1
+solr_volumeClaimTemplates_storageSize: 5Gi
+solr_image_repository: solr
+solr_image_tag: "6.6.6"
+solr_zookeeper_replicaCount: 1
+solr_zookeeper_persistence_size: 1Gi
+
+postgresql_enabled: true
+postgresql_persistence_size: 1Gi
+
+```
+
+For more information about the values that are set in `vars/ckan_ckan.yml`, see [this](https://github.com/keitaroinc/ckan-helm#chart-values) link. And for more information about the administration and configuration, please consult CKAN's official [documentation](https://docs.ckan.org/en/2.9/).
+
+---
+
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_ckan_playbook.yml
+```
+
+After a view minutes the deployment should be finished.
+
+Now you have to generate an API Token for the sysadmin user using the CKAN UI and replace the secret with the new value at runtime.
+
+```
+kubectl -n ckan create secret generic ckansysadminapitoken --from-literal=sysadminApiToken={insert_generated_api_token_here} --dry-run -o yaml | kubectl apply -f -
+```
+
+**NOTE**
+>If you want to re-deploy/update your CKAN deployment, please use your API Token as value for the key `ckan_sysadminApiToken` in the file `vars/ckan_ckan.yml`.
