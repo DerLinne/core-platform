@@ -549,7 +549,17 @@ Especially keys beginning with
 + ingress_ and
 + tls_
 
-The FQHN of the key `ckan_siteUrl` should match the FQHN of `ingress_host`!
+If you want to use Træfik as your ingress controller, you have to set
+```
+# Set to true, if using ingress-nginx
+ingress_enabled: false
+...
+# Set to true, if using Træfik
+ingressRoute_enabled: true
+ingressRoute_host: "<FQDN.of.your.ckan.site>"
+```
+
+The FQDN of the key `ckan_siteUrl` has to match the FQDN of `ingress_host`, resp. ingressRoute_host!
 
 ---
 
@@ -564,7 +574,7 @@ HELM_RELEASE_NAME: ckan
 
 image_registry: "docker.io"
 image_repository: "keitaro/ckan"
-image_tag: "2.9.1"
+image_tag: "2.9.2"
 image_pullPolicy: IfNotPresent
 
 pvc_enabled: true
@@ -594,7 +604,7 @@ ckan_sysadminApiToken: "replace_this_with_generated_api_token_for_sysadmin"
 ckan_sysadminEmail: "postmaster@domain.com"
 ckan_siteTitle: "Site Title here"
 ckan_siteId: "site-id-here"
-ckan_siteUrl: "https://ckan.utr-k8s.urban-data.cloud/"
+ckan_siteUrl: "https://<Your_FQDN>"
 ckan_ckanPlugins: "envvars image_view text_view recline_view datastore datapusher"
 ckan_storagePath: "/var/lib/ckan/default"
 ckan_activityStreamsEmailNotifications: "false"
@@ -648,11 +658,16 @@ securityContext: {}
 service_type: ClusterIP
 service_port: 80
 
+# Set to true, if using ingress-nginx
 ingress_enabled: true
 ingress_class: "public"
-ingress_host: "ckan.utr-k8s.urban-data.cloud"
+ingress_host: "<Your_FQDN>"
 tls_acme: true
-tls_secretName: "ckan.utr-k8s.urban-data.cloud-tls"
+tls_secretName: "<Your_FQDN>-tls"
+
+# Set to true, if using Træfik
+ingressRoute_enabled: false
+ingressRoute_host: "<Your_FQDN>"
 
 datapusher_enabled: true
 datapusher_maxContentLength: "102400000"
