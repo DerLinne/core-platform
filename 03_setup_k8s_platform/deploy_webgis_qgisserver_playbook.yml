@@ -84,7 +84,9 @@
             namespace: "{{ k8s_namespace | lower }}"
           data:
             .dockerconfigjson: "{{ dockerconfigjson | b64encode }}"
-      when: not gitlab_registry_secret['resources'][0]['type'] == "kubernetes.io/dockerconfigjson"
+      when:
+        - gitlab_registry_secret['resources'][0] is undefined
+        - dockerconfigjson is defined
 
     - name: Remove old PID files before running kubectl port-forward
       ansible.builtin.file:
