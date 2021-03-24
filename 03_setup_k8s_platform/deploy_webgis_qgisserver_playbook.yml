@@ -96,7 +96,7 @@
 
     - name: Run kubectl port-forward to PostGIS K8s service
       ansible.builtin.shell: |
-        nohup kubectl --kubeconfig="$HOME/.kube/k8s-master_config" port-forward --namespace {{ k8s_namespace }} svc/geodata-postgis-webgis-postgis 5432:5432 </dev/null >/dev/null 2>&1 &
+        nohup kubectl --kubeconfig="{{ k8s_config }}" port-forward --namespace {{ k8s_namespace }} svc/geodata-postgis-webgis-postgis 5432:5432 </dev/null >/dev/null 2>&1 &
         echo "$!" >{{ kubectl_pid_file | quote }}
       args:
         executable: /bin/bash
