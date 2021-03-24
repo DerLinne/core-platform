@@ -1,5 +1,5 @@
 ---
-# file: 03_setuup_k8s_platform/vars/default.yml
+# file: 03_setup_k8s_platform/vars/default.yml
 
 # ChartMuseum
 CM_PORT: 8879
@@ -16,3 +16,6 @@ K8S_KUBECONFIG: ~/.kube/k8s-master_config
 K8S_CONTEXT: microk8s
 K8S_NAMESPACE_GEODATA: geodata
 K8S_NAMESPACE_CKAN: ckan
+
+# GitLab-API-URL
+GITLAB_API_URL: "https://gitlab.com/api/v4"

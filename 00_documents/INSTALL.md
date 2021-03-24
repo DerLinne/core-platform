@@ -228,12 +228,12 @@ ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
 
 If you use the default values, then PostGIS can be accessed via port 5432 on the following DNS name from within your cluster:
 
-`geodata-postgis-webgis-postgis.smart-city-txl.svc.cluster.local`
+`geodata-postgis-webgis-postgis.geodata.svc.cluster.local`
 
 To get the PostGIS user run:
 ```
 export POSTGRES_USER=$(
-    kubectl get secret --namespace smart-city-txl \
+    kubectl get secret --namespace geodata \
     geodata-postgis-webgis-postgis \
     -o jsonpath="{.data.postgres_user}" | base64 -d
 )
@@ -242,7 +242,7 @@ export POSTGRES_USER=$(
 To get the password for this user run:
 ```
 export POSTGRES_PASSWORD=$(
-    kubectl get secret --namespace smart-city-txl \
+    kubectl get secret --namespace geodata \
     geodata-postgis-webgis-postgis \
     -o jsonpath="{.data.postgres_password}" | base64 -d
 )
@@ -250,7 +250,7 @@ export POSTGRES_PASSWORD=$(
 
 To connect to your database from outside the cluster, using `psql` execute the following commands:
 ```
-kubectl port-forward --namespace smart-city-txl \
+kubectl port-forward --namespace geodata \
     svc/geodata-postgis-webgis-postgis 5432:5432 &
 
 PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" psql \
@@ -288,12 +288,12 @@ After a view minutes the deployment should be finished.
 To connect to the web-interface, please execute the following commands.
 ```
 export POD_NAME=$(
-    kubectl get pods --namespace smart-city-txl \
+    kubectl get pods --namespace geodata \
     -l "app.kubernetes.io/name=pgadmin4,app.kubernetes.io/instance=geodata-pgadmin" \
     -o jsonpath="{.items[0].metadata.name}"
 )
 
-kubectl port-forward --namespace smart-city-txl $POD_NAME 8080:80
+kubectl port-forward --namespace geodata $POD_NAME 8080:80
 ```
 
 Now you can access pgAdmin's web-interface with [this](http://127.0.0.1:8080) URL.
@@ -319,7 +319,7 @@ If you changed one of those values, you have to either edit the file `vars/webgi
 | :--------------------| :---------------------------------------------|
 |`POSTGIS_USER`        | postgres                                      |
 |`POSTGIS_DB`          | postgres                                      |
-|`POSTGIS_HOST`        | geodata-postgis-webgis-postgis.smart-city-txl |
+|`POSTGIS_HOST`        | geodata-postgis-webgis-postgis.geodata |
 
 At the moment you have to enter the password for the PostGIS user manually, if you want to connect to the PostGIS database.
 
@@ -339,7 +339,7 @@ After a view minutes the deployment should be finished.
 
 To access the MasterPortal you will have to execute the following command:
 ```
-kubectl --namespace smart-city-txl port-forward \
+kubectl --namespace geodata port-forward \
     svc/geodata-masterportal-webgis-masterportal 12345:80
 ```
 and open the URL [http://127.0.0.1:12345/webgis-masterportal/](http://127.0.0.1:12345/webgis-masterportal/) in your Web browser.
@@ -427,58 +427,73 @@ password=qgis_server123
 sslmode=disable
 ```
 
-The ConfigMap `project.qgs` contains the content of your QGIS project file. To update, simply edit the ConfigMap and delete the Pod `geodata-qgisserver-webgis-qgisserver-server-xxxxxxxxxx-yyyyy`. After a few seconds a new Pod with the new QGIS project files will ready.
+The ConfigMap `project.qgs` contains the content of your QGIS project file, that you host in a [GitLab repository](https://gitlab.com/berlintxl/futr-hub/platform/qgis-server-customizing/-/blob/master/project.qgs).
 
+You have to define the GitLab project, where your file _project.qgs_ resides, in the file
+ `03_setup_k8s_platform/vars/webgis_qgisserver.yml`.
+
+```yaml
 ---
+# file: 03_setup_k8s_platform/vars/webgis_qgisserver.yml
+
+HELM_CHART_NAME: webgis-qgisserver
+HELM_RELEASE_NAME: geodata-qgisserver
+
+# Name of the GitLab project where we store our QGIS project file
+QGIS_CUSTOM_GITLAB_PROJECT: "the/path/to/your/project"
+```
+
+The URL of the GitLab API server is defined in the file
+`03_setup_k8s_platform/vars/default.yml`.
+
+```yaml
+---
+# file: 03_setuup_k8s_platform/vars/default.yml
+…
+# GitLab-API-URL
+GITLAB_API_URL: "https://gitlab.com/api/v4"
+
+```
+
 **IMPORTANT**
-As of now, there is a problem with the QGIS project file, that gets created as a ConfigMap. To work around that you have to follow the steps, mentioned in the section [QGIS project file – Workaround](#workaround).
+If your QGIS project file is hosted in a private GitLab repository, you need to create a read_api token and insert the token in your inventory file with the key `GITLAB_API_ACCESS_TOKEN`.
 
----
+```ini
+[localhost]
+127.0.0.1   ansible_connection=local
+
+[localhost:vars]
+ansible_python_interpreter="{{ ansible_playbook_python }}"
+GITLAB_REGISTRY_ACCESS_USER_EMAIL="<Your_GitLab_User_Email>"
+GITLAB_REGISTRY_ACCESS_USER="<Your_GitLab_User>"
+GITLAB_REGISTRY_ACCESS_TOKEN="<Your_GitLab_Registry_Token>"
+
+GITLAB_API_ACCESS_TOKEN="<Your_GitLab_Read_API_Token>"
+```
+
+
+To update, you can either
+
++ simply edit the ConfigMap and restart the deployment of the QGIS Server `geodata-qgisserver-webgis-qgisserver-server`.
+```
+kubectl --kubeconfig=$HOME/.kube/k8s-master_config -n geodata edit cm project.qgs
+kubectl --kubeconfig=$HOME/.kube/k8s-master_config -n geodata rollout restart deployment geodata-qgisserver-webgis-qgisserver-server
+```
++ run the Ansible playbook `update_qgis_project.yml`.
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+ansible-playbook -i inventory update_qgis_project_playbook.yml
+```
+
+After a few seconds a new Pod, using the new QGIS project file, will be ready.
 
 To verify the installation you will have to execute the following command:
 ```
-kubectl --namespace smart-city-txl port-forward \
+kubectl --namespace geodata port-forward \
     svc/geodata-qgisserver-webgis-qgisserver-http 30080:80
 ```
-and open the URL [http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
-
----
-#### Workaround
-- Get a copy of the QGIS project within the ACN (There is a demo file under `03_setup_k8s_platform/files/webgis-qgisserver/qgis-sample.qgs`).
-- Run `kubectl create configmap tmp-project.qgs --from-file=./path/to/your/project.qgs`
-- Run `kubectl describe configmap tmp-project.qgs` and copy everything under the single-dash-line '----' until the closing tag `</qgis>`
-- Edit the config-map _project.qgs_, created by the Helm chart.
-  - Run `kubectl -n <Your_Namespace> edit configmap project.qgs`
-- Delete everything between the lines `project.qgs |` and `kind: ConfigMap`.
-- Paste everything you copied before between the lines `project.qgs |` and `kind: ConfigMap` and save.
-- Delete the currently running Pod with the name _geodata-qgisserver-webgis-qgisserver-server-xxxxxxxxxx-yyyyy_
-
-```
-$ kubectl describe configmap tmp-project.qgs
-
-Name:         tmp-project.qgs
-Namespace:    default
-Labels:       <none>
-Annotations:  <none>
-
-Data
-====
-project.qgs:
-----
-<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="3.0.0-Girona" projectname="">
-  <title></title>
-...
-  </properties>
-  <visibility-presets/>
-  <transformContext/>
-  <Annotations/>
-  <Layouts/>
-</qgis>
-```
-**NOTE**
-> Copy all below the `----` and paste it into the ConfigMap `project.qgs`.
-
+and open the URL
+[http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
 
 ---
 **IMPORTANT**
@@ -486,17 +501,13 @@ Since there is no official Docker image for QGIS Server you will have to create 
 
 How to create and deploy such an image will be described below!
 
----
-
-#### How to build the QGIS Server Docker image
-
----
-**IMPORTANT**
 AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
 PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
 YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
 
 ---
+
+#### How to build the QGIS Server Docker image
 
 To build the Docker image, please execute the following commands:
 

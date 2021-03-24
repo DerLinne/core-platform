@@ -43,6 +43,7 @@
         qgisserver_postgis_user: "{{ qgisserver.postgis_user }}"
         qgisserver_postgis_user_password: "{{ qgisserver.postgis_user_password }}"
         qgisserver_postgis_sslmode: "{{ qgisserver.postgis_sslmode }}"
+        qgisserver_project_file: "{{ qgisserver.env_QGIS_PROJECT_FILE }}"
 
     - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
       kubernetes.core.k8s_info:
@@ -153,6 +154,16 @@
         template: template_postgis
         state: present
 
+    - name: Stop kubectl port-forward to PostGIS K8s service
+      ansible.builtin.shell: |
+        kill "$(cat {{ kubectl_pid_file|quote }})" || true
+        rm -f {{ kubectl_pid_file | quote }}
+      args:
+        executable: /bin/bash
+        removes: "{{ kubectl_pid_file }}"
+      tags:
+      - always
+
     - name: Install Helm package with values loaded from template
       kubernetes.core.helm:
         name: "{{ qgisserver_helm_release_name }}"
@@ -165,12 +176,39 @@
         create_namespace: true
         values: "{{ lookup('template', 'templates/webgis/qgisserver_values.yaml.j2') | from_yaml }}"
 
-    - name: Stop kubectl port-forward to PostGIS K8s service
-      ansible.builtin.shell: |
-        kill "$(cat {{ kubectl_pid_file|quote }})" || true
-        rm -f {{ kubectl_pid_file | quote }}
-      args:
-        executable: /bin/bash
-        removes: "{{ kubectl_pid_file }}"
-      tags:
-      - always
+    - name: Set facts to access GitLab repository
+      ansible.builtin.set_fact:
+        gitlab_api_url: "{{ default.GITLAB_API_URL }}"
+        gitlab_api_access_token: "{{ GITLAB_API_ACCESS_TOKEN }}"
+        gitlab_project: "{{ qgisserver.QGIS_CUSTOM_GITLAB_PROJECT }}"
+
+    - name: "Get latest version of QGIS project file '{{ qgisserver_project_file }}}'"
+      ansible.builtin.uri:
+        url: "{{ gitlab_api_url }}/projects/{{ gitlab_project | regex_replace('\\/','%2F') }}/repository/files/{{ qgisserver_project_file | regex_replace('\\.','%2E') }}?ref=master"
+        method: GET
+        return_content: true
+        headers:
+          PRIVATE-TOKEN: "{{ gitlab_api_access_token }}"
+      register: qgis_file
+
+    - name: Decode QGIS project file payload
+      ansible.builtin.set_fact:
+        qgis_file_content: "{{ qgis_file.json.content | regex_replace('\n','') | b64decode }}"
+      when: qgis_file is defined
+
+    - name: "Create ConfigMap {{ qgisserver_project_file }}"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        definition:
+          kind: ConfigMap
+          api_version: v1
+          metadata:
+            name: "{{ qgisserver_project_file }}"
+            namespace: "{{ k8s_namespace | lower }}"
+          data:
+            project.qgs: "{{ qgis_file_content }}"
+        state: present
+        apply: yes
+      when: qgis_file_content is defined

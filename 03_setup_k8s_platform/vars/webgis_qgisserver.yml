@@ -4,6 +4,9 @@
 HELM_CHART_NAME: webgis-qgisserver
 HELM_RELEASE_NAME: geodata-qgisserver
 
+# Name of the GitLab project where we store our QGIS project file
+QGIS_CUSTOM_GITLAB_PROJECT: "berlintxl/futr-hub/platform/qgis-server-customizing"
+
 # Helm sepcific settings
 qgis_data_dir: "/data/qgis"
 nginx_default_conf: "/etc/nginx/conf.d/"

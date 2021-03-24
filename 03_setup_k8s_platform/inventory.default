@@ -6,3 +6,5 @@ ansible_python_interpreter="{{ ansible_playbook_python }}"
 GITLAB_REGISTRY_ACCESS_USER_EMAIL="<Your_GitLab_User_Email>"
 GITLAB_REGISTRY_ACCESS_USER="<Your_GitLab_User>"
 GITLAB_REGISTRY_ACCESS_TOKEN="<Your_GitLab_Registry_Token>"
+
+GITLAB_API_ACCESS_TOKEN="<Your_GitLab_Read_API_Token>"

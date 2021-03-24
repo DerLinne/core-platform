@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.qgis.project_file | quote }}
-data:
-  {{ .Values.qgis.project_file }}: |-
-    {{ .Files.Get "files/project.qgs" | quote |indent 4}}
