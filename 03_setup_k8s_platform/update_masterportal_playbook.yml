@@ -1,0 +1,60 @@
+---
+# file: 03_setup_k8s_platform/update_masterportal_playbook.yml
+
+- name: Update MasterPortal
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read MasterPortal values
+      ansible.builtin.include_vars:
+        file: webgis_masterportal.yml
+        name: masterportal
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_GEODATA }}"
+        kubectl_pid_file: "/tmp/kubectl_pid"
+
+    - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: "gitlab-registry"
+        namespace: "{{ k8s_namespace }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+      register: gitlab_registry_secret
+
+    - name: Get deployment info of MasterPortal
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        kind: Deployment
+        label_selectors:
+          - app.kubernetes.io/instance=geodata-masterportal
+          - app.kubernetes.io/name=webgis-masterportal
+      register: masterportal_deployment_info
+
+    - debug:
+        msg: "Name of deployment: {{ masterportal_deployment_info['resources'][0]['metadata']['name'] }}"
+
+    - name: Get name of MasterPortal deployment
+      ansible.builtin.set_fact:
+        masterportal_deployment_name: "{{ masterportal_deployment_info['resources'][0]['metadata']['name'] }}"
+      when: masterportal_deployment_info is defined
+
+    - name: Restart deployment of MasterPortal
+      ansible.builtin.shell: |
+        kubectl --kubeconfig="{{ k8s_config }}" --namespace "{{ k8s_namespace | lower }}" rollout restart deployment "{{ masterportal_deployment_name }}"
+      args:
+        executable: /bin/bash
+      when: masterportal_deployment_name is defined
