@@ -22,6 +22,10 @@ To continue the installation, please execute the following commands.
   ssh-add ~/.ssh/"${FUTR_HUB_ACN_SSHKEY}"
 
   ansible-playbook -i inventory prepare.yml
+  # -->
+  # optional: set K8S_MASTER
+  export K8S_MASTER="<IP_ADDRESS_OF_YOUR_MICROK8S_API_SERVER>"
+  # <--
   ansible-playbook -i inventory main.yml
 
 If you use a SSH-Key to access the Git repository, please
@@ -32,6 +36,11 @@ If you use a SSH-Key to access the Git repository, please
 
 -------------------------------------------------------------------------------
 NOTE!
+
+If you want to install MicroK8s *AND* *ALL* FUTR-HUB components, you may run
+
+  ansible-playbook -i inventory install.yml
+
 Please consult %FUTR_HUB_GIT_CLONE_DIR%/00_documents/INSTALL.md before you
 continue with the setup of the K8s cluster and deployment of platform into K8s.
 -------------------------------------------------------------------------------
