@@ -10,7 +10,7 @@ image_repository: postgis/postgis
 image_tag: 13-3.1
 image_pullPolicy: IfNotPresent
 
-service_type: ClusterIP
+service_type: NodePort
 service_port: 5432
 service_targetPort: 5432
 service_portName: postgres
