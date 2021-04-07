@@ -1,7 +1,7 @@
 ---
 # file: 03_setup_k8s_platform/deploy_data_management_playbook.yml
 - name: Deploy CKAN
-  hosts: all
+  hosts: localhost
   gather_facts: false
 
   tasks:
@@ -43,7 +43,6 @@
       community.kubernetes.helm_repository:
         name: "{{ minio_helm_repo_name }}"
         url: "{{ minio_helm_repo_url }}"
-      delegate_to: localhost
 
     - name: Create minio specific storage class
       community.kubernetes.k8s:
@@ -68,12 +67,14 @@
         release_namespace: "{{ k8s_namespace }}"
         update_repo_cache: true
         create_namespace: true
-        values: "{{ lookup('template', 'minio/minio_op_values.yaml.j2') | from_yaml }}"
-      delegate_to: localhost
+        values: "{{ lookup('template', 'minio/minio-operator-values.yaml.j2') | from_yaml }}"
 
     - name: Deploy minio Console Ingress
       k8s:
         state: present
+        namespace: "{{ k8s_namespace }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"        
         definition:
           apiVersion: networking.k8s.io/v1beta1
           kind: Ingress
@@ -84,12 +85,12 @@
               nginx.ingress.kubernetes.io/auth-url: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/auth"
               nginx.ingress.kubernetes.io/auth-signin: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/start?rd=https://$host$request_uri"
               nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
-              kubernetes.io/ingress.class: "{{ INGRESS_DEFAULT_CLASS }}"
+              kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
               kubernetes.io/tls-acme: "true"
               nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
           spec:
             rules:
-            - host: "{{ ingress_op_console_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
+            - host: "{{ minio.ingress_op_console_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
               http:
                 paths:
                 - backend:
@@ -97,5 +98,5 @@
                     servicePort: 9090
             tls:
             - hosts:
-              - "{{ ingress_op_console_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
+              - "{{ minio.ingress_op_console_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
               secretName: "{{ minio.ingress_op_console_tls_secret }}"

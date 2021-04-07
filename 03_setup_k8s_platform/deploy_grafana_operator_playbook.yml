@@ -1,0 +1,46 @@
+---
+# file: 03_setup_k8s_platform/deploy_data_management_playbook.yml
+- name: Deploy CKAN
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read GRAFANA values
+      ansible.builtin.include_vars:
+        file: data_management_grafana.yml
+        name: grafana
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+        k8s_host: "{{ lookup('env','K8S_MASTER')}}"
+
+    - name: Set facts for Grafana Helm chart
+      ansible.builtin.set_fact:
+        grafana_helm_repo_name: "{{ grafana.HELM_REPO_NAME }}"
+        grafana_helm_repo_url: "{{ grafana.HELM_REPO_URL }}"
+        grafana_helm_chart_name: "{{ grafana.HELM_CHART_NAME }}"
+        grafana_helm_release_name: "{{ grafana.HELM_RELEASE_NAME }}"
+
+    - name: Add grafana Helm repo
+      community.kubernetes.helm_repository:
+        name: "{{ grafana_helm_repo_name }}"
+        url: "{{ grafana_helm_repo_url }}"
+
+    - name: Install Helm package with values loaded from template
+      community.kubernetes.helm:
+        name: "{{ grafana_helm_release_name }}"
+        chart_ref: "{{ grafana_helm_repo_name }}/{{ grafana_helm_chart_name }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        release_namespace: "{{ k8s_namespace }}"
+        update_repo_cache: true
+        create_namespace: true
+        values: "{{ lookup('template', 'grafana/grafana-values.yaml.j2') | from_yaml }}"

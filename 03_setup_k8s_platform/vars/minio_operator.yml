@@ -14,5 +14,5 @@ image_co_repository: "minio/console"
 image_co_tag: "v0.6.3"
 image_co_pullPolicy: IfNotPresent
 
-ingress_op_console_server_name: "pgopui"
-ingress_op_console_tls_secret: "pgopui-tls"
+ingress_op_console_server_name: "minioopui"
+ingress_op_console_tls_secret: "minioopui-tls"
