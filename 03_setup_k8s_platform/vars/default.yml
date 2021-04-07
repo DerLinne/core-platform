@@ -12,10 +12,19 @@ HELM_REPO_URL: http://127.0.0.1
 HELM_REPO_NAME: futr-hub
 
 # Kubernetes
-K8S_KUBECONFIG: "{{ lookup('env', 'HOME') }}/.kube/k8s-master_config"
+K8S_KUBECONFIG: "~/.kube/k8s-master_config"
 K8S_CONTEXT: microk8s
 K8S_NAMESPACE_GEODATA: geodata
 K8S_NAMESPACE_CKAN: ckan
+K8S_NAMESPACE_POSTGRES_OPERATOR: op-postgres
+K8S_NAMESPACE_MINIO_OPERATOR: op-minio
+K8S_INGRESS_CLASS: public
 
 # GitLab-API-URL
 GITLAB_API_URL: "https://gitlab.com/api/v4"
+
+# General Domain Name
+GENERAL_DOMAIN_NAME: "utr-k8s.urban-data.cloud"
+
+proxy_env:
+  K8S_AUTH_KUBECONFIG: "~/.kube/k8s-master_config"

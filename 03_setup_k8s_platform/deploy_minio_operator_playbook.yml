@@ -1,0 +1,101 @@
+---
+# file: 03_setup_k8s_platform/deploy_data_management_playbook.yml
+- name: Deploy CKAN
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read MINIO values
+      ansible.builtin.include_vars:
+        file: minio_operator.yml
+        name: minio
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_MINIO_OPERATOR }}"
+        k8s_host: "{{ lookup('env','K8S_MASTER')}}"
+
+    # - name: Set facts for ChartMuseum
+    #   ansible.builtin.set_fact:
+    #     cm_port: "{{ default.CM_PORT }}"
+    #     cm_storage: "{{ default.CM_STORAGE }}"
+    #     cm_storage_local_rootdir: "{{ default.CM_STORAGE_LOCAL_ROOTDIR }}"
+    #     cm_context_path: "{{ default.CM_CONTEXT_PATH }}"
+    #     helm_repo_url: "{{ default.HELM_REPO_URL }}"
+    #     helm_repo_name: "{{ default.HELM_REPO_NAME }}"
+
+
+    - name: Set facts for CKAN Helm chart
+      ansible.builtin.set_fact:
+        minio_helm_repo_name: "{{ minio.HELM_REPO_NAME }}"
+        minio_helm_repo_url: "{{ minio.HELM_REPO_URL }}"
+        minio_helm_chart_name: "{{ minio.HELM_CHART_NAME }}"
+        minio_helm_release_name: "{{ minio.HELM_RELEASE_NAME }}"
+
+    - name: Add minio Helm repo
+      community.kubernetes.helm_repository:
+        name: "{{ minio_helm_repo_name }}"
+        url: "{{ minio_helm_repo_url }}"
+      delegate_to: localhost
+
+    - name: Create minio specific storage class
+      community.kubernetes.k8s:
+        state: present
+        namespace: "{{ k8s_namespace }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+              name: minio-storage
+          provisioner: microk8s.io/hostpath
+          volumeBindingMode: WaitForFirstConsumer
+
+    - name: Install Helm package with values loaded from template
+      community.kubernetes.helm:
+        name: "{{ minio_helm_release_name }}"
+        chart_ref: "{{ minio_helm_repo_name }}/{{ minio_helm_chart_name }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        release_namespace: "{{ k8s_namespace }}"
+        update_repo_cache: true
+        create_namespace: true
+        values: "{{ lookup('template', 'minio/minio_op_values.yaml.j2') | from_yaml }}"
+      delegate_to: localhost
+
+    - name: Deploy minio Console Ingress
+      k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1beta1
+          kind: Ingress
+          metadata:
+            name: op-minio-console
+            namespace: "{{ k8s_namespace }}"
+            annotations:
+              nginx.ingress.kubernetes.io/auth-url: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/auth"
+              nginx.ingress.kubernetes.io/auth-signin: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/start?rd=https://$host$request_uri"
+              nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
+              kubernetes.io/ingress.class: "{{ INGRESS_DEFAULT_CLASS }}"
+              kubernetes.io/tls-acme: "true"
+              nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+          spec:
+            rules:
+            - host: "{{ ingress_op_console_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
+              http:
+                paths:
+                - backend:
+                    serviceName: console
+                    servicePort: 9090
+            tls:
+            - hosts:
+              - "{{ ingress_op_console_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
+              secretName: "{{ minio.ingress_op_console_tls_secret }}"
