@@ -1,0 +1,79 @@
+---
+- name: Deploy Timescale
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read POSTGRES values
+      ansible.builtin.include_vars:
+        file: postgres_operator.yml
+        name: postgres
+
+    - name: Read Timescale values
+      ansible.builtin.include_vars:
+        file: data_management_timescale.yml
+        name: timescale
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+        k8s_host: "{{ lookup('env','K8S_MASTER')}}"
+
+    - name: Deploy TimescaleDefinition
+      k8s:
+        state: present
+        namespace: "{{ k8s_namespace }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"         
+        definition:
+          kind: "postgresql"
+          apiVersion: "acid.zalan.do/v1"
+          metadata:
+            name: "{{ timescale.cluster_team }}-{{ timescale.cluster_name }}"
+            namespace: "{{ k8s_namespace }}"
+            labels:
+              team: "{{ timescale.cluster_team }}"
+          spec:
+            teamId: "{{ timescale.cluster_team }}"
+            postgresql:
+              version: "11"
+            numberOfInstances: 2
+            enableMasterLoadBalancer: true
+            volume:
+              size: "20Gi"
+            users:
+              contextdata: []
+            databases:
+              contextdata: contextdata
+            allowedSourceRanges:
+              # IP ranges to access your cluster go here
+            resources:
+              requests:
+                cpu: 100m
+                memory: 100Mi
+              limits:
+                cpu: 500m
+                memory: 500Mi
+
+    # - name: Pause for 60 seconds to build db cluster
+    #   pause:
+    #     seconds: 60
+
+    - name: Create timescale extension
+      command: | 
+        kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }} 
+          exec -it {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0 
+          -- bash -c "psql -U {{ postgres.super_username }} -d contextdata -c 'CREATE EXTENSION timescaledb;'"
+      register: result
+      until: result.rc == 0
+      retries: 10
+      delay: 5
+      changed_when: True
+
