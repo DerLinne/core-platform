@@ -1,6 +1,4 @@
 ---
-# file: 03_setup_k8s_platform/vars/ckan_ckan.yml
-
 HELM_OP_CHART_URL: https://github.com/zalando/postgres-operator/raw/master/charts/postgres-operator/postgres-operator-1.6.1.tgz
 HELM_OP_RELEASE_NAME: postgres-operator
 

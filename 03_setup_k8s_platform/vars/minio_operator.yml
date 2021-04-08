@@ -1,6 +1,4 @@
 ---
-# file: 03_setup_k8s_platform/vars/ckan_ckan.yml
-
 HELM_REPO_NAME: minio
 HELM_REPO_URL: https://operator.min.io/
 HELM_CHART_NAME: minio-operator

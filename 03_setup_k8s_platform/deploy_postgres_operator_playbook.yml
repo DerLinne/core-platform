@@ -1,6 +1,5 @@
 ---
-# file: 03_setup_k8s_platform/deploy_data_management_playbook.yml
-- name: Deploy CKAN
+- name: Deploy Postgres Operator
   hosts: localhost
   gather_facts: false
 
