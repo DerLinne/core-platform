@@ -62,10 +62,6 @@
                 cpu: 500m
                 memory: 500Mi
 
-    # - name: Pause for 60 seconds to build db cluster
-    #   pause:
-    #     seconds: 60
-
     - name: Create timescale extension
       command: | 
         kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }} 

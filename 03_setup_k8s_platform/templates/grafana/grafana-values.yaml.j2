@@ -252,7 +252,7 @@ extraContainerVolumes: []
 ##
 persistence:
   type: pvc
-  enabled: false
+  enabled: true
   # storageClassName: default
   accessModes:
     - ReadWriteOnce
@@ -345,7 +345,21 @@ adminPassword: {{ grafana.admin_password }}
 ## 6. uncomment the annotation section in the serviceAccount: above
 ## make sure to replace arn:aws:iam::123456789000:role/iam-role-name-here with your role arn
 
-env: {}
+env:
+  GF_USERS_ALLOW_SIGN_UP: "false"
+  GF_AUTH_DISABLE_LOGIN_FORM: "true"
+  GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+  GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "{{ IDM_CLIENT }}"
+  GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ IDM_CLIENT_SECRET }}"
+  GF_AUTH_GENERIC_OAUTH_SCOPES: "{{ IDM_SCOPE }}"
+  GF_AUTH_GENERIC_OAUTH_AUTH_URL: "{{ IDM_ENDP_AUTHORIZE }}"
+  GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "{{ IDM_ENDP_TOKEN }}"
+  GF_AUTH_GENERIC_OAUTH_API_URL: "{{ IDM_ENDP_USER_INFO }}"
+  GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(roles[*], 'adminTech') && 'Admin' || contains(roles[*], 'dataProducer') && 'Editor' || 'Viewer'"
+  GF_SECURITY_ALLOW_EMBEDDING: "true"
+  GF_SECURITY_COOKIE_SAMESITE: "lax"
+  GF_SERVER_ROOT_URL: "https://{{ grafana.ingress_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}"
 
 ## "valueFrom" environment variable references that will be added to deployment pods
 ## ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvarsource-v1-core
@@ -412,30 +426,37 @@ extraVolumeMounts: []
 
 ## Pass the plugins you want installed as a list.
 ##
-plugins: []
-  # - digrich-bubblechart-panel
-  # - grafana-clock-panel
+plugins: 
+  - linksmart-sensorthings-datasource
+  - grafana-worldmap-panel
+  - grafana-piechart-panel
+  - marcusolsson-dynamictext-panel
+  - dalvany-image-panel
+  - michaeldmoore-multistat-panel
+  
 
 ## Configure grafana datasources
 ## ref: http://docs.grafana.org/administration/provisioning/#datasources
 ##
-datasources: {}
-#  datasources.yaml:
-#    apiVersion: 1
-#    datasources:
-#    - name: Prometheus
-#      type: prometheus
-#      url: http://prometheus-prometheus-server
-#      access: proxy
-#      isDefault: true
-#    - name: CloudWatch
-#        type: cloudwatch
-#        access: proxy
-#        uid: cloudwatch
-#        editable: false
-#        jsonData:
-#          authType: credentials
-#          defaultRegion: us-east-1
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: TimescaleDB
+      type: postgres
+      orgId: 1
+      url: utr-staging.urban-data.cloud:15432
+      access: proxy
+      isDefault: true
+      user: postgres
+      database: postgres
+      editable: true
+      isDefault: false
+      jsonData:
+        timescaledb: true
+        sslmode: disable
+      secureJsonData:
+        password: {{ TIMESCALE_PASSWORD }}
 
 ## Configure notifiers
 ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
@@ -461,17 +482,17 @@ notifiers: {}
 ## `path` must be /var/lib/grafana/dashboards/<provider_name>
 ##
 dashboardProviders: {}
-#  dashboardproviders.yaml:
-#    apiVersion: 1
-#    providers:
-#    - name: 'default'
-#      orgId: 1
-#      folder: ''
-#      type: file
-#      disableDeletion: false
-#      editable: true
-#      options:
-#        path: /var/lib/grafana/dashboards/default
+  # dashboardproviders.yaml:
+  #   apiVersion: 1
+  #   providers:
+  #   - name: 'default'
+  #     orgId: 1
+  #     folder: ''
+  #     type: file
+  #     disableDeletion: false
+  #     editable: true
+  #     options:
+  #       path: /var/lib/grafana/dashboards/default
 
 ## Configure grafana dashboard to import
 ## NOTE: To use dashboards you must also enable/configure dashboardProviders
@@ -480,10 +501,10 @@ dashboardProviders: {}
 ## dashboards per provider, use provider name as key.
 ##
 dashboards: {}
-  # default:
-  #   some-dashboard:
-  #     json: |
-  #       $RAW_JSON
+  #    default:
+  #     tsdb_particulate_matter:
+  #       json: | 
+  #
   #   custom-dashboard:
   #     file: dashboards/custom-dashboard.json
   #   prometheus-stats:
@@ -507,7 +528,7 @@ dashboards: {}
 ##     RAW_JSON
 ##
 dashboardsConfigMaps: {}
-#  default: ""
+#  default: "grafana-dashboards-default"
 
 ## Grafana's primary configuration
 ## NOTE: values in map will be converted to ini format
