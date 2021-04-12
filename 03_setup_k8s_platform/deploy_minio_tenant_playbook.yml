@@ -119,6 +119,7 @@
                   metadata:
                     name: data
                   spec:
+                    storageClassName: minio-storage
                     accessModes:
                       - ReadWriteOnce
                     resources:

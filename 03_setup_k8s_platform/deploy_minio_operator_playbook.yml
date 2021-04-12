@@ -28,6 +28,20 @@
         minio_helm_chart_name: "{{ minio.HELM_CHART_NAME }}"
         minio_helm_release_name: "{{ minio.HELM_RELEASE_NAME }}"
 
+    - name: Create minio specific storage class
+      k8s:
+        state: present
+        namespace: "{{ k8s_namespace }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"                
+        definition:
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+              name: minio-storage
+          provisioner: microk8s.io/hostpath
+          volumeBindingMode: WaitForFirstConsumer
+
     - name: Add minio Helm repo
       community.kubernetes.helm_repository:
         name: "{{ minio_helm_repo_name }}"
