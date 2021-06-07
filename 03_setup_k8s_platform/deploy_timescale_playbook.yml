@@ -26,7 +26,16 @@
         k8s_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
         k8s_host: "{{ lookup('env','K8S_MASTER')}}"
 
-    - name: Deploy TimescaleDefinition
+    - name: Create a k8s namespace
+      community.kubernetes.k8s:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        name: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+     - name: Deploy TimescaleDefinition
       k8s:
         state: present
         namespace: "{{ k8s_namespace }}"
