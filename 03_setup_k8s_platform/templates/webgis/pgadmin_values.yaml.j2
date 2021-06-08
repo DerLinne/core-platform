@@ -96,8 +96,9 @@ ingress:
   ## Must be provided if Ingress is enabled
   hosts:
     - host: {{ pgadmin.ingres_host }}
-      paths:
-        - /
+      paths: 
+        - path: /
+          pathType: Prefix
 
   ## pgAdmin4 Ingress TLS configuration
   ## Secrets must be manually created in the namespace

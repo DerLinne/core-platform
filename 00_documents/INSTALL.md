@@ -734,3 +734,85 @@ kubectl -n ckan create secret generic ckansysadminapitoken --from-literal=sysadm
 
 **NOTE**
 >If you want to re-deploy/update your CKAN deployment, please use your API Token as value for the key `ckan_sysadminApiToken` in the file `vars/ckan_ckan.yml`.
+
+
+
+### Data Management Stack
+
+To install the data Management sSteck, the following Values have to be set in the `ìnventory` for the payload playbook.
+
+
+```
+## Minio settings
+
+## Access Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio' | base64)
+minio_tenant_accesskey='<your_access_key>'
+## Secret Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio123' | base64)
+minio_tenant_secretkey='<your_access_secret>'
+## Passphrase to encrypt jwt payload, base64 encoded (e.g. echo -n 'SECRET' | base64)
+MINIO_TENANT_CONSOLE_PBKDF_PASSPHRASE='<your_console_passphrase'
+## Salt to encrypt jwt payload, base64 encoded (e.g. echo -n 'SECRET' | base64)
+MINIO_TENANT_CONSOLE_PBKDF_SALT='<your_console_salt'
+## MinIO User Access Key (used for Console Login), base64 encoded (e.g.  echo -n 'YOURCONSOLEACCESS' | base64)
+MINIO_TENANT_CONSOLE_ACCESS_KEY='<your_soncole_access_ke>'
+## MinIO User Secret Key (used for Console Login), base64 encoded (e.g. echo -n 'YOURCONSOLESECRET' | base64)
+MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
+
+## IDM Settings
+
+IDM_SCOPE='openid'
+IDM_CLIENT='<you_keycloak_client>'
+IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+IDM_ENDP_AUTHORIZE='<your_authorize_url>'
+IDM_ENDP_TOKEN='<your_token_url>'
+IDM_ENDP_USER_INFO='<your_user_info_url>'
+
+## Timescale Settings
+
+TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
+```
+
+For minio the creation of each values is described in the comment above the needed values.
+
+The IDM Settings have to be taken from the corresponding IDM to use.
+
+The TimescaleDB Password can be free defined.
+
+To set these values, execute the following:
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+cp inventory.default inventory
+
+# edit the values for the above mentioned variables.
+vim inventory
+```
+
+After doing this, you can install the stack by step for step executing these commands:
+
+
+Install PostgreSQL Operator
+```
+ansible-playbook -i inventory deploy_postgres_operator_playbook.yml
+```
+
+Install first TimescaleDB
+```
+ansible-playbook -i inventory deploy_timescale_playbook.yml
+```
+
+Install and configure Grafana
+```
+ansible-playbook -i inventory deploy_timescale_playbook.yml
+```
+
+Install minio Operator
+```
+ansible-playbook -i inventory eploy_minio_operator_playbook.yml
+```
+
+Install Minio Tenant
+```
+ansible-playbook -i inventory inventory deploy_minio_tenant_playbook.yml 
+```
+
