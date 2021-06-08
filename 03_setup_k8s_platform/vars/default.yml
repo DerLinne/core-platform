@@ -25,7 +25,7 @@ K8S_INGRESS_CLASS: public
 GITLAB_API_URL: "https://gitlab.com/api/v4"
 
 # General Domain Name
-GENERAL_DOMAIN_NAME: "utr-k8s.urban-data.cloud"
+GENERAL_DOMAIN_NAME: "{{ DOMAIN }}"
 
 proxy_env:
   K8S_AUTH_KUBECONFIG: "~/.kube/k8s-master_config"
