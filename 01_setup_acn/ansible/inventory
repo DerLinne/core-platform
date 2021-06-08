@@ -9,3 +9,4 @@ k8s-master ansible_host="{{ lookup('env','K8S_MASTER')}}"
 
 [all:vars]
 kubeconfig_file=k8s-master_config
+DOMAIN="{{ lookup('env','DOMAIN_NAME')}}"

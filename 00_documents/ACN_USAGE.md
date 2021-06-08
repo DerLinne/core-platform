@@ -37,6 +37,7 @@ To continue the installation, please execute the following commands.
   # -->
   # optional: set K8S_MASTER
   export K8S_MASTER="<IP_ADDRESS_OF_YOUR_MICROK8S_API_SERVER>"
+  export DOMAIN_NAME="<YOUR_DOMAIN_NAME>"
   # <--
   ansible-playbook -i inventory main.yml
 

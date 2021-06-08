@@ -3,7 +3,7 @@ config:
   # -- OAuth client ID
   clientID: "{{ IDM_CLIENT }}"
   # -- OAuth client secret
-  clientSecret: "{{ IDM_SECRET }}"
+  clientSecret: "{{ IDM_CLIENT_SECRET }}"
   # -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
   cookieSecret: "{{ OAUTH_COOKIE_SECRET }}"
   google: {}
@@ -18,19 +18,20 @@ config:
 
   # -- custom [oauth2_proxy.cfg](https://github.com/oauth2-proxy/oauth2-proxy/blob/master/contrib/oauth2-proxy.cfg.example) contents for settings not overridable via environment nor command line
   configFile: |-
+    client_id = "{{ IDM_CLIENT }}"
+    client_secret = "{{ IDM_CLIENT_SECRET }}"
     email_domains = [ "*" ]
     upstreams = [ "file:///dev/null" ]
-    provider=oidc
-    provider-display-name="Keycloak {{ DOMAIN}}"
-    oidc-issuer-url={{ IDM_ENDP_ISSUER }}
-    upstream=file:///dev/null
-    email-domain=*
-    whitelist-domain=.{{ DOMAIN }}
-    http-address=0.0.0.0:4180
-    cookie-secure=true
-    pass-authorization-header=true
-    set-authorization-header=true
-    cookie-domain={{ DOMAIN }}
+    provider = "oidc"
+    provider_display_name = "IDM {{ DOMAIN}}"
+    oidc_issuer_url = "{{ IDM_ENDP_ISSUER }}"
+    whitelist_domains = ".{{ DOMAIN }}"
+    http_address = "0.0.0.0:4180"
+    cookie_secure = "true"
+    pass_authorization_header = "true"
+    set_authorization_header = "true"
+    cookie_domains = "{{ DOMAIN }}"
+    cookie_secret = "{{ OAUTH_COOKIE_SECRET }}"
 
   # Custom configuration file: oauth2_proxy.cfg
   # configFile: |-
@@ -42,11 +43,11 @@ config:
 
 image:
   # -- Image repository
-  repository: "{{ oauth2proxy.image_registry }}/{{ oauth2proxy.image_repository }}"
+  repository: "{{ oauth2proxy.image_repository }}"
   # -- Image tag
-  tag: "{{ masterportal.image_tag }}"
+  tag: "{{ oauth2proxy.image_tag }}"
   # -- Image pull policy
-  pullPolicy: "{{ masterportal.image_pullPolicy }}"
+  pullPolicy: "{{ oauth2proxy.image_pullPolicy }}"
 
 
 # -- (list) Optionally specify an array of imagePullSecrets.
@@ -108,7 +109,7 @@ ingress:
   path: /
   # -- Ingress accepted hostnames
   hosts: 
-    - host: "{{ oauth2proxy.ingress_host }}"]
+    - host: "{{ oauth2proxy.ingress_host }}"
   # -- Ingress extra paths to prepend to every host configuration. Useful when configuring [custom actions with AWS ALB Ingress Controller](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/#actions).
   extraPaths: []
   # - path: /*

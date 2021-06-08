@@ -803,16 +803,20 @@ ansible-playbook -i inventory deploy_timescale_playbook.yml
 
 Install and configure Grafana
 ```
-ansible-playbook -i inventory deploy_timescale_playbook.yml
+ansible-playbook -i inventory deploy_grafana_playbook.yml
 ```
 
 Install minio Operator
 ```
-ansible-playbook -i inventory eploy_minio_operator_playbook.yml
+ansible-playbook -i inventory deploy_minio_operator_playbook.yml
 ```
 
 Install Minio Tenant
 ```
-ansible-playbook -i inventory inventory deploy_minio_tenant_playbook.yml 
+ansible-playbook -i inventory deploy_minio_tenant_playbook.yml 
 ```
 
+Install Minio Tenant
+```
+ansible-playbook -i inventory deploy_public_oauth2_playbook.yml 
+```

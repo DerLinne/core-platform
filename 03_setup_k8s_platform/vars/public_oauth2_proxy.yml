@@ -2,7 +2,7 @@
 # file: 03_setup_k8s_platform/vars/ckan_ckan.yml
 
 HELM_REPO_NAME: k8s-at-home
-HELM_REPO_URL: https://k8s-at-home.com/charts/
+HELM_REPO_URL: https://oauth2-proxy.github.io/manifests
 HELM_CHART_NAME: oauth2-proxy
 HELM_RELEASE_NAME: oauth2-proxy
 
