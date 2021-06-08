@@ -103,12 +103,12 @@ serviceAccount:
 
 ingress:
   # -- Enable Ingress
-  enabled: {{ oauth2proxy.ingress_enabled }}
+  enabled: "{{ oauth2proxy.ingress_enabled }}"
   # -- Ingress accepted path
   path: /
   # -- Ingress accepted hostnames
   hosts: 
-    - host: "oauth.{{ DOMAIN }}"]
+    - host: "{{ oauth2proxy.ingress_host }}"]
   # -- Ingress extra paths to prepend to every host configuration. Useful when configuring [custom actions with AWS ALB Ingress Controller](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/#actions).
   extraPaths: []
   # - path: /*
@@ -125,9 +125,9 @@ ingress:
   # -- (list) Ingress TLS configuration
   tls:
     # Secrets must be manually created in the namespace.
-     - secretName: "oauth.{{ DOMAIN }}"
+     - secretName: "{{ oauth2proxy.tls_secretName }}"
        hosts:
-         - chart-example.local
+         - "{{ oauth2proxy.ingress_host }}"
 
   # -- (string) Set ingressClassName
   ingressClassName:
