@@ -14,11 +14,6 @@
         file: monitoring_loki.yml
         name: monitoring_loki
 
-    - name: Read GRAFANA values
-      ansible.builtin.include_vars:
-        file: monitoring_grafana.yml
-        name: monitoring_grafana
-
     - name: Set default facts for K8S
       ansible.builtin.set_fact:
         k8s_config: "{{ default.K8S_KUBECONFIG }}"
@@ -38,12 +33,6 @@
         name: "{{ monitoring_loki_helm_repo_name }}"
         url: "{{ monitoring_loki_helm_repo_url }}"
 
-
-    - name: Print the gateway for each host when defined
-      ansible.builtin.debug:
-        msg: "{{ lookup('template', 'monitoring/loki-values.yaml.j2') | from_yaml }}"
-
-
     - name: Install Helm package with values loaded from template
       community.kubernetes.helm:
         name: "{{ monitoring_loki_helm_release_name }}"
@@ -55,15 +44,40 @@
         create_namespace: true
         values: "{{ lookup('template', 'monitoring/loki-values.yaml.j2') | from_yaml }}"
 
-    - name: Create loki datasource
-      community.grafana.grafana_datasource:
-        name: "loki"
-        grafana_url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
-        grafana_user: "{{ monitoring_grafana.admin_user }}"
-        grafana_password: "{{ monitoring_grafana.admin_password }}"
-        org_id: "1"
-        ds_type: "loki"
-        access: server
-        ds_url: "http://loki:3100"
+    - name: Read GRAFANA values
+      ansible.builtin.include_vars:
+        file: monitoring_promtail.yml
+        name: monitoring_promtail
+
+    - name: Set facts for Loki Helm chart
+      ansible.builtin.set_fact:
+        monitoring_promtail_helm_repo_name: "{{ monitoring_promtail.HELM_REPO_NAME }}"
+        monitoring_promtail_helm_repo_url: "{{ monitoring_promtail.HELM_REPO_URL }}"
+        monitoring_promtail_helm_chart_name: "{{ monitoring_promtail.HELM_PROMTAIL_CHART_NAME }}"
+        monitoring_promtail_helm_release_name: "{{ monitoring_promtail.HELM_PROMTAIL_RELEASE_NAME }}"
+
+    - name: Install Helm package with values loaded from template
+      community.kubernetes.helm:
+        name: "{{ monitoring_promtail_helm_release_name }}"
+        chart_ref: "{{ monitoring_promtail_helm_repo_name }}/{{ monitoring_promtail_helm_chart_name }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        release_namespace: "{{ k8s_namespace }}"
+        update_repo_cache: true
+        create_namespace: true
+        values: "{{ lookup('template', 'monitoring/promtail-values.yaml.j2') | from_yaml }}"
+
+
+
+    # - name: Create loki datasource
+    #   community.grafana.grafana_datasource:
+    #     name: "loki"
+    #     grafana_url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
+    #     grafana_user: "{{ monitoring_grafana.admin_user }}"
+    #     grafana_password: "{{ monitoring_grafana.admin_password }}"
+    #     org_id: "1"
+    #     ds_type: "loki"
+    #     access: server
+    #     ds_url: "http://loki:3100"
 
  
