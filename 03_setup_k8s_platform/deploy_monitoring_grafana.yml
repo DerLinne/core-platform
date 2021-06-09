@@ -70,7 +70,7 @@
             state: present
             commit_message: Updated by ansible
             overwrite: yes
-            path: "/tmp/udp/monitoring/prometheus_dashboard_files/{{ item }}"
+            path: "{{ item }}"
       with_fileglob:
         - "/tmp/udp/monitoring/prometheus_dashboard_files/*.json"
 
