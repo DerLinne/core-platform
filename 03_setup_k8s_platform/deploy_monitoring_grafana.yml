@@ -61,6 +61,14 @@
         dest: /tmp/udp/monitoring/prometheus_dashboard_files/
         mode: '0666'
 
+    - name: Create a folder
+      community.grafana.grafana_folder:
+        url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
+        url_username: "{{ monitoring_grafana.admin_user }}"
+        url_password: "{{ monitoring_grafana.admin_password }}"
+        title: "Prometheus"
+        state: present
+
     - name: (Re-)Import Grafana Dashboard (Weather DWD)
       community.grafana.grafana_dashboard:
             grafana_url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
