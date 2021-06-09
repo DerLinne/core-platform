@@ -1,7 +1,8 @@
 image:
-  repository: grafana/loki
-  tag: 2.2.0
-  pullPolicy: IfNotPresent
+  repository: {{ monitoring_loki.image_loki_repository }}
+  tag: {{ monitoring_loki.image_loki_tag }}
+  pullPolicy: {{ monitoring_loki.image_loki_pullPolicy }}
+
 
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
@@ -71,7 +72,7 @@ config:
     reject_old_samples_max_age: 168h
   schema_config:
     configs:
-    - from: 2020-10-24
+    - from: "2020-10-24"
       store: boltdb-shipper
       object_store: filesystem
       schema: v11
@@ -110,6 +111,7 @@ config:
 #        store: inmemory
 #    enable_api: true
 
+
 ## Additional Loki container arguments, e.g. log level (debug, info, warn, error)
 extraArgs: {}
   # log.level: debug
@@ -136,7 +138,7 @@ nodeSelector: {}
 ## - create a pv which above 10Gi and has same namespace with loki
 ## - keep storageClassName same with below setting
 persistence:
-  enabled: true
+  enabled: false
   accessModes:
   - ReadWriteOnce
   size: 10Gi
