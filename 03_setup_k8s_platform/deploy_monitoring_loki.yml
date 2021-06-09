@@ -33,18 +33,18 @@
         name: "{{ monitoring_loki_helm_repo_name }}"
         url: "{{ monitoring_loki_helm_repo_url }}"
 
-    - name: Install Helm package with values loaded from template
-      community.kubernetes.helm:
-        name: "{{ monitoring_loki_helm_release_name }}"
-        chart_ref: "{{ monitoring_loki_helm_repo_name }}/{{ monitoring_loki_helm_chart_name }}"
-        kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"
-        release_namespace: "{{ k8s_namespace }}"
-        update_repo_cache: true
-        create_namespace: true
-        values: "{{ lookup('template', 'monitoring/loki-values.yaml.j2') | from_yaml }}"
+    # - name: Install Helm package with values loaded from template
+    #   community.kubernetes.helm:
+    #     name: "{{ monitoring_loki_helm_release_name }}"
+    #     chart_ref: "{{ monitoring_loki_helm_repo_name }}/{{ monitoring_loki_helm_chart_name }}"
+    #     kubeconfig: "{{ k8s_config }}"
+    #     context: "{{ k8s_context }}"
+    #     release_namespace: "{{ k8s_namespace }}"
+    #     update_repo_cache: true
+    #     create_namespace: true
+    #     values: "{{ lookup('template', 'monitoring/loki-values.yaml.j2') | from_yaml }}"
 
-    - name: Set facts for Loki Helm chart
+    - name: Set facts for Promtail Helm chart
       ansible.builtin.set_fact:
         monitoring_promtail_helm_repo_name: "{{ monitoring_loki.HELM_REPO_NAME }}"
         monitoring_promtail_helm_repo_url: "{{ monitoring_loki.HELM_REPO_URL }}"
