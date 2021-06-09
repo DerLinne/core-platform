@@ -1,7 +1,7 @@
 image:
-  repository: {{ monitoring_loki.image_loki_repository }}
-  tag: {{ monitoring_loki.image_loki_tag }}
-  pullPolicy: {{ monitoring_loki.image_loki_pullPolicy }}
+  repository: grafana/loki
+  tag: 2.2.0
+  pullPolicy: IfNotPresent
 
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
