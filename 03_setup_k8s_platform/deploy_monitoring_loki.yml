@@ -44,17 +44,12 @@
         create_namespace: true
         values: "{{ lookup('template', 'monitoring/loki-values.yaml.j2') | from_yaml }}"
 
-    - name: Read GRAFANA values
-      ansible.builtin.include_vars:
-        file: monitoring_promtail.yml
-        name: monitoring_promtail
-
     - name: Set facts for Loki Helm chart
       ansible.builtin.set_fact:
-        monitoring_promtail_helm_repo_name: "{{ monitoring_promtail.HELM_REPO_NAME }}"
-        monitoring_promtail_helm_repo_url: "{{ monitoring_promtail.HELM_REPO_URL }}"
-        monitoring_promtail_helm_chart_name: "{{ monitoring_promtail.HELM_PROMTAIL_CHART_NAME }}"
-        monitoring_promtail_helm_release_name: "{{ monitoring_promtail.HELM_PROMTAIL_RELEASE_NAME }}"
+        monitoring_promtail_helm_repo_name: "{{ monitoring_loki.HELM_REPO_NAME }}"
+        monitoring_promtail_helm_repo_url: "{{ monitoring_loki.HELM_REPO_URL }}"
+        monitoring_promtail_helm_chart_name: "{{ monitoring_loki.HELM_PROMTAIL_CHART_NAME }}"
+        monitoring_promtail_helm_release_name: "{{ monitoring_loki.HELM_PROMTAIL_RELEASE_NAME }}"
 
     - name: Install Helm package with values loaded from template
       community.kubernetes.helm:
