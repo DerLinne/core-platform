@@ -16,6 +16,6 @@ service_port: 80
 ingress_enabled: true
 ingress_class: public
 ingress_tls_acme: true
-ingress_host: "masterportal.utr-k8s.urban-data.cloud"
+ingress_host: "masterportal.{{ DOMAIN }}"
 ingress_host_path: "/"
-ingress_tls_secret: "masterportal.utr-k8s.urban-data.cloud-tls"
+ingress_tls_secret: "masterportal.{{ DOMAIN }}-tls"

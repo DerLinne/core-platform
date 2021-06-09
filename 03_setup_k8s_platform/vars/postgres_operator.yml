@@ -1,0 +1,23 @@
+---
+HELM_OP_CHART_URL: https://github.com/zalando/postgres-operator/raw/master/charts/postgres-operator/postgres-operator-1.6.1.tgz
+HELM_OP_RELEASE_NAME: postgres-operator
+
+HELM_UI_CHART_URL: https://github.com/zalando/postgres-operator/raw/master/charts/postgres-operator-ui/postgres-operator-ui-1.6.1.tgz
+HELM_UI_RELEASE_NAME: postgres-operator-ui
+
+image_op_registry: "registry.opensource.zalan.do"
+image_op_repository: "acid/postgres-operator"
+image_op_tag: "v1.6.1"
+image_op_pullPolicy: IfNotPresent
+
+image_ui_registry: "registry.opensource.zalan.do"
+image_ui_repository: "acid/postgres-operator-ui"
+image_ui_tag: "v1.6.1"
+image_ui_pullPolicy: IfNotPresent
+
+general_docker_image: "registry.opensource.zalan.do/acid/spilo-13:2.0-p4"
+replication_username: "standby"
+super_username: "postgres"
+
+postgres_ui_ingress_server_name: "pgopui"
+postgres_ui_ingress_tls_secret: "pgopui-tls"
