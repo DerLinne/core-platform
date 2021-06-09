@@ -1,0 +1,18 @@
+---
+HELM_REPO_NAME: grafana
+HELM_REPO_URL: https://grafana.github.io/helm-charts
+HELM_CHART_NAME: grafana
+HELM_RELEASE_NAME: grafana
+
+image_grafana_repository: "grafana/grafana"
+image_grafana_tag: "7.5.3"
+image_grafana_pullPolicy: IfNotPresent
+
+ingress_class: "public"
+ingress_tls_acme: "true"
+
+ingress_server_name: "monitoring"
+ingress_tls_secret: "monitoring.{{ DOMAIN }}-tls"
+
+admin_user: "admin"
+admin_password: "kijlsaf78sda987sad"
