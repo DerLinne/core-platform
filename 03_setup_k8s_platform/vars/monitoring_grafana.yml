@@ -2,7 +2,7 @@
 HELM_REPO_NAME: grafana
 HELM_REPO_URL: https://grafana.github.io/helm-charts
 HELM_CHART_NAME: grafana
-HELM_RELEASE_NAME: grafana
+HELM_RELEASE_NAME: monitoring_grafana
 
 image_grafana_repository: "grafana/grafana"
 image_grafana_tag: "7.5.3"
