@@ -758,15 +758,6 @@ MINIO_TENANT_CONSOLE_ACCESS_KEY='<your_soncole_access_ke>'
 ## MinIO User Secret Key (used for Console Login), base64 encoded (e.g. echo -n 'YOURCONSOLESECRET' | base64)
 MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
 
-## IDM Settings
-
-IDM_SCOPE='openid'
-IDM_CLIENT='<you_keycloak_client>'
-IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
-IDM_ENDP_AUTHORIZE='<your_authorize_url>'
-IDM_ENDP_TOKEN='<your_token_url>'
-IDM_ENDP_USER_INFO='<your_user_info_url>'
-
 ## Timescale Settings
 
 TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
@@ -815,8 +806,22 @@ Install Minio Tenant
 ```
 ansible-playbook -i inventory deploy_minio_tenant_playbook.yml 
 ```
+### Public Stack
 
-Install Minio Tenant
+To install the public Stack set the following variables in the `inventory`:
+
+```
+## IDM Settings
+
+IDM_SCOPE='openid'
+IDM_CLIENT='<you_keycloak_client>'
+IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+IDM_ENDP_AUTHORIZE='<your_authorize_url>'
+IDM_ENDP_TOKEN='<your_token_url>'
+IDM_ENDP_USER_INFO='<your_user_info_url>'
+```
+
+Install OAuth2 Proxy Tenant
 ```
 ansible-playbook -i inventory deploy_public_oauth2_playbook.yml 
 ```
