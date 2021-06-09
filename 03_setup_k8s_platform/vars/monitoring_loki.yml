@@ -1,0 +1,10 @@
+---
+HELM_REPO_NAME: grafana
+HELM_REPO_URL: https://grafana.github.io/helm-charts
+HELM_CHART_NAME: loki
+HELM_RELEASE_NAME: monitoring-loki
+
+image_loki_repository: "grafana/loki"
+image_loki_tag: "2.2.0"
+image_loki_pullPolicy: IfNotPresent
+

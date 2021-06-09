@@ -1,0 +1,58 @@
+---
+- name: Deploy Loki
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+
+    - name: Read GRAFANA values
+      ansible.builtin.include_vars:
+        file: monitoring_loki.yml
+        name: monitoring_loki
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_MONITORING }}"
+        k8s_host: "{{ lookup('env','K8S_MASTER')}}"
+
+    - name: Set facts for Loki Helm chart
+      ansible.builtin.set_fact:
+        monitoring_loki_helm_repo_name: "{{ monitoring_loki.HELM_REPO_NAME }}"
+        monitoring_loki_helm_repo_url: "{{ monitoring_loki.HELM_REPO_URL }}"
+        monitoring_loki_helm_chart_name: "{{ monitoring_loki.HELM_CHART_NAME }}"
+        monitoring_loki_helm_release_name: "{{ monitoring_loki.HELM_RELEASE_NAME }}"
+
+    - name: Add Loki Helm repo
+      community.kubernetes.helm_repository:
+        name: "{{ monitoring_loki_helm_repo_name }}"
+        url: "{{ monitoring_loki_helm_repo_url }}"
+
+    - name: Install Helm package with values loaded from template
+      community.kubernetes.helm:
+        name: "{{ monitoring_loki_helm_release_name }}"
+        chart_ref: "{{ monitoring_loki_helm_repo_name }}/{{ monitoring_loki_helm_chart_name }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        release_namespace: "{{ k8s_namespace }}"
+        update_repo_cache: true
+        create_namespace: true
+        values: "{{ lookup('template', 'monitoring/loki-values.yaml.j2') | from_yaml }}"
+
+    - name: Create loki datasource
+      community.grafana.grafana_datasource:
+        name: "loki"
+        grafana_url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
+        grafana_user: "{{ monitoring_grafana.admin_user }}"
+        grafana_password: "{{ monitoring_grafana.admin_password }}"
+        org_id: "1"
+        ds_type: "loki"
+        access: server
+        ds_url: "http://loki:3100"
+
+ 
