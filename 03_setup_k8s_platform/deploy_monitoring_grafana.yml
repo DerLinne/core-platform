@@ -48,57 +48,29 @@
       pause:
         seconds: 60
 
-    # - name: Ensure temp directory exists
-    #   file:
-    #     path: /tmp/udp/monitoring/dashboard_files/
-    #     recurse: yes
-    #     state: directory
-    #     mode: '0755'
+    - name: Ensure temp directory exists
+      file:
+        path: /tmp/udp/monitoring/prometheus_dashboard_files/
+        recurse: yes
+        state: directory
+        mode: '0755'
 
-    # - name: Create grafana dashboard from template (Weather DWD)
-    #   template:
-    #     src: grafana/dashboard_files/tsdb_weather_DWD.json.j2
-    #     dest: /tmp/udp/grafana/dashboard_files/tsdb_weather_DWD.json
-    #     mode: '0666'
+    - name: Copy Dashboard Folder
+      copy:
+        src: monitoring/prometheus_dashboard_files/
+        dest: /tmp/udp/monitoring/prometheus_dashboard_files/
+        mode: '0666'
 
-    # - name: (Re-)Import Grafana Dashboard (Weather DWD)
-    #   community.grafana.grafana_dashboard:
-    #         grafana_url: "https://grafana.{{ default.GENERAL_DOMAIN_NAME }}"
-    #         url_username: "{{ grafana.admin_user }}"
-    #         url_password: "{{ grafana.admin_password }}"
-    #         state: present
-    #         commit_message: Updated by ansible
-    #         overwrite: yes
-    #         path: /tmp/udp/grafana/dashboard_files/tsdb_weather_DWD.json
+    - name: (Re-)Import Grafana Dashboard (Weather DWD)
+      community.grafana.grafana_dashboard:
+            grafana_url: "https://grafana.{{ default.GENERAL_DOMAIN_NAME }}"
+            url_username: "{{ grafana.admin_user }}"
+            url_password: "{{ grafana.admin_password }}"
+            folder: "Prometheus"
+            state: present
+            commit_message: Updated by ansible
+            overwrite: yes
+            path: "tmp/udp/monitoring/prometheus_dashboard_files/{{ item }}"
+      with_fileglob:
+        - "tmp/udp/monitoring/prometheus_dashboard_files/*.json"
 
-    # - name: Create grafana dashboard from template (Particulate Matter)
-    #   template:
-    #     src: grafana/dashboard_files/tsdb_particulate_matter.json.j2
-    #     dest: /tmp/udp/grafana/dashboard_files/tsdb_particulate_matter.json
-    #     mode: '0666'
-
-    # - name: (Re-)Import Grafana Dashboard (Particulate Matter)
-    #   community.grafana.grafana_dashboard:
-    #         grafana_url: "https://grafana.{{ default.GENERAL_DOMAIN_NAME }}"
-    #         url_username: "{{ grafana.admin_user }}"
-    #         url_password: "{{ grafana.admin_password }}"
-    #         state: present
-    #         commit_message: Updated by ansible
-    #         overwrite: yes
-    #         path: /tmp/udp/grafana/dashboard_files/tsdb_particulate_matter.json
-
-    # - name: Create grafana dashboard from template (Weather)
-    #   template:
-    #     src: grafana/dashboard_files/tsdb_weather.json.j2
-    #     dest: /tmp/udp/grafana/dashboard_files/tsdb_weather.json
-    #     mode: '0666'
-
-    # - name: (Re-)Import Grafana Dashboard (Weather)
-    #   community.grafana.grafana_dashboard:
-    #         grafana_url: "https://grafana.{{ default.GENERAL_DOMAIN_NAME }}"
-    #         url_username: "{{ grafana.admin_user }}"
-    #         url_password: "{{ grafana.admin_password }}"
-    #         state: present
-    #         commit_message: Updated by ansible
-    #         overwrite: yes
-    #         path: /tmp/udp/grafana/dashboard_files/tsdb_weather.json             
