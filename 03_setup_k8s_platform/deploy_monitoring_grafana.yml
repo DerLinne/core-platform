@@ -64,13 +64,13 @@
     - name: (Re-)Import Grafana Dashboard (Weather DWD)
       community.grafana.grafana_dashboard:
             grafana_url: "https://grafana.{{ default.GENERAL_DOMAIN_NAME }}"
-            url_username: "{{ grafana.admin_user }}"
-            url_password: "{{ grafana.admin_password }}"
+            url_username: "{{ monitoring_grafana.admin_user }}"
+            url_password: "{{ monitoring_grafana.admin_password }}"
             folder: "Prometheus"
             state: present
             commit_message: Updated by ansible
             overwrite: yes
-            path: "tmp/udp/monitoring/prometheus_dashboard_files/{{ item }}"
+            path: "/tmp/udp/monitoring/prometheus_dashboard_files/{{ item }}"
       with_fileglob:
-        - "tmp/udp/monitoring/prometheus_dashboard_files/*.json"
+        - "/tmp/udp/monitoring/prometheus_dashboard_files/*.json"
 
