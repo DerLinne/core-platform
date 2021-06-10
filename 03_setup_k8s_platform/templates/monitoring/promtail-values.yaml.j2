@@ -300,7 +300,7 @@ config:
       # Pods with a label 'app.kubernetes.io/name'
       - job_name: kubernetes-pods-app-kubernetes-io-name
         pipeline_stages:
-          \\{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 \\}}
+         {% raw %}{{ {{- toYaml .Values.config.snippets.pipelineStages | nindent 4 }} {% endraw %}
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
@@ -316,17 +316,17 @@ config:
             source_labels:
               - __meta_kubernetes_pod_label_app_kubernetes_io_component
             target_label: component
-          \\{{- if .Values.config.snippets.addScrapeJobLabel \\}}
+          {% raw %}{{- if .Values.config.snippets.addScrapeJobLabel }}{% endraw %}
           - action: replace
             replacement: kubernetes-pods-app-kubernetes-io-name
             target_label: scrape_job
-          \\{{- end \\}}
-          \\{{- toYaml .Values.config.snippets.common | nindent 4 \\}}
+          {% raw %}{{- end }}{% endraw %}
+          {% raw %}{{- toYaml .Values.config.snippets.common | nindent 4 }}{% endraw %}
 
       # Pods with a label 'app'
       - job_name: kubernetes-pods-app
         pipeline_stages:
-          \\{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 \\}}
+          {% raw %}{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 }}{% endraw %}
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
@@ -347,17 +347,17 @@ config:
             source_labels:
               - __meta_kubernetes_pod_label_component
             target_label: component
-          \\{{- if .Values.config.snippets.addScrapeJobLabel \\}}
+          {% raw %}{{- if .Values.config.snippets.addScrapeJobLabel }}{% endraw %}
           - action: replace
             replacement: kubernetes-pods-app
             target_label: scrape_job
-          \\{{- end \\}}
-          \\{{- toYaml .Values.config.snippets.common | nindent 4 \\}}
+          {% raw %}{{- end }}{% endraw %}
+          {% raw %}{{- toYaml .Values.config.snippets.common | nindent 4 }}{% endraw %}
 
       # Pods with direct controllers, such as StatefulSet
       - job_name: kubernetes-pods-direct-controllers
         pipeline_stages:
-          \\{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 \\}}
+          {% raw %}{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 }}{% endraw %}
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
@@ -376,17 +376,17 @@ config:
             source_labels:
               - __meta_kubernetes_pod_controller_name
             target_label: app
-          \\{{- if .Values.config.snippets.addScrapeJobLabel \\}}
+          {% raw %}{{- if .Values.config.snippets.addScrapeJobLabel }}{% endraw %}
           - action: replace
             replacement: kubernetes-pods-direct-controllers
             target_label: scrape_job
-          \\{{- end \\}}
-          \\{{- toYaml .Values.config.snippets.common | nindent 4 \\}}
+          {% raw %}{{- end }}{% endraw %}
+          {% raw %}{{- toYaml .Values.config.snippets.common | nindent 4 }}{% endraw %}
 
       # Pods with indirect controllers, such as Deployment
       - job_name: kubernetes-pods-indirect-controller
         pipeline_stages:
-          \\{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 \\}}
+          {% raw %}{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 }}{% endraw %}
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
@@ -406,16 +406,16 @@ config:
             source_labels:
               - __meta_kubernetes_pod_controller_name
             target_label: app
-          \\{{- if .Values.config.snippets.addScrapeJobLabel \\}}
+          {% raw %}{{- if .Values.config.snippets.addScrapeJobLabel }}{% endraw %}
           - action: replace
             replacement: kubernetes-pods-indirect-controller
             target_label: scrape_job
-          \\{{- end \\}}
-          \\{{- toYaml .Values.config.snippets.common | nindent 4 \\}}
+          {% raw %}{{- end }}{% endraw %}
+          {% raw %}{{- toYaml .Values.config.snippets.common | nindent 4 }}{% endraw %}
       # All remaining pods not yet covered
       - job_name: kubernetes-other
         pipeline_stages:
-          \\{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 \\}}
+          {% raw %}{{- toYaml .Values.config.snippets.pipelineStages | nindent 4 }}{% endraw %}
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
@@ -438,12 +438,12 @@ config:
             source_labels:
               - __meta_kubernetes_pod_label_component
             target_label: component
-          \\{{- if .Values.config.snippets.addScrapeJobLabel \\}}
+          {% raw %}{{- if .Values.config.snippets.addScrapeJobLabel }}{% endraw %}
           - action: replace
             replacement: kubernetes-other
             target_label: scrape_job
-          \\{{- end \\}}
-          \\{{- toYaml .Values.config.snippets.common | nindent 4 \\}}
+          {% raw %}{{- end }}{% endraw %}
+          {% raw %}{{- toYaml .Values.config.snippets.common | nindent 4 }}{% endraw %}
 
   # -- Config file contents for Promtail.
   # Must be configured as string.
@@ -451,19 +451,19 @@ config:
   # @default -- See `values.yaml`
   file: |
     server:
-      log_level: \\{{ .Values.config.logLevel \\}}
-      http_listen_port: \\{{ .Values.config.serverPort \\}}
+      log_level: {% raw %}{{ .Values.config.logLevel }}{% endraw %}
+      http_listen_port: {% raw %}{{ .Values.config.serverPort }}{% endraw %}
 
     client:
-      url: \\{{ tpl .Values.config.lokiAddress . \\}}
-      \\{{- tpl .Values.config.snippets.extraClientConfigs . | nindent 2 \\}}
+      url: {% raw %}{{ tpl .Values.config.lokiAddress . }}{% endraw %}
+      {% raw %}{{- tpl .Values.config.snippets.extraClientConfigs . | nindent 2 }}{% endraw %}
 
     positions:
       filename: /run/promtail/positions.yaml
 
     scrape_configs:
-      \\{{- tpl .Values.config.snippets.scrapeConfigs . | nindent 2 \\}}
-      \\{{- tpl .Values.config.snippets.extraScrapeConfigs . | nindent 2 \\}}
+      {% raw %}{{- tpl .Values.config.snippets.scrapeConfigs . | nindent 2 }}{% endraw %}
+      {% raw %}{{- tpl .Values.config.snippets.extraScrapeConfigs . | nindent 2 }}{% endraw %}
 
 networkPolicy:
   # -- Specifies whether Network Policies should be created
