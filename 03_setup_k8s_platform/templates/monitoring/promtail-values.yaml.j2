@@ -449,22 +449,23 @@ config:
   # Must be configured as string.
   # It is templated so it can be assembled from reusable snippets in order to avoid redundancy.
   # @default -- See `values.yaml`
+  {% raw %}
   file: |
     server:
-      log_level: {% raw %}{{ .Values.config.logLevel }}{% endraw %}
-      http_listen_port: {% raw %}{{ .Values.config.serverPort }}{% endraw %}
-
+      log_level: {{ .Values.config.logLevel }}
+      http_listen_port: {{ .Values.config.serverPort }}
+   
     client:
-      url: {% raw %}{{ tpl .Values.config.lokiAddress . }}{% endraw %}
-      {% raw %}{{- tpl .Values.config.snippets.extraClientConfigs . | nindent 2 }}{% endraw %}
+      url: {{ tpl .Values.config.lokiAddress . }}
+      {{- tpl .Values.config.snippets.extraClientConfigs . | nindent 2 }}
 
     positions:
       filename: /run/promtail/positions.yaml
 
     scrape_configs:
-      {% raw %}{{- tpl .Values.config.snippets.scrapeConfigs . | nindent 2 }}{% endraw %}
-      {% raw %}{{- tpl .Values.config.snippets.extraScrapeConfigs . | nindent 2 }}{% endraw %}
-
+      {{- tpl .Values.config.snippets.scrapeConfigs . | nindent 2 }}
+      {{- tpl .Values.config.snippets.extraScrapeConfigs . | nindent 2 }}
+    {% endraw %}
 networkPolicy:
   # -- Specifies whether Network Policies should be created
   enabled: false
