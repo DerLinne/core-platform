@@ -82,3 +82,15 @@
       with_fileglob:
         - "/tmp/udp/monitoring/prometheus_dashboard_files/*.json"
 
+    - name: Create loki datasource
+      community.grafana.grafana_datasource:
+        name: "loki"
+        grafana_url: "https://moni.{{ default.GENERAL_DOMAIN_NAME }}"
+        grafana_user: "{{ monitoring_grafana.admin_user }}"
+        grafana_password: "{{ monitoring_grafana.admin_password }}"
+        org_id: "1"
+        ds_type: "loki"
+        access: server
+        ds_url: "http://monitoring-loki:3100"
+
+ 
