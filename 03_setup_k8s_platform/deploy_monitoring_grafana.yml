@@ -90,7 +90,7 @@
         grafana_password: "{{ monitoring_grafana.admin_password }}"
         org_id: "1"
         ds_type: "loki"
-        access: server
+        access: direct
         ds_url: "http://monitoring-loki:3100"
 
  
