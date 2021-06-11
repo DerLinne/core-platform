@@ -63,7 +63,7 @@
 
     - name: Create a folder
       community.grafana.grafana_folder:
-        url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
+        url: "https://moni.{{ default.GENERAL_DOMAIN_NAME }}"
         url_username: "{{ monitoring_grafana.admin_user }}"
         url_password: "{{ monitoring_grafana.admin_password }}"
         title: "Prometheus"
@@ -71,7 +71,7 @@
 
     - name: (Re-)Import Grafana Dashboard (Weather DWD)
       community.grafana.grafana_dashboard:
-            grafana_url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
+            grafana_url: "https://moni.{{ default.GENERAL_DOMAIN_NAME }}"
             url_username: "{{ monitoring_grafana.admin_user }}"
             url_password: "{{ monitoring_grafana.admin_password }}"
             folder: "Prometheus"
