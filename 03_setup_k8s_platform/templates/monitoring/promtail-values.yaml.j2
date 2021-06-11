@@ -375,7 +375,7 @@ config:
       - job_name: kubernetes-pods-direct-controllers
         pipeline_stages:
           
-          {- toYaml .Values.config.snippets.pipelineStages | nindent 4 }}
+          {{- toYaml .Values.config.snippets.pipelineStages | nindent 4 }}
           
         kubernetes_sd_configs:
           - role: pod
