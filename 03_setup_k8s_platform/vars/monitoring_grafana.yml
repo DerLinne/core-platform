@@ -11,8 +11,8 @@ image_grafana_pullPolicy: IfNotPresent
 ingress_class: "public"
 ingress_tls_acme: "true"
 
-ingress_server_name: "moni"
-ingress_tls_secret: "moni.{{ DOMAIN }}-tls"
+ingress_server_name: "monitoring"
+ingress_tls_secret: "monitoring.{{ DOMAIN }}-tls"
 
 admin_user: "admin"
 admin_password: "kijlsaf78sda987sad"
