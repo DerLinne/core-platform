@@ -62,17 +62,15 @@
         create_namespace: true
         values: "{{ lookup('template', 'monitoring/promtail-values.yaml.j2') | from_yaml }}"
 
-
-
-    # - name: Create loki datasource
-    #   community.grafana.grafana_datasource:
-    #     name: "loki"
-    #     grafana_url: "https://monitoring.{{ default.GENERAL_DOMAIN_NAME }}"
-    #     grafana_user: "{{ monitoring_grafana.admin_user }}"
-    #     grafana_password: "{{ monitoring_grafana.admin_password }}"
-    #     org_id: "1"
-    #     ds_type: "loki"
-    #     access: server
-    #     ds_url: "http://loki:3100"
+    - name: Create loki datasource
+      community.grafana.grafana_datasource:
+        name: "loki"
+        grafana_url: "https://moni.{{ default.GENERAL_DOMAIN_NAME }}"
+        grafana_user: "{{ monitoring_loki.admin_user }}"
+        grafana_password: "{{ monitoring_loki.admin_password }}"
+        org_id: "1"
+        ds_type: "loki"
+        access: server
+        ds_url: "http://monitoring-loki:3100"
 
  
