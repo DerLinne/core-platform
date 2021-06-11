@@ -813,6 +813,19 @@ ansible-playbook -i inventory eploy_minio_operator_playbook.yml
 
 Install Minio Tenant
 ```
-ansible-playbook -i inventory inventory deploy_minio_tenant_playbook.yml 
+ansible-playbook -i inventory deploy_minio_tenant_playbook.yml 
 ```
 
+## Monitoring Stack
+
+Make sure the above mentioned IDM Settings are correctly set for deployment.
+
+Install Loki & Promtail
+```
+ansible-playbook -i inventory deploy_monitoring_loki.yml
+```
+
+Install Grafana
+```
+ansible-playbook -i inventory deploy_monitoring_grafana.yml
+```
