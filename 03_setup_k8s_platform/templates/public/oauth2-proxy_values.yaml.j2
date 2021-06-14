@@ -108,8 +108,7 @@ ingress:
   # -- Ingress accepted path
   path: /
   # -- Ingress accepted hostnames
-  hosts: 
-    - host: "{{ oauth2proxy.ingress_host }}"
+  hosts: [ "{{ oauth2proxy.ingress_host }}" ]
   # -- Ingress extra paths to prepend to every host configuration. Useful when configuring [custom actions with AWS ALB Ingress Controller](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/#actions).
   extraPaths: []
   # - path: /*
