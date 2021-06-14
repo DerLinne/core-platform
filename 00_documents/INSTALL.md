@@ -327,7 +327,25 @@ The default password for the default PostGIS user `postgres` is `postgres123`.
 
 
 ### MasterPortal
-To install [MasterPortal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml` from within the ACN.
+To install [MasterPortal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml` from within the ACN. Before doing this, please install the Masterportal specific OAuth2 Proxy
+
+To activate the authentication for masterportal set the following variables in the `inventory`:
+
+```
+# Master Portal Settings
+MP_IDM_CLIENT='<your_keycloak_client>'
+MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
+# -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
+MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+```
+
+Install OAuth2 Proxy for masterportal
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_oauth2_masterportal_proxy.yml
+```
 
 ```
 cd ~/data-platform-k8s/03_setup_k8s_platform
@@ -825,3 +843,6 @@ Install OAuth2 Proxy Tenant
 ```
 ansible-playbook -i inventory deploy_public_oauth2_playbook.yml 
 ```
+
+
+
