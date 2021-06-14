@@ -109,7 +109,7 @@ ingress:
   path: /
   # -- Ingress accepted hostnames
   hosts: 
-    - host: "{{ mpoauth.ingress_host }}"
+    - host: "{{ mpoauth2proxy.ingress_host }}"
   # -- Ingress extra paths to prepend to every host configuration. Useful when configuring [custom actions with AWS ALB Ingress Controller](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/#actions).
   extraPaths: []
   # - path: /*
@@ -128,7 +128,7 @@ ingress:
     # Secrets must be manually created in the namespace.
      - secretName: "{{ mpoauth2proxy.tls_secretName }}"
        hosts:
-         - "{{ mpoauth.ingress_host }}"
+         - "{{ mpoauth2proxy.ingress_host }}"
 
   # -- (string) Set ingressClassName
   ingressClassName:
