@@ -50,3 +50,11 @@ pgservicefile: "qgis-pg-service.conf"
 # PostGIS: Credentials of PostGIS admin to create database artefacts for QGIS Server
 postgis_admin: "postgres"
 postgis_admin_password: "postgres123"
+
+# Ingress settings
+ingress_enabled: true
+ingress_class: public
+ingress_tls_acme: true
+ingress_host: "mapserver.{{ DOMAIN }}"
+ingress_host_path: "/"
+ingress_tls_secret: "mapserver.{{ DOMAIN }}-tls"

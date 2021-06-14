@@ -398,6 +398,15 @@ sudo microk8s ctr images list | grep webgis
 
 ### QGIS Server
 
+If you want to reach your QGIS Server from the Internet via HTTPS, you have to
+
+- make sure, that the Nginx Ingress Controler and the CertManager are setup for your K8s cluster.
+- add an entry `DOMAIN=<your domain>` to the file `inventory`.
+- make sure that `ingress_enabled` in `vars/webgis_qgisserver.yml` is set to `true`.
+
+If you want to change the host name from `mapserver` to something else, please edit `ingress_host`
+and make sure your DNS server can resolve this host name.
+
 To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN.
 
 ```
@@ -494,6 +503,13 @@ kubectl --namespace geodata port-forward \
 ```
 and open the URL
 [http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
+
+
+If you have deployed QGIS Server, so it can be reached via HTTPS, you have to open the URL
+
+https://mapserver.{{ YOUR DOMAIN }}/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+
+in your Web browser.
 
 ---
 **IMPORTANT**
