@@ -1,4 +1,7 @@
-**Documentation**
+**How-to: Upload geodata from QGIS desktop to Postgis DB**
+
+This how-to explains how to upload data from QGIS desktop to postgis.
+
 
 **pgAdmin roles/users and their rights:**
 - A pgAdmin role _qgis_user_ was created by defining name and privileges
