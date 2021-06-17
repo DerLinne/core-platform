@@ -1,6 +1,7 @@
 ---
 # file: 03_setup_k8s_platform/deploy_frost_playbook.yml
-- name: Deploy FROST
+
+- name: Deploy FROST Server
   hosts: localhost
   gather_facts: false
 
@@ -10,10 +11,15 @@
         file: default.yml
         name: default
 
-    - name: Read FROST values
+    - name: Read FROST server values
       ansible.builtin.include_vars:
         file: frost_frost.yml
         name: frost
+
+    - name: Read FROST PostGIS values
+      ansible.builtin.include_vars:
+        file: frost_postgis.yml
+        name: postgis
 
     - name: Set default facts for K8S
       ansible.builtin.set_fact:
@@ -42,62 +48,28 @@
         name: "{{ frost_helm_repo_name }}"
         url: "{{ frost_helm_repo_url }}"
 
-    # - name: Read PostgreSQL operator values
-    #   ansible.builtin.include_vars:
-    #     file: postgres_operator.yml
-    #     name: postgres
+    - name: Read PostgreSQL operator values
+      ansible.builtin.include_vars:
+        file: postgres_operator.yml
+        name: postgres
 
-    # - name: Set facts for FROST PostGIS (Zalondo operator)
-    #   ansible.builtin.set_fact:
-    #     frost.cluster_team: @TODO
-    #     frost.cluster_name: @TODO
+    - name: Set facts for FROST PostGIS (Zalondo operator)
+      ansible.builtin.set_fact:
+        file: frost_postgis
+        name: postgis
 
-    # - name: Deploy PostGIS server for FROST via Zalando operator
-    #   community.kubernetes.k8s:
-    #     state: present
-    #     namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
-    #     kubeconfig: "{{ k8s_config }}"
-    #     context: "{{ k8s_context }}"
-    #     definition:
-    #       kind: "postgresql"
-    #       apiVersion: "acid.zalan.do/v1"
-    #       metadata:
-    #         name: "{{ frost.cluster_team }}-{{ frost.cluster_name }}"
-    #         namespace: "{{ k8s_namespace }}"
-    #         labels:
-    #           team: "{{ frost.cluster_team }}"
-    #       spec:
-    #         teamId: "{{ frost.cluster_team }}"
-    #         postgresql:
-    #           version: "11"
-    #         numberOfInstances: 2
-    #         enableMasterLoadBalancer: true
-    #         volume:
-    #           size: "20Gi"
-    #         users:
-    #           contextdata: []
-    #         databases:
-    #           contextdata: contextdata
-    #         allowedSourceRanges:
-    #           # IP ranges to access your cluster go here
-    #         resources:
-    #           requests:
-    #             cpu: 100m
-    #             memory: 100Mi
-    #           limits:
-    #             cpu: 500m
-    #             memory: 500Mi
-
-    # - name: Create PostGIS extension
-    #   command: |
-    #     kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
-    #       exec -it {{ frost.cluster_team }}-{{ frost.cluster_name }}-0
-    #       -- bash -c "psql -U {{ postgres.super_username }} -d {{ frost.database}} -c 'CREATE EXTENSION postgis;'"
-    #   register: result
-    #   until: result.rc == 0
-    #   retries: 10
-    #   delay: 5
-    #   changed_when: True
+    - name: "Create namespace {{ k8s_namespace }}"
+      community.kubernetes.k8s:
+        state: present
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          api_version: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_namespace }}"
+            labels:
+              name: "{{ k8s_namespace }}"
 
     - name: Install Helm package with values loaded from template
       community.kubernetes.helm:
@@ -107,5 +79,128 @@
         context: "{{ k8s_context }}"
         release_namespace: "{{ k8s_namespace }}"
         update_repo_cache: true
-        create_namespace: true
+        create_namespace: false
         values: "{{ lookup('template', 'templates/frost/frost_values.yaml.j2') | from_yaml }}"
+
+    - name: Remove Deployment frost-server-frost-server-db
+      community.kubernetes.k8s:
+        state: absent
+        wait: yes
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        api_version: v1
+        kind: Deployment
+        name: frost-server-frost-server-db
+
+    - name: Remove Service frost-server-frost-server-db
+      community.kubernetes.k8s:
+        state: absent
+        wait: yes
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        api_version: v1
+        kind: Service
+        name: frost-server-frost-server-db
+
+    - name: Deploy PostGIS server for FROST via Zalando operator
+      community.kubernetes.k8s:
+        state: present
+        namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          kind: "postgresql"
+          apiVersion: "acid.zalan.do/v1"
+          metadata:
+            name: "{{ postgis.cluster_team }}-{{ postgis.cluster_name }}"
+            namespace: "{{ k8s_namespace }}"
+            labels:
+              team: "{{ postgis.cluster_team }}"
+          spec:
+            teamId: "{{ postgis.cluster_team }}"
+            postgresql:
+              version: "11"
+            numberOfInstances: 2
+            enableMasterLoadBalancer: true
+            volume:
+              size: "20Gi"
+            users:
+              sensorthings: []
+            databases:
+              sensorthings: "sensorthings"
+            allowedSourceRanges:
+              # IP ranges to access your cluster go here
+            resources:
+              requests:
+                cpu: 100m
+                memory: 100Mi
+              limits:
+                cpu: 500m
+                memory: 500Mi
+
+    - name: Create PostGIS extension
+      command: |
+        kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+          exec -it {{ postgis.cluster_team }}-{{ postgis.cluster_name }}-0
+          -- bash -c "psql -U {{ postgres.super_username }} -d {{ frost.frost_db_database }} -c 'CREATE EXTENSION postgis;'"
+      register: result
+      until: result.rc == 0
+      retries: 10
+      delay: 5
+      changed_when: True
+
+    - name: Get password of user sensorthings, created by Zalando operator
+      community.kubernetes.k8s_info:
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        kind: Secret
+        name: "sensorthings.frost-server-frost-server-db.credentials.postgresql.acid.zalan.do"
+      register: sensorthings_db_password
+
+    - name: Update password in Secret frost-server-frost-server
+      community.kubernetes.k8s:
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        definition:
+          kind: Secret
+          api_version: v1
+          metadata:
+            name: "frost-server-frost-server"
+            namespace: "{{ k8s_namespace | lower }}"
+          data:
+            db.password: "{{ sensorthings_db_password['resources'][0]['data']['password'] }}"
+            db.username: "{{ frost.frost_db_username | b64encode }}"
+        state: present
+        apply: yes
+
+    - name: Get Pod running FROST Server component http
+      community.kubernetes.k8s_info:
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        namespace: "{{ k8s_namespace }}"
+        kind: Pod
+        label_selectors:
+          - app.kubernetes.io/instance=frost-server
+          - app=frost-server
+          - component=http
+      register: frost_server_http_pod_info
+
+    - name: Get name of Pod running FROST Server component http
+      ansible.builtin.set_fact:
+        frost_server_http_pod_name: "{{ frost_server_http_pod_info['resources'][0]['metadata']['name'] }}"
+      when: frost_server_http_pod_info is defined
+
+    - name: Restart Pod  running FROST Server component http
+      ansible.builtin.shell: |
+        kubectl --kubeconfig="{{ k8s_config }}" --namespace "{{ k8s_namespace | lower }}" delete pod "{{ frost_server_http_pod_name }}"
+      args:
+        executable: /bin/bash
+      when: frost_server_http_pod_name is defined
+
+    - name: Pause one minute to wait until Pod has been restarted
+      pause:
+        minutes: 1

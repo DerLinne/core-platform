@@ -1,0 +1,6 @@
+---
+# file: 03_setup_k8s_platform/vars/frost_postgis.yml
+
+# Settings for Zalando operator for PostgreSQL
+cluster_name: "frost-server-db"
+cluster_team: "frost-server"

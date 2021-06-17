@@ -6,10 +6,6 @@ HELM_REPO_URL: https://fraunhoferiosb.github.io/helm-charts/
 HELM_CHART_NAME: frost-server
 HELM_RELEASE_NAME: frost-server
 
-# Settings for Zalando operator for PostgreSQL
-cluster_name: "frost-postgis"
-cluster_team: "futrhub"
-
 # FROST settings
 name: frost-server
 frost_enableActuation: true
@@ -50,8 +46,8 @@ frost_db_persistence_storageClassName: null
 frost_db_persistence_accessModes: ReadWriteOnce
 frost_db_persistence_capacity: 10Gi
 frost_db_persistence_local_nodeMountPath: /mnt/frost-server-db
-# @TODO: set frost_db_database to URL PostGIS (deployed by Zalando operator)
-frost_db_database: "{{ lookup('env','FROST_POSTGRES_DB') | default('sensorthings', true) }}"
+# NOTE: the value of frost_db_password will be replaced with the password, created by Zalando PostgreSQL operator)
+frost_db_database: "sensorthings"
 frost_db_username: "{{ FROST_DB_USERNAME }}"
 frost_db_password: "{{ FROST_DB_PASSWORD }}"
 frost_db_idGenerationMode: ServerGeneratedOnly
