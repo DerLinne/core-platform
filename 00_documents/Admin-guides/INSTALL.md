@@ -614,21 +614,21 @@ SolrName: "solr"
 DatapusherName: "datapusher"
 DBHost: "postgres"
 MasterDBName: "postgres"
-MasterDBUser: "postgres"
-MasterDBPass: "postgres123"
+MasterDBUser: "{{ CKAN_MASTER_DB_USER }}"
+MasterDBPass: "{{ CKAN_MASTER_DB_USER_PASSWORD }}"
 
 CkanDBName: "ckan_default"
-CkanDBUser: "ckan_default"
-CkanDBPass: "ckan_default123"
+CkanDBUser: "{{ CKAN_DB_USER }}"
+CkanDBPass: "{{ CKAN_DB_USER_PASSWORD }}"
 DatastoreDBName: "datastore_default"
-DatastoreRWDBUser: "datastorerw"
-DatastoreRWDBPass: datastorerw123
-DatastoreRODBUser: datastorero
-DatastoreRODBPass: datastorero123
+DatastoreRWDBUser: "{{ CKAN_DATASTORE_RODB_USER }}"
+DatastoreRWDBPass: "{{ CKAN_DATASTORE_RODB_USER_PASSWORD }}"
+DatastoreRODBUser: "{{ CKAN_DATASTORE_RWDB_USER }}"
+DatastoreRODBPass: "{{ CKAN_DATASTORE_RWDB_USER_PASSWORD }}"
 
-ckan_sysadminName: "ckan_admin"
-ckan_sysadminPassword: "ckan_admin123"
-ckan_sysadminApiToken: "replace_this_with_generated_api_token_for_sysadmin"
+ckan_sysadminName: "{{ CKAN_SYSADMIN_NAME }}"
+ckan_sysadminPassword: "{{ CKAN_SYSADMIN_PASSWORD }}"
+ckan_sysadminApiToken: "{{ CKAN_SYSADMIN_APITOKEN }}"
 ckan_sysadminEmail: "postmaster@domain.com"
 ckan_siteTitle: "Site Title here"
 ckan_siteId: "site-id-here"
@@ -655,8 +655,8 @@ datapusherUrl: "http://datapusher-headless:8000"
 datapusherCallbackUrlBase: http://ckan
 
 smtp_server: "smtpServerURLorIP:port"
-smtp_user: "smtpUser"
-smtp_password: "smtpPassword"
+smtp_user: "{{ CKAN_SMTP_USER }}"
+smtp_password: "{{ CKAN_SMTP_PASSWORD }}"
 smtp_mailFrom: "postmaster@domain.com"
 smtp_tls : "enabled"
 smtp_starttls: "true"
@@ -783,7 +783,7 @@ DO NOT CHANGE THE VALUES
 
 ```yaml
 frost_db_database: "sensorthings"
-frost_db_username: "sensorthings"
+frost_db_username: "{{ FROST_DB_USERNAME }}"
 ```
 
 IN FILE `vars/frost_frost.yml` UNLESS YOU KNOW WHAT YOU ARE DOING!
@@ -839,8 +839,8 @@ frost_db_persistence_capacity: 10Gi
 frost_db_persistence_local_nodeMountPath: /mnt/frost-server-db
 # NOTE: the value of frost_db_password will be replaced with the password, created by Zalando PostgreSQL operator)
 frost_db_database: "sensorthings"
-frost_db_username: "sensorthings"
-frost_db_password: "sensorthings123"
+frost_db_username: "{{ FROST_DB_USERNAME }}"
+frost_db_password: "{{ FROST_DB_PASSWORD }}"
 frost_db_idGenerationMode: ServerGeneratedOnly
 frost_db_implementationClass: de.fraunhofer.iosb.ilt.sta.persistence.postgres.longid.PostgresPersistenceManagerLong
 frost_db_image_registry: docker.io
