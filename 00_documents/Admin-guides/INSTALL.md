@@ -981,14 +981,12 @@ ansible-playbook -i inventory deploy_minio_operator_playbook.yml
 Install Minio Tenant
 ```
 ansible-playbook -i inventory deploy_minio_tenant_playbook.yml 
-<<<<<<< HEAD:00_documents/Admin-guides/INSTALL.md
 ```
+
 ### Public Stack
 
 To install the public Stack set the following variables in the `inventory`:
 
-=======
->>>>>>> issue_57_migrate_monitoring_stack:00_documents/INSTALL.md
 ```
 ## IDM Settings
 
