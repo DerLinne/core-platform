@@ -177,7 +177,7 @@ configTimeouts:
 # configure behavior of load balancers
 configLoadBalancer:
   # DNS zone for cluster DNS name when load balancer is configured for cluster
-  db_hosted_zone: db.{{ default.GENERAL_DOMAIN_NAME }}
+  db_hosted_zone: db.{{ DOMAIN_NAME }}
   # annotations to apply to service when load balancing is enabled
   # custom_service_annotations: "keyx:valuez,keya:valuea"
 
