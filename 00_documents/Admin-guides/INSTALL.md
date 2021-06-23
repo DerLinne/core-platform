@@ -902,11 +902,10 @@ frost_bus_image_tag: 1.4.12
 frost_bus_image_pullPolicy: IfNotPresent
 
 ```
-<br>
+
 ```yaml
 ---
 # file: 03_setup_k8s_platform/vars/frost_postgis.yml
-
 # Settings for Zalando operator for PostgreSQL
 cluster_name: "frost-server-db"
 cluster_team: "frost-server"
@@ -918,7 +917,7 @@ cluster_team: "frost-server"
 To install the data Management sSteck, the following Values have to be set in the `ìnventory` for the payload playbook.
 
 
-```
+```yaml
 ## Minio settings
 
 ## Access Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio' | base64)
@@ -947,7 +946,7 @@ The TimescaleDB Password can be free defined.
 
 To set these values, execute the following:
 
-```
+```bash
 cd ~/data-platform-k8s/03_setup_k8s_platform
 cp inventory.default inventory
 
@@ -982,7 +981,6 @@ Install Minio Tenant
 ```
 ansible-playbook -i inventory deploy_minio_tenant_playbook.yml 
 ```
-
 ### Public Stack
 
 To install the public Stack set the following variables in the `inventory`:
