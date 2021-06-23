@@ -1,0 +1,157 @@
+# Default values for CKAN Helm chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# If empty, use the chart name as common base name for any FROST-Server Kubernetes component
+name: {{ frost.name }}
+
+frost:
+  ######################################
+  # FROST-Server general configuration #
+  ######################################
+  enableActuation: {{ frost.frost_enableActuation }}
+
+  ##########################################
+  # FROST-Server HTTP module configuration #
+  ##########################################
+  http:
+    image:
+      registry: {{ frost.frost_http_image_registry }}
+      repository: {{ frost.frost_http_image_repository }}
+      tag: {{ frost.frost_http_image_tag }}
+      pullPolicy: {{ frost.frost_http_image_pullPolicy }}
+    # FROST-Server HTTP deployment settings
+    replicas: {{ frost.frost_http_replicas }}
+    ports:
+      http:
+        nodePort: {{ frost.frost_http_ports_http_nodePort }}
+        servicePort: {{ frost.frost_http_ports_http_servicePort }}
+    ingress:
+      enabled: {{ frost.frost_http_ingress_enabled }}
+      rewriteAnnotation: {{ frost.frost_http_ingress_rewriteAnnotation }}
+      rewriteTraget: {{ frost.frost_http_ingress_rewriteTraget }}
+      path: {{ frost.frost_http_ingress_path }}
+
+    # FROST-Server HTTP business settings
+    serviceHost: {{ frost.frost_http_serviceHost }}
+    serviceProtocol: {{ frost.frost_http_serviceProtocol }}
+    servicePort: {{ frost.frost_http_servicePort }}
+    urlSubPath: {{ frost.frost_http_urlSubPath }}
+    defaultCount: {{ frost.frost_http_defaultCount }}
+    defaultTop: {{ frost.frost_http_defaultTop }}
+    maxTop: {{ frost.frost_http_maxTop }}
+    maxDataSize: {{ frost.frost_http_maxDataSize }}
+    useAbsoluteNavigationLinks: {{ frost.frost_http_useAbsoluteNavigationLinks }}
+
+    # FROST-Server Database related settings to the FROST-Server HTTP
+    db:
+      autoUpdate: {{ frost.frost_http_db_autoUpdate }}
+      alwaysOrderbyId: {{ frost.frost_http_db_alwaysOrderbyId }}
+      maximumConnection: {{ frost.frost_http_db_maximumConnection }}
+      maximumIdleConnection: {{ frost.frost_http_db_maximumIdleConnection }}
+      minimumIdleConnection: {{ frost.frost_http_db_minimumIdleConnection }}
+
+    # FROST-Server Messages Bus related settings to the FROST-Server HTTP
+    bus:
+      sendWorkerPoolSize: {{ frost.frost_http_bus_sendWorkerPoolSize }}
+      sendQueueSize: {{ frost.frost_http_bus_sendQueueSize }}
+      recvWorkerPoolSize: {{ frost.frost_http_bus_recvWorkerPoolSize }}
+      recvQueueSize: {{ frost.frost_http_bus_recvQueueSize }}
+      maxInFlight: {{ frost.frost_http_bus_maxInFlight }}
+
+  ##############################################
+  # FROST-Server Database module configuration #
+  ##############################################
+  db:
+    image:
+      registry: {{ frost.frost_db_image_registry }}
+      repository: {{ frost.frost_db_image_repository }}
+      tag: {{ frost.frost_db_image_tag }}
+      pullPolicy: {{ frost.frost_db_image_pullPolicy }}
+    # FROST-Server Database deployment settings
+    ports:
+      postgresql:
+        servicePort: {{ frost.frost_db_ports_postgresql_servicePort }}
+    persistence:
+      enabled: {{ frost.frost_db_persistence_enabled }}
+      existingClaim: {{ frost.frost_db_persistence_existingClaim }}
+      storageClassName: {{ frost.frost_db_persistence_storageClassName }}
+      accessModes:
+        - {{ frost.frost_db_persistence_accessModes }}
+      capacity: {{ frost.frost_db_persistence_accessModes }}
+      # Uncomment bellow if you want to use the builtin "frost-server-db-local" StorageClass name.
+      # Only compatible if the ReadWriteOnce access mode is only claimed (check the frost_db_persistence_accessModes value).
+      # See project documentation for more information
+      #local:
+      #  nodeMountPath: {{ frost.frost_db_persistence_local_nodeMountPath }}
+
+    # Common FROST-Server Database properties, shared by any other FROST-Server modules
+    implementationClass: "{{ frost.frost_db_implementationClass }}"
+    idGenerationMode: "{{ frost.frost_db_idGenerationMode }}"
+    database: {{ frost.frost_db_database }}
+    username: {{ frost.frost_db_username | b64encode }}
+    password: {{ frost.frost_db_password | b64encode }}
+
+  ##########################################
+  # FROST-Server MQTT module configuration #
+  ##########################################
+  mqtt:
+    image:
+      registry: {{ frost.frost_mqtt_image_registry }}
+      repository: {{ frost.frost_mqtt_image_repository }}
+      tag: {{ frost.frost_mqtt_image_tag }}
+      pullPolicy: {{ frost.frost_mqtt_image_pullPolicy }}
+    # FROST-Server MQTT deployment settings
+    enabled: {{ frost.frost_mqtt_enabled }}
+    replicas: {{ frost.frost_mqtt_replicas }}
+    ports:
+      mqtt:
+        nodePort: {{ frost.frost_mqtt_ports_mqtt_nodePort }}
+        servicePort: {{ frost.frost_mqtt_ports_mqtt_servicePort }}
+      websocket:
+        nodePort: {{ frost.frost_mqtt_ports_websocket_nodePort }}
+        servicePort: {{ frost.frost_mqtt_ports_websocket_servicePort }}
+    stickySessionTimeout: {{ frost.frost_mqtt_stickySessionTimeout }}
+
+    # FROST-Server MQTT business settings
+    qos: {{ frost.frost_mqtt_qos }}
+    subscribeMessageQueueSize: {{ frost.frost_mqtt_subscribeMessageQueueSize }}
+    subscribeThreadPoolSize: {{ frost.frost_mqtt_subscribeThreadPoolSize }}
+    createMessageQueueSize: {{ frost.frost_mqtt_createMessageQueueSize }}
+    createThreadPoolSize: {{ frost.frost_mqtt_createThreadPoolSize }}
+    maxInFlight: {{ frost.frost_mqtt_maxInFlight }}
+    waitForEnter: {{ frost.frost_mqtt_waitForEnter }}
+
+    # FROST-Server Database related settings to the FROST-Server MQTT
+    db:
+      alwaysOrderbyId: {{ frost.frost_mqtt_db_alwaysOrderbyId }}
+      maximumConnection: {{ frost.frost_mqtt_db_maximumConnection }}
+      maximumIdleConnection: {{ frost.frost_mqtt_db_maximumIdleConnection }}
+      minimumIdleConnection: {{ frost.frost_mqtt_db_minimumIdleConnection }}
+
+    # FROST-Server Messages Bus related settings to the FROST-Server MQTT
+    bus:
+      sendWorkerPoolSize: {{ frost.frost_mqtt_bus_sendWorkerPoolSize }}
+      sendQueueSize: {{ frost.frost_mqtt_bus_sendQueueSize }}
+      recvWorkerPoolSize: {{ frost.frost_mqtt_bus_recvWorkerPoolSize }}
+      recvQueueSize: {{ frost.frost_mqtt_bus_recvQueueSize }}
+      maxInFlight: {{ frost.frost_mqtt_bus_maxInFlight }}
+
+  ##################################################
+  # FROST-Server Messages Bus module configuration #
+  ##################################################
+  bus:
+    image:
+        registry: {{ frost.frost_bus_image_registry }}
+        repository: {{ frost.frost_bus_image_repository }}
+        tag: {{ frost.frost_bus_image_tag }}
+        pullPolicy: {{ frost.frost_bus_image_pullPolicy }}
+    # FROST-Server Messages Bus deployment settings
+    ports:
+      bus:
+        servicePort: {{ frost.frost_bus_ports_bus_servicePort }}
+
+    # Common FROST-Server Messages Bus properties, shared by any other FROST-Server modules
+    implementationClass: "{{ frost.frost_bus_implementationClass }}"
+    topicName: "{{ frost.frost_bus_topicName }}"
+    qos: {{ frost.frost_bus_qosLevel }}

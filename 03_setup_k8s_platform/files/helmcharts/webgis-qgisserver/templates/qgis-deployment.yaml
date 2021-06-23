@@ -47,7 +47,7 @@ spec:
             - name: DEBUG
               value: {{ .Values.qgis.debug | quote }}
             - name: PGSERVICEFILE
-              value: "{{ .Values.qgis.pgservicefile_dir}}/pg_service.conf"
+              value: "{{ .Values.qgis.pgservicefile_dir}}/{{ .Values.qgis.pgservicefile}}"
           volumeMounts:
             - name: qgis-project-file
               mountPath: {{ .Values.qgis.data_dir | quote }}
@@ -63,4 +63,4 @@ spec:
             secretName: {{ $secretName }}
             items:
               - key: pg_service.conf
-                path: pg_service.conf
+                path: {{ .Values.qgis.pgservicefile }}

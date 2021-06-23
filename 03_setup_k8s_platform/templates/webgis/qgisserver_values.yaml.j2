@@ -68,3 +68,18 @@ nginx:
   #----------------------------------
   default_conf: "{{ qgisserver.nginx_default_conf }}"
   qgis_conf: "{{ qgisserver.nginx_qgis_conf }}"
+
+ingress:
+  enabled: {{ qgisserver.ingress_enabled }}
+  annotations:
+    kubernetes.io/ingress.class: "{{ qgisserver.ingress_class }}"
+    kubernetes.io/tls-acme: "{{ qgisserver.ingress_tls_acme }}"
+  hosts:
+    - host: {{ qgisserver.ingress_host }}
+      paths:
+        - path: {{ qgisserver.ingress_host_path }}
+
+  tls:
+    - secretName: {{ qgisserver.ingress_tls_secret }}
+      hosts:
+        - {{ qgisserver.ingress_host }}

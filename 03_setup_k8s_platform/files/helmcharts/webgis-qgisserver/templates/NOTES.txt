@@ -4,3 +4,11 @@ Your QGIS Server v.{{ .Chart.AppVersion }} "{{ .Release.Name }}" release is now 
 
 To check WMS capabilities, type the following URL in a web browser:
 http://localhost:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- end }}

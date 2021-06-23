@@ -6,6 +6,7 @@ This document describes how to:
 + install [MicroK8s](#microk8s) on a Linux server, running Debian or Ubuntu .
 + deploy the [WebGIS prototype](#webgis-prototype) into MicroK8s.
 + deploy [CKAN](#ckan) into MicroK8s.
++ deploy [FROST](#frost) into MicroK8s
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -416,6 +417,15 @@ sudo microk8s ctr images list | grep webgis
 
 ### QGIS Server
 
+If you want to reach your QGIS Server from the Internet via HTTPS, you have to
+
+- make sure, that the Nginx Ingress Controler and the CertManager are setup for your K8s cluster.
+- add an entry `DOMAIN=<your domain>` to the file `inventory`.
+- make sure that `ingress_enabled` in `vars/webgis_qgisserver.yml` is set to `true`.
+
+If you want to change the host name from `mapserver` to something else, please edit `ingress_host`
+and make sure your DNS server can resolve this host name.
+
 To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN.
 
 ```
@@ -512,6 +522,13 @@ kubectl --namespace geodata port-forward \
 ```
 and open the URL
 [http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
+
+
+If you have deployed QGIS Server, so it can be reached via HTTPS, you have to open the URL
+
+https://mapserver.{{ YOUR DOMAIN }}/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+
+in your Web browser.
 
 ---
 **IMPORTANT**
@@ -615,21 +632,21 @@ SolrName: "solr"
 DatapusherName: "datapusher"
 DBHost: "postgres"
 MasterDBName: "postgres"
-MasterDBUser: "postgres"
-MasterDBPass: "postgres123"
+MasterDBUser: "{{ CKAN_MASTER_DB_USER }}"
+MasterDBPass: "{{ CKAN_MASTER_DB_USER_PASSWORD }}"
 
 CkanDBName: "ckan_default"
-CkanDBUser: "ckan_default"
-CkanDBPass: "ckan_default123"
+CkanDBUser: "{{ CKAN_DB_USER }}"
+CkanDBPass: "{{ CKAN_DB_USER_PASSWORD }}"
 DatastoreDBName: "datastore_default"
-DatastoreRWDBUser: "datastorerw"
-DatastoreRWDBPass: datastorerw123
-DatastoreRODBUser: datastorero
-DatastoreRODBPass: datastorero123
+DatastoreRWDBUser: "{{ CKAN_DATASTORE_RODB_USER }}"
+DatastoreRWDBPass: "{{ CKAN_DATASTORE_RODB_USER_PASSWORD }}"
+DatastoreRODBUser: "{{ CKAN_DATASTORE_RWDB_USER }}"
+DatastoreRODBPass: "{{ CKAN_DATASTORE_RWDB_USER_PASSWORD }}"
 
-ckan_sysadminName: "ckan_admin"
-ckan_sysadminPassword: "ckan_admin123"
-ckan_sysadminApiToken: "replace_this_with_generated_api_token_for_sysadmin"
+ckan_sysadminName: "{{ CKAN_SYSADMIN_NAME }}"
+ckan_sysadminPassword: "{{ CKAN_SYSADMIN_PASSWORD }}"
+ckan_sysadminApiToken: "{{ CKAN_SYSADMIN_APITOKEN }}"
 ckan_sysadminEmail: "postmaster@domain.com"
 ckan_siteTitle: "Site Title here"
 ckan_siteId: "site-id-here"
@@ -656,8 +673,8 @@ datapusherUrl: "http://datapusher-headless:8000"
 datapusherCallbackUrlBase: http://ckan
 
 smtp_server: "smtpServerURLorIP:port"
-smtp_user: "smtpUser"
-smtp_password: "smtpPassword"
+smtp_user: "{{ CKAN_SMTP_USER }}"
+smtp_password: "{{ CKAN_SMTP_PASSWORD }}"
 smtp_mailFrom: "postmaster@domain.com"
 smtp_tls : "enabled"
 smtp_starttls: "true"
@@ -753,7 +770,148 @@ kubectl -n ckan create secret generic ckansysadminapitoken --from-literal=sysadm
 **NOTE**
 >If you want to re-deploy/update your CKAN deployment, please use your API Token as value for the key `ckan_sysadminApiToken` in the file `vars/ckan_ckan.yml`.
 
+### FROST
 
+[FROST Server](https://fraunhoferiosb.github.io/FROST-Server/) is a server implementation of the OGC SensorThings API, and in this chapter we will describe how to deploy it into MicroK8s.
+
+The deployment is done via Ansible, using the Helm chart [frost-server](https://github.com/FraunhoferIOSB/FROST-Server/tree/master/helm/frost-server).
+
+To deploy FROST Server, simply run the Ansible playbook `deploy_frost_playbook.yml` from within the ACN. This will deploy FROST Server in the K8s namespace _frost-server_.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_frost_playbook.yml
+```
+
+After a view minutes the deployment should be finished.
+
+You can than reach FROST Server with this URL: http://frost.utr-k8s.urban-data.cloud:30888/FROST-Server/
+
+**NOTE**
+>This installation of FROST Server does use PostgreSQL + PostGIS extension, deployed via the [Zalando Postgres Operator](https://github.com/zalando/postgres-operator). Therefore, during the installation, the PostGIS server deployed by the Helm chart will be deleted.
+
+You can change values regarding FROST Server by editing the file `vars/frost_frost.yml`.
+
+**IMPORTANT**
+If you change the value `name` in file `vars/frost_frost.yml` **YOU HAVE TO CHANGE** the value `cluster_team` in `vars/frost_postgis` to the same value!
+
+**VERY IMPORTANT**
+DO NOT CHANGE THE VALUES
+
+```yaml
+frost_db_database: "sensorthings"
+frost_db_username: "{{ FROST_DB_USERNAME }}"
+```
+
+IN FILE `vars/frost_frost.yml` UNLESS YOU KNOW WHAT YOU ARE DOING!
+
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/frost_frost.yml
+
+HELM_REPO_NAME: fraunhoferiosb
+HELM_REPO_URL: https://fraunhoferiosb.github.io/helm-charts/
+HELM_CHART_NAME: frost-server
+HELM_RELEASE_NAME: frost-server
+
+# FROST settings
+name: frost-server
+frost_enableActuation: true
+frost_http_replicas: 1
+frost_http_ports_http_nodePort: 30888
+frost_http_ports_http_servicePort: 80
+frost_http_ingress_enabled: false
+frost_http_ingress_rewriteAnnotation: nginx.ingress.kubernetes.io/rewrite-target
+frost_http_ingress_rewriteTraget: /FROST-Server/$1
+frost_http_ingress_path: /(.*)
+frost_http_serviceHost: frost-server-frost-server-http.frost-server
+frost_http_serviceProtocol: http
+frost_http_servicePort: null
+frost_http_urlSubPath: null
+frost_http_defaultCount: false
+frost_http_defaultTop: 100
+frost_http_maxTop: 1000
+frost_http_maxDataSize: 25000000
+frost_http_useAbsoluteNavigationLinks: true
+frost_http_db_autoUpdate: true
+frost_http_db_alwaysOrderbyId: false
+frost_http_db_maximumConnection: 10
+frost_http_db_maximumIdleConnection: 10
+frost_http_db_minimumIdleConnection: 10
+frost_http_bus_sendWorkerPoolSize: 10
+frost_http_bus_sendQueueSize: 100
+frost_http_bus_recvWorkerPoolSize: 10
+frost_http_bus_recvQueueSize: 100
+frost_http_bus_maxInFlight: 50
+frost_http_image_registry: docker.io
+frost_http_image_repository: fraunhoferiosb/frost-server-http
+frost_http_image_tag: 1.13.1
+frost_http_image_pullPolicy: IfNotPresent
+frost_db_ports_postgresql_servicePort: 5432
+frost_db_persistence_enabled: false
+frost_db_persistence_existingClaim: null
+frost_db_persistence_storageClassName: null
+frost_db_persistence_accessModes: ReadWriteOnce
+frost_db_persistence_capacity: 10Gi
+frost_db_persistence_local_nodeMountPath: /mnt/frost-server-db
+# NOTE: the value of frost_db_password will be replaced with the password, created by Zalando PostgreSQL operator)
+frost_db_database: "sensorthings"
+frost_db_username: "{{ FROST_DB_USERNAME }}"
+frost_db_password: "{{ FROST_DB_PASSWORD }}"
+frost_db_idGenerationMode: ServerGeneratedOnly
+frost_db_implementationClass: de.fraunhofer.iosb.ilt.sta.persistence.postgres.longid.PostgresPersistenceManagerLong
+frost_db_image_registry: docker.io
+frost_db_image_repository: postgis/postgis
+frost_db_image_tag: 11-2.5-alpine
+frost_db_image_pullPolicy: IfNotPresent
+frost_mqtt_enabled: true
+frost_mqtt_replicas: 1
+frost_mqtt_ports_mqtt_nodePort:
+frost_mqtt_ports_mqtt_servicePort: 1833
+frost_mqtt_ports_websocket_nodePort:
+frost_mqtt_ports_websocket_servicePort: 9876
+frost_mqtt_stickySessionTimeout: 10800
+frost_mqtt_qos: 2
+frost_mqtt_subscribeMessageQueueSize: 100
+frost_mqtt_subscribeThreadPoolSize: 10
+frost_mqtt_createMessageQueueSize: 100
+frost_mqtt_createThreadPoolSize: 10
+frost_mqtt_maxInFlight: 50
+frost_mqtt_waitForEnter: false
+frost_mqtt_db_alwaysOrderbyId: false
+frost_mqtt_db_maximumConnection: 10
+frost_mqtt_db_maximumIdleConnection: 10
+frost_mqtt_db_minimumIdleConnection: 10
+frost_mqtt_bus_sendWorkerPoolSize: 10
+frost_mqtt_bus_sendQueueSize: 100
+frost_mqtt_bus_recvWorkerPoolSize: 10
+frost_mqtt_bus_recvQueueSize: 100
+frost_mqtt_bus_maxInFlight: 50
+frost_mqtt_image_registry: docker.io
+frost_mqtt_image_repository: fraunhoferiosb/frost-server-mqtt
+frost_mqtt_image_tag: 1.13.1
+frost_mqtt_image_pullPolicy: IfNotPresent
+frost_bus_ports_bus_servicePort: 1883
+frost_bus_implementationClass: de.fraunhofer.iosb.ilt.sta.messagebus.MqttMessageBus
+frost_bus_topicName: FROST-Bus
+frost_bus_qosLevel: 2
+frost_bus_image_registry: docker.io
+frost_bus_image_repository: eclipse-mosquitto
+frost_bus_image_tag: 1.4.12
+frost_bus_image_pullPolicy: IfNotPresent
+
+```
+<br>
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/frost_postgis.yml
+
+# Settings for Zalando operator for PostgreSQL
+cluster_name: "frost-server-db"
+cluster_team: "frost-server"
+
+```
 
 ### Data Management Stack
 
