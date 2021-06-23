@@ -1,0 +1,21 @@
+---
+# file: 03_setup_k8s_platform/vars/ckan_ckan.yml
+
+HELM_REPO_NAME: k8s-at-home
+HELM_REPO_URL: https://oauth2-proxy.github.io/manifests
+HELM_CHART_NAME: oauth2-proxy
+HELM_RELEASE_NAME: oauth2-proxy
+
+image_registry: "docker.io"
+image_repository: "bitnami/oauth2-proxy"
+image_tag: "7.1.3"
+image_pullPolicy: IfNotPresent
+
+pvc_enabled: true
+pvc_size: "1Gi"
+
+# Set to true, if using ingress-nginx
+ingress_enabled: true
+ingress_class: "public"
+ingress_host: "oauth.{{ DOMAIN }}"
+tls_secretName: "oauth.{{ DOMAIN }}-tls"

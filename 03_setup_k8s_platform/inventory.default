@@ -30,12 +30,21 @@ MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
 ## IDM Settings
 
 IDM_SCOPE='openid'
-IDM_CLIENT='<you_keycloak_client>'
+IDM_CLIENT='<your_keycloak_client>'
 IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
 IDM_ENDP_AUTHORIZE='<your_authorize_url>'
 IDM_ENDP_TOKEN='<your_token_url>'
 IDM_ENDP_USER_INFO='<your_user_info_url>'
+# -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
+OAUTH_COOKIE_SECRET='<see_generation_hint_above'
 
 ## Timescale Settings
 
 TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
+
+# Master Portal Settings
+MP_IDM_CLIENT='<your_keycloak_client>'
+MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
+# -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
+MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'

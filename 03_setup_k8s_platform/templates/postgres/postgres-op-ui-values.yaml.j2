@@ -60,9 +60,9 @@ ingress:
   annotations:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: {{ default.K8S_INGRESS_CLASS }}
-#    nginx.ingress.kubernetes.io/auth-url: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/auth"
-#    nginx.ingress.kubernetes.io/auth-signin: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/start?rd=https://$host$request_uri"
-#    nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
+    nginx.ingress.kubernetes.io/auth-url: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://oauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/start?rd=https://$host$request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
   hosts:
     - host: {{ postgres.postgres_ui_ingress_server_name }}.{{ default.GENERAL_DOMAIN_NAME }}
       paths: [""]

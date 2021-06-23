@@ -45,7 +45,11 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: "{{ masterportal.ingress_class }}"
     kubernetes.io/tls-acme: "{{ masterportal.ingress_tls_acme }}"
-
+    nginx.ingress.kubernetes.io/app-root: /webgis-masterportal
+    nginx.ingress.kubernetes.io/auth-url: "https://mpoauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://mpoauth.{{ default.GENERAL_DOMAIN_NAME }}/oauth2/start?rd=https://$host$request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
+    
   hosts:
     - host: {{ masterportal.ingress_host }}
       paths:

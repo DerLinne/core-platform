@@ -328,7 +328,25 @@ The default password for the default PostGIS user `postgres` is `postgres123`.
 
 
 ### MasterPortal
-To install [MasterPortal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml` from within the ACN.
+To install [MasterPortal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml` from within the ACN. Before doing this, please install the Masterportal specific OAuth2 Proxy
+
+To activate the authentication for masterportal set the following variables in the `inventory`:
+
+```
+# Master Portal Settings
+MP_IDM_CLIENT='<your_keycloak_client>'
+MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
+# -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
+MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+```
+
+Install OAuth2 Proxy for masterportal
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_oauth2_masterportal_proxy.yml
+```
 
 ```
 cd ~/data-platform-k8s/03_setup_k8s_platform
@@ -916,15 +934,6 @@ MINIO_TENANT_CONSOLE_ACCESS_KEY='<your_soncole_access_ke>'
 ## MinIO User Secret Key (used for Console Login), base64 encoded (e.g. echo -n 'YOURCONSOLESECRET' | base64)
 MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
 
-## IDM Settings
-
-IDM_SCOPE='openid'
-IDM_CLIENT='<you_keycloak_client>'
-IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
-IDM_ENDP_AUTHORIZE='<your_authorize_url>'
-IDM_ENDP_TOKEN='<your_token_url>'
-IDM_ENDP_USER_INFO='<your_user_info_url>'
-
 ## Timescale Settings
 
 TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
@@ -961,16 +970,37 @@ ansible-playbook -i inventory deploy_timescale_playbook.yml
 
 Install and configure Grafana
 ```
-ansible-playbook -i inventory deploy_timescale_playbook.yml
+ansible-playbook -i inventory deploy_grafana_playbook.yml
 ```
 
 Install minio Operator
 ```
-ansible-playbook -i inventory eploy_minio_operator_playbook.yml
+ansible-playbook -i inventory deploy_minio_operator_playbook.yml
 ```
 
 Install Minio Tenant
 ```
-ansible-playbook -i inventory inventory deploy_minio_tenant_playbook.yml 
+ansible-playbook -i inventory deploy_minio_tenant_playbook.yml 
 ```
+### Public Stack
+
+To install the public Stack set the following variables in the `inventory`:
+
+```
+## IDM Settings
+
+IDM_SCOPE='openid'
+IDM_CLIENT='<you_keycloak_client>'
+IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+IDM_ENDP_AUTHORIZE='<your_authorize_url>'
+IDM_ENDP_TOKEN='<your_token_url>'
+IDM_ENDP_USER_INFO='<your_user_info_url>'
+```
+
+Install OAuth2 Proxy Tenant
+```
+ansible-playbook -i inventory deploy_public_oauth2_playbook.yml 
+```
+
+
 
