@@ -257,10 +257,10 @@
           spec:
             tls:
             - hosts:
-              - "{{ minio.ingress_console_server_name }}.{{ DOMAIN_NAME }}"
+              - "{{ minio.ingress_console_server_name }}.{{ DOMAIN }}"
               secretName: "{{ minio.ingress_console_tls_secret }}"
             rules:
-            - host: "{{ minio.ingress_console_server_name }}.{{ DOMAIN_NAME }}"
+            - host: "{{ minio.ingress_console_server_name }}.{{ DOMAIN }}"
               http:
                 paths:  
                 - path: /

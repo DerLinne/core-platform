@@ -63,7 +63,7 @@
 
     - name: Create a folder
       community.grafana.grafana_folder:
-        url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN_NAME }}"
+        url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
         url_username: "{{ monitoring_grafana.admin_user }}"
         url_password: "{{ monitoring_grafana.admin_password }}"
         title: "Prometheus"
@@ -71,7 +71,7 @@
 
     - name: (Re-)Import Grafana Dashboard (Weather DWD)
       community.grafana.grafana_dashboard:
-            grafana_url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN_NAME }}"
+            grafana_url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
             url_username: "{{ monitoring_grafana.admin_user }}"
             url_password: "{{ monitoring_grafana.admin_password }}"
             folder: "Prometheus"
@@ -85,7 +85,7 @@
     - name: Create loki datasource
       community.grafana.grafana_datasource:
         name: "Loki"
-        grafana_url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN_NAME }}"
+        grafana_url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
         grafana_user: "{{ monitoring_grafana.admin_user }}"
         grafana_password: "{{ monitoring_grafana.admin_password }}"
         org_id: "1"

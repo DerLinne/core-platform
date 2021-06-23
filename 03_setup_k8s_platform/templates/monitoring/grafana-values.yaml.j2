@@ -177,7 +177,7 @@ ingress:
   pathType: Prefix
 
   hosts:
-    - "{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN_NAME }}"
+    - "{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
   ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
   extraPaths: []
   # - path: /*
@@ -197,7 +197,7 @@ ingress:
   tls: 
     - secretName: "{{ monitoring_grafana.ingress_tls_secret }}"
       hosts:
-        - "{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN_NAME }}"
+        - "{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
 
 resources: {}
 #  limits:
@@ -361,7 +361,7 @@ env:
   GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(roles[*], 'adminTech') && 'Admin' || contains(roles[*], 'dataProducer') && 'Editor' || 'Viewer'"
   GF_SECURITY_ALLOW_EMBEDDING: "true"
   GF_SECURITY_COOKIE_SAMESITE: "lax"
-  GF_SERVER_ROOT_URL: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN_NAME }}"
+  GF_SERVER_ROOT_URL: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
 
 ## "valueFrom" environment variable references that will be added to deployment pods
 ## ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvarsource-v1-core

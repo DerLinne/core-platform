@@ -90,7 +90,7 @@
               nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
           spec:
             rules:
-            - host: "{{ minio.ingress_op_console_server_name }}.{{ DOMAIN_NAME }}"
+            - host: "{{ minio.ingress_op_console_server_name }}.{{ DOMAIN }}"
               http:
                 paths:
                 - backend:
@@ -98,5 +98,5 @@
                     servicePort: 9090
             tls:
             - hosts:
-              - "{{ minio.ingress_op_console_server_name }}.{{ DOMAIN_NAME }}"
+              - "{{ minio.ingress_op_console_server_name }}.{{ DOMAIN }}"
               secretName: "{{ minio.ingress_op_console_tls_secret }}"

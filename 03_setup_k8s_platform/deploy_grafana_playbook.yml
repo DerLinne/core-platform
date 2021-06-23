@@ -63,7 +63,7 @@
 
     - name: (Re-)Import Grafana Dashboard (Weather DWD)
       community.grafana.grafana_dashboard:
-            grafana_url: "https://grafana.{{ DOMAIN_NAME }}"
+            grafana_url: "https://grafana.{{ DOMAIN }}"
             url_username: "{{ grafana.admin_user }}"
             url_password: "{{ grafana.admin_password }}"
             state: present
@@ -79,7 +79,7 @@
 
     - name: (Re-)Import Grafana Dashboard (Particulate Matter)
       community.grafana.grafana_dashboard:
-            grafana_url: "https://grafana.{{ DOMAIN_NAME }}"
+            grafana_url: "https://grafana.{{ DOMAIN }}"
             url_username: "{{ grafana.admin_user }}"
             url_password: "{{ grafana.admin_password }}"
             state: present
@@ -95,7 +95,7 @@
 
     - name: (Re-)Import Grafana Dashboard (Weather)
       community.grafana.grafana_dashboard:
-            grafana_url: "https://grafana.{{ DOMAIN_NAME }}"
+            grafana_url: "https://grafana.{{ DOMAIN }}"
             url_username: "{{ grafana.admin_user }}"
             url_password: "{{ grafana.admin_password }}"
             state: present
