@@ -66,26 +66,26 @@
     nodered_volumeName: "{{ nodered_pvc_info['resources'][0]['spec']['volumeName'] }}"
   when: nodered_pvc_info is defined
 
-- name: "Create NodeRed Settings {{ helm_release_name }}"
-  ansible.builtin.template:
-    src: templates/dataflow-stack/nodered/settings.js.j2
-    dest: /tmp/settings.js
-    mode: '0644'
-  when: nodered_pvc_info is defined
+# - name: "Create NodeRed Settings {{ helm_release_name }}"
+#   ansible.builtin.template:
+#     src: templates/dataflow-stack/nodered/settings.js.j2
+#     dest: /tmp/settings.js
+#     mode: '0644'
+#   when: nodered_pvc_info is defined
 
-- name: DEBUG copy destination
-  debug:
-    msg: "dest = {{ pv_path }}/{{ k8s_namespace }}-{{ nodered_pvc }}-{{ nodered_volumeName }}/settings.js"
+# - name: DEBUG copy destination
+#   debug:
+#     msg: "dest = {{ pv_path }}/{{ k8s_namespace }}-{{ nodered_pvc }}-{{ nodered_volumeName }}/settings.js"
 
-- name: "Copy NodeRed Settings {{ helm_release_name }}"
-  ansible.builtin.copy:
-    src: /tmp/settings.js
-    dest: "{{ pv_path }}/{{ k8s_namespace }}-{{ nodered_pvc }}-{{ nodered_volumeName }}/settings.js"
-    follow: yes
-    owner: acn
-    group: wheel
-    mode: '0644'
-  when: nodered_pvc_info is defined
+# - name: "Copy NodeRed Settings {{ helm_release_name }}"
+#   ansible.builtin.copy:
+#     src: /tmp/settings.js
+#     dest: "{{ pv_path }}/{{ k8s_namespace }}-{{ nodered_pvc }}-{{ nodered_volumeName }}/settings.js"
+#     follow: yes
+#     owner: acn
+#     group: wheel
+#     mode: '0644'
+#   when: nodered_pvc_info is defined
 
 - name: "Clone NodeRed Flow for {{ helm_release_name }} into Pod"
   ansible.builtin.shell: |

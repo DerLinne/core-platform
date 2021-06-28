@@ -20,9 +20,9 @@ fullnameOverride: ""
 livenessProbePath: /
 readinessProbePath: /
 # -
-flows: "flow.json"
+flows: "sc-node-red-flows"
 safeMode: "false"
-enableProjects: "false"
+enableProjects: "true"
 nodeOptions: ""
 extraEnvs: []
 timezone: "UTC"

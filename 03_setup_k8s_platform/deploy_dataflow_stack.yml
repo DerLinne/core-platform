@@ -5,18 +5,18 @@
   hosts: localhost
   gather_facts: false
 
-  vars:
-    - NR_SECRETS_KEY: "{{ lookup('env', 'NR_SECRETS_KEY') }}"
+  # vars:
+  #   - NR_SECRETS_KEY: "{{ lookup('env', 'NR_SECRETS_KEY') }}"
 
   tasks:
 
-    - name: Verify necessary environment variables are set
-      ansible.builtin.fail:
-        msg: "ERROR: environment variable {{ item.key | upper }} is not set."
-      when: item.value  == ""
-      with_items:
-        - { key: NR_SECRETS_KEY, value: "{{ NR_SECRETS_KEY }}" }
-      tags: always
+    # - name: Verify necessary environment variables are set
+    #   ansible.builtin.fail:
+    #     msg: "ERROR: environment variable {{ item.key | upper }} is not set."
+    #   when: item.value  == ""
+    #   with_items:
+    #     - { key: NR_SECRETS_KEY, value: "{{ NR_SECRETS_KEY }}" }
+    #   tags: always
 
     - name: Read default values
       ansible.builtin.include_vars:
