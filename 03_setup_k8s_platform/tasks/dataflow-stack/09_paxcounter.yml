@@ -100,3 +100,14 @@
   args:
     executable: /bin/bash
   when: nodered_pvc_info is defined
+
+- name: "Restart Pod running {{ nodered_pod_name }}"
+  ansible.builtin.shell: |
+    kubectl --kubeconfig="{{ k8s_config }}" --namespace "{{ k8s_namespace | lower }}" delete pod "{{ nodered_pod_name }}"
+  args:
+    executable: /bin/bash
+  when: nodered_pod_name is defined
+
+- name: Pause one minute to wait until Pod has been restarted
+  pause:
+    minutes: 1
