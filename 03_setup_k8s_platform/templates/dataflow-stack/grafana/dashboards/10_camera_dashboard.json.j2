@@ -1,0 +1,497 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 11,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "dateTimeAsIso"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 7,
+        "x": 0,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\r\nSELECT  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\"\r\nFROM \"DATASTREAMS\", \"OBSERVATIONS\", \"THINGS\"\r\nWHERE \"DATASTREAMS\".\"NAME\"='image_uri_ds' \r\n  AND \"THINGS\".\"NAME\"='optical-sensor-04'\r\n  AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \r\n  AND \"DATASTREAMS\".\"THING_ID\"=\"THINGS\".\"ID\"\r\nORDER BY \"time\" desc\r\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "optical-sensor-04",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 7,
+        "x": 7,
+        "y": 0
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/^time$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "\r\nSELECT  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\"\r\nFROM \"DATASTREAMS\", \"OBSERVATIONS\", \"THINGS\"\r\nWHERE \"DATASTREAMS\".\"NAME\"='image_uri_ds' \r\n  AND \"THINGS\".\"NAME\"='optical-sensor-05'\r\n  AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \r\n  AND \"DATASTREAMS\".\"THING_ID\"=\"THINGS\".\"ID\"\r\nORDER BY \"time\" desc\r\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "optical-sensor-05",
+      "type": "stat"
+    },
+    {
+      "circleMaxSize": "15",
+      "circleMinSize": "15",
+      "colors": [
+        "rgba(245, 54, 54, 0.9)",
+        "rgba(237, 129, 40, 0.89)",
+        "rgba(50, 172, 45, 0.97)"
+      ],
+      "datasource": "PostGIS",
+      "decimals": 0,
+      "esMetric": "Count",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 10,
+        "x": 14,
+        "y": 0
+      },
+      "hideEmpty": false,
+      "hideZero": false,
+      "id": 6,
+      "initialZoom": "11",
+      "locationData": "table",
+      "mapCenter": "Last GeoHash",
+      "mapCenterLatitude": 50.11157200000007,
+      "mapCenterLongitude": 8.678678999999843,
+      "maxDataPoints": 1,
+      "mouseWheelZoom": false,
+      "pluginVersion": "7.3.4",
+      "showLegend": false,
+      "stickyLabels": false,
+      "tableQueryOptions": {
+        "geohashField": "hash",
+        "labelField": "name",
+        "latitudeField": "latitude",
+        "longitudeField": "longitude",
+        "metricField": "metric",
+        "queryType": "geohash"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ST_GeoHash(ST_GeomFromGeoJSON(\"LOCATION\")) as hash, \"THINGS\".\"ID\", \"THINGS\".\"NAME\" as name, \"LOCATIONS\".\"ID\" as metric\nFROM \"THINGS\", \"THINGS_LOCATIONS\", \"LOCATIONS\", \"OBSERVATIONS\", \"DATASTREAMS\"\nWHERE (\"THINGS\".\"NAME\"='optical-sensor-04' OR \"THINGS\".\"NAME\"='optical-sensor-05') \n      AND \"THINGS\".\"ID\"=\"THINGS_LOCATIONS\".\"THING_ID\" \n      AND \"LOCATIONS\".\"ID\"=\"THINGS_LOCATIONS\".\"LOCATION_ID\"\n      AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\n      AND \"OBSERVATIONS\".\"DATASTREAM_ID\" = \"DATASTREAMS\".\"ID\" AND \"DATASTREAMS\".\"THING_ID\" = \"THINGS\".\"ID\"",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "thresholds": "0,10",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Sensor Position",
+      "type": "grafana-worldmap-panel",
+      "unitPlural": "ID",
+      "unitSingle": "",
+      "unitSingular": "ID",
+      "valueName": "total"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 7,
+        "x": 0,
+        "y": 3
+      },
+      "id": 11,
+      "options": {
+        "alt_field": "",
+        "height": 75,
+        "icon_field": "uri",
+        "singleFill": true,
+        "tooltip": false,
+        "tooltip_date_elapsed": false,
+        "tooltip_field": "",
+        "tooltip_include_date": false,
+        "tooltip_include_field": true,
+        "width": 75
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\r\n    \"OBSERVATIONS\".\"RESULT_STRING\" as \"uri\", \r\n    \"THINGS\".\"NAME\" as \"name\"\r\nFROM \"DATASTREAMS\", \"OBSERVATIONS\", \"THINGS\"\r\nWHERE \"DATASTREAMS\".\"NAME\"='image_uri_ds' \r\nAND \"THINGS\".\"NAME\"='optical-sensor-04'\r\nAND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \r\nAND \"DATASTREAMS\".\"THING_ID\"=\"THINGS\".\"ID\"\r\nAND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '120 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\r\nORDER BY \"time\" desc\r\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "optical-sensor-04",
+      "type": "dalvany-image-panel"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 7,
+        "x": 7,
+        "y": 3
+      },
+      "id": 12,
+      "options": {
+        "alt_field": "",
+        "height": 75,
+        "icon_field": "uri",
+        "singleFill": true,
+        "tooltip": false,
+        "tooltip_date_elapsed": false,
+        "tooltip_field": "",
+        "tooltip_include_date": false,
+        "tooltip_include_field": true,
+        "width": 75
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\r\n    \"OBSERVATIONS\".\"RESULT_STRING\" as \"uri\", \r\n    \"THINGS\".\"NAME\" as \"name\"\r\nFROM \"DATASTREAMS\", \"OBSERVATIONS\", \"THINGS\"\r\nWHERE \"DATASTREAMS\".\"NAME\"='image_uri_ds' \r\nAND \"THINGS\".\"NAME\"='optical-sensor-05'\r\nAND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \r\nAND \"DATASTREAMS\".\"THING_ID\"=\"THINGS\".\"ID\"\r\nAND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '120 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\r\nORDER BY \"time\" desc\r\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "optical-sensor-05",
+      "type": "dalvany-image-panel"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 2,
+      "options": {
+        "alt_field": "",
+        "height": 350,
+        "icon_field": "uri",
+        "singleFill": true,
+        "tooltip": true,
+        "tooltip_date_elapsed": false,
+        "tooltip_field": "",
+        "tooltip_include_date": false,
+        "tooltip_include_field": true,
+        "width": 350
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT *\r\n  FROM (\r\n          SELECT  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\r\n                  \"OBSERVATIONS\".\"RESULT_STRING\" as \"uri\", \r\n                  \"THINGS\".\"NAME\" as \"name\",\r\n                  ROW_NUMBER() OVER(PARTITION BY \"THINGS\".\"NAME\" ORDER BY \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" DESC) rn\r\n              FROM \"DATASTREAMS\", \"OBSERVATIONS\", \"THINGS\"\r\n              WHERE \"DATASTREAMS\".\"NAME\"='image_uri_ds' \r\n              AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \r\n              AND \"DATASTREAMS\".\"THING_ID\"=\"THINGS\".\"ID\"\r\n              AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '120 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\r\n          ) a\r\nWHERE rn = 1",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Aktuelle Kameras (letzte 2h)",
+      "type": "dalvany-image-panel"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 26,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "UC 10 Optical Sensor",
+  "uid": "vgnG5W1Mk",
+  "version": 10
+}

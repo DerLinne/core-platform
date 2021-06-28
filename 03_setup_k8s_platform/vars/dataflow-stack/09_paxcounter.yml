@@ -1,0 +1,52 @@
+---
+# file: 03_setup_k8s_platform/vars/dataflow-stack/09_paxcounter.yml
+
+# Helm Chart settings --->
+HELM_REPO_NAME: stable
+# HELM_CHART_NAME: node-red
+HELM_CHART_NAME: dataflow-nodered
+HELM_RELEASE_NAME: nr-paxcounter
+
+replicaCount: 1
+strategyType: Recreate
+# -
+image_repository: nodered/node-red
+image_tag: "1.2.9"
+image_pullPolicy: IfNotPresent
+# -
+nameOverride: ""
+fullnameOverride: ""
+# -
+livenessProbePath: /
+readinessProbePath: /
+# -
+flows: "flow.json"
+safeMode: "false"
+enableProjects: "false"
+nodeOptions: ""
+extraEnvs: []
+timezone: "UTC"
+# -
+service_type: ClusterIP
+service_port: 1888
+# -
+ingress_enabled: true
+ingress_class: public
+ingress_tls_acme: true
+ingress_host: "nr-paxcounter.{{ DOMAIN }}"
+ingress_host_path: "/"
+ingress_host_pathType: ImplementationSpecific
+ingress_tls_secret: "nr-paxcounter.{{ DOMAIN }}-tls"
+# -
+persistence_enabled: true
+persistence_storageClass: microk8s-hostpath
+persistence_accessMode: ReadWriteOnce
+persistence_size: 5Gi
+persistence_subPath: null
+# <--- Helm Chart settings
+
+# Use Case settings --->
+NR_SETTINGS: "paxcounter-settings.js"
+NR_REPO_TARGET_FOLDER: "sc-node-red-flows"
+FLOW_PROJECT: 'gitlab.com/berlintxl/futr-hub/use-cases/count-people/count-people-flows.git'
+# <--- Use Case settings

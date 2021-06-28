@@ -1,0 +1,65 @@
+---
+# file: 03_setup_k8s_platform/deploy_dataflow_stack.yml
+
+- name: Deploy Data Flow Stack
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    - NR_SECRETS_KEY: "{{ lookup('env', 'NR_SECRETS_KEY') }}"
+
+  tasks:
+
+    - name: Verify necessary environment variables are set
+      ansible.builtin.fail:
+        msg: "ERROR: environment variable {{ item.key | upper }} is not set."
+      when: item.value  == ""
+      with_items:
+        - { key: NR_SECRETS_KEY, value: "{{ NR_SECRETS_KEY }}" }
+      tags: always
+
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+      tags: always
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_DATAFLOWSTACK }}"
+      tags: always
+
+    # Setup access to GitLab repositories
+    - name: Set facts to access GitLab repository
+      ansible.builtin.set_fact:
+        gitlab_api_url: "{{ default.GITLAB_API_URL }}"
+        gitlab_api_access_token: "{{ GITLAB_API_ACCESS_TOKEN }}"
+        gitlab_access_user: "{{ GITLAB_REGISTRY_ACCESS_USER }}"
+      tags: always
+
+    # Install use cases
+    - name: Install use case 01
+      import_tasks: tasks/dataflow-stack/01_show_last_tweet.yml
+      tags: uc01
+
+    - name: Install use case 05
+      import_tasks: tasks/dataflow-stack/05_luftdaten_info.yml
+      tags: uc05
+
+    - name: Install use case 06
+      import_tasks: tasks/dataflow-stack/06_sensebox.yml
+      tags: uc06
+
+    - name: Install use case 07
+      import_tasks: tasks/dataflow-stack/07_switch_lights.yml
+      tags: uc07
+
+    - name: Install use case 08
+      import_tasks: tasks/dataflow-stack/08_indicate_energy.yml
+      tags: uc08
+
+    - name: Install use case 09
+      import_tasks: tasks/dataflow-stack/09_paxcounter.yml
+      tags: uc09

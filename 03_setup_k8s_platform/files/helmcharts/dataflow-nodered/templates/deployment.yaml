@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dataflow-nodered.fullname" . }}
+  labels:
+    {{- include "dataflow-nodered.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "dataflow-nodered.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "dataflow-nodered.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 1880
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbePath }}
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbePath }}
+              port: http
+          env:
+            - name: FLOWS
+              value: "{{ .Values.flows }}"
+            - name: NODE_RED_ENABLE_SAFE_MODE
+              value: "{{ .Values.safeMode }}"
+            - name: NODE_RED_ENABLE_PROJECTS
+              value: "{{ .Values.enableProjects }}"
+            - name: NODE_OPTIONS
+              value: "{{ .Values.nodeOptions }}"
+            - name: TZ
+              value: "{{ .Values.timezone }}"
+# {{- if .Values.extraEnvs }}
+# {{ toYaml .Values.extraEnvs | nindent 12 }}
+# {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+{{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+{{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "dataflow-nodered.fullname" . }}{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{ end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        fsGroup: 1001
+
+

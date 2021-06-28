@@ -1,0 +1,1460 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 9,
+  "links": [],
+  "panels": [
+    {
+      "circleMaxSize": "15",
+      "circleMinSize": "15",
+      "colors": [
+        "rgba(245, 54, 54, 0.9)",
+        "rgba(237, 129, 40, 0.89)",
+        "rgba(50, 172, 45, 0.97)",
+        "rgba(50, 172, 45, 0.97)"
+      ],
+      "datasource": "PostGIS",
+      "decimals": 0,
+      "esMetric": "Count",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "hideEmpty": false,
+      "hideZero": false,
+      "id": 6,
+      "initialZoom": "13",
+      "locationData": "table",
+      "mapCenter": "Last GeoHash",
+      "mapCenterLatitude": 52.026670000000024,
+      "mapCenterLongitude": 8.535968000000036,
+      "maxDataPoints": 1,
+      "mouseWheelZoom": true,
+      "pluginVersion": "7.3.4",
+      "showLegend": false,
+      "stickyLabels": false,
+      "tableQueryOptions": {
+        "geohashField": "hash",
+        "labelField": "name",
+        "latitudeField": "latitude",
+        "longitudeField": "longitude",
+        "metricField": "metric",
+        "queryType": "geohash"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ST_GeoHash(ST_GeomFromGeoJSON(\"LOCATION\")) as hash, \"THINGS\".\"ID\", \"THINGS\".\"NAME\" as name, \"LOCATIONS\".\"ID\" as metric\nFROM \"THINGS\", \"THINGS_LOCATIONS\", \"LOCATIONS\", \"OBSERVATIONS\", \"DATASTREAMS\"\nWHERE (\"THINGS\".\"NAME\"='wificounter') \n      AND \"THINGS\".\"ID\"=\"THINGS_LOCATIONS\".\"THING_ID\" \n      AND \"LOCATIONS\".\"ID\"=\"THINGS_LOCATIONS\".\"LOCATION_ID\"\n      AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\n      AND \"OBSERVATIONS\".\"DATASTREAM_ID\" = \"DATASTREAMS\".\"ID\" AND \"DATASTREAMS\".\"THING_ID\" = \"THINGS\".\"ID\"\nLimit 1\n      \n\n ",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ST_GeoHash(ST_GeomFromGeoJSON(\"LOCATION\")) as hash, \"THINGS\".\"ID\", \"THINGS\".\"NAME\" as name, \"LOCATIONS\".\"ID\" as metric\nFROM \"THINGS\", \"THINGS_LOCATIONS\", \"LOCATIONS\", \"OBSERVATIONS\", \"DATASTREAMS\"\nWHERE (\"THINGS\".\"NAME\"='blecounter') \n      AND \"THINGS\".\"ID\"=\"THINGS_LOCATIONS\".\"THING_ID\" \n      AND \"LOCATIONS\".\"ID\"=\"THINGS_LOCATIONS\".\"LOCATION_ID\"\n      AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\n      AND \"OBSERVATIONS\".\"DATASTREAM_ID\" = \"DATASTREAMS\".\"ID\" AND \"DATASTREAMS\".\"THING_ID\" = \"THINGS\".\"ID\"\nLimit 1",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ST_GeoHash(ST_GeomFromGeoJSON(\"LOCATION\")) as hash, \"THINGS\".\"ID\", \"THINGS\".\"NAME\" as name, \"LOCATIONS\".\"ID\" as metric\nFROM \"THINGS\", \"THINGS_LOCATIONS\", \"LOCATIONS\", \"OBSERVATIONS\", \"DATASTREAMS\"\nWHERE (\"THINGS\".\"NAME\"='c19counter') \n      AND \"THINGS\".\"ID\"=\"THINGS_LOCATIONS\".\"THING_ID\" \n      AND \"LOCATIONS\".\"ID\"=\"THINGS_LOCATIONS\".\"LOCATION_ID\"\n      AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\n      AND \"OBSERVATIONS\".\"DATASTREAM_ID\" = \"DATASTREAMS\".\"ID\" AND \"DATASTREAMS\".\"THING_ID\" = \"THINGS\".\"ID\"\nLimit 1",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "thresholds": "1,6,10",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Sensor Positions",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "type": "grafana-worldmap-panel",
+      "unitPlural": "ID",
+      "unitSingle": "",
+      "unitSingular": "ID",
+      "valueName": "avg"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": true,
+      "pluginVersion": "7.3.4",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Verlauf Counter",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 0,
+        "y": 11
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" desc\nlimit 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" desc\nlimit 1",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '20 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" desc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Aktuelle Werte",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 3,
+        "y": 11
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '10 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '10 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '10 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 10 minutes",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 6,
+        "y": 11
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '30 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '30 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '30 minutes' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 30 minutes",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 9,
+        "y": 11
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '1 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '1 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '1 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 1 hour",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 12,
+        "y": 11
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '3 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '3 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '3 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 3 hours",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 15,
+        "y": 11
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '6 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '6 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '6 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 6 hours",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 18,
+        "y": 11
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '12 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '12 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '12 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 12 hour",
+      "type": "stat"
+    },
+    {
+      "datasource": "PostGIS",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 3,
+        "x": 21,
+        "y": 11
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.3.4",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"BLE-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='blecounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '24 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "\"RESULT_NUMBER\""
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "\"OBSERVATIONS\"",
+          "timeColumn": "\"PHENOMENON_TIME_START\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"WIFI-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='wificounter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '24 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n\"OBSERVATIONS\".\"PHENOMENON_TIME_START\" as \"time\",\n  \"OBSERVATIONS\".\"RESULT_NUMBER\" as \"C19-Counter\"\nFROM \"DATASTREAMS\", \"OBSERVATIONS\"\nWHERE \"DATASTREAMS\".\"NAME\"='c19counter DS' AND \"DATASTREAMS\".\"ID\"=\"OBSERVATIONS\".\"DATASTREAM_ID\" \nand \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" >= now() - interval '24 hours' AND \"OBSERVATIONS\".\"PHENOMENON_TIME_START\" <  now()\norder by \"OBSERVATIONS\".\"ID\" asc",
+          "refId": "C",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average: Last 24 hour",
+      "type": "stat"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 26,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "UC 9 PAX Counter",
+  "uid": "2stEvyAGk",
+  "version": 2
+}

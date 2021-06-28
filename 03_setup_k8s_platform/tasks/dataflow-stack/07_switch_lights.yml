@@ -1,0 +1,102 @@
+---
+# file: 03_setup_k8s_platform/tasks/dataflow-stack/07_switch_lights.yml
+
+- name: Read values of use case 07_switch_lights
+  ansible.builtin.include_vars:
+    file: dataflow-stack/07_switch_lights.yml
+    name: nodered
+
+- name: Set facts for Helm chart
+  ansible.builtin.set_fact:
+    helm_repo_name: "{{ nodered.HELM_REPO_NAME }}"
+    helm_chart_name: "{{ nodered.HELM_CHART_NAME }}"
+    helm_release_name: "{{ nodered.HELM_RELEASE_NAME }}"
+
+- name: Set facts for use case
+  ansible.builtin.set_fact:
+    nodered_settings: "{{ nodered.NR_SETTINGS }}"
+    nodered_repo_target_folder: "{{ nodered.NR_REPO_TARGET_FOLDER }}"
+    nodered_flow_project: "{{ nodered.FLOW_PROJECT }}"
+    nodered_pvc: "{{ helm_release_name }}-{{ helm_chart_name }}"
+
+#  This is MicroK8s specific, since we use local storage for PVs.
+- name: Set facts regarding Storage (Where we save artefacts)
+  ansible.builtin.set_fact:
+    pv_path: "/var/snap/microk8s/common/default-storage"
+
+- name: Install NodeRed via Helm chart
+  kubernetes.core.helm:
+    name: "{{ helm_release_name }}"
+    # chart_ref: "{{ helm_repo_name }}/{{ helm_chart_name }}"
+    chart_ref: "files/helmcharts/{{ helm_chart_name }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    release_namespace: "{{ k8s_namespace }}"
+    update_repo_cache: true
+    create_namespace: true
+    values: "{{ lookup('template', 'templates/dataflow-stack/dataflow_nodered_values.yaml.j2') | from_yaml }}"
+
+- name: "Get Pod running {{ helm_release_name }}"
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    kind: Pod
+    label_selectors:
+      - "app.kubernetes.io/instance={{ helm_release_name }}"
+  register: nodered_pod_info
+
+- name: "Get name of Pod running {{ helm_release_name }}"
+  ansible.builtin.set_fact:
+    nodered_pod_name: "{{ nodered_pod_info['resources'][0]['metadata']['name'] }}"
+  when: nodered_pod_info is defined
+
+- name: "Get infos about PVC {{ nodered_pvc }}"
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    kind: PersistentVolumeClaim
+    name: "{{ nodered_pvc }}"
+  register: nodered_pvc_info
+  when: nodered_pod_info is defined
+
+- name: "Get volumeName of PVC {{ helm_release_name }}"
+  ansible.builtin.set_fact:
+    nodered_volumeName: "{{ nodered_pvc_info['resources'][0]['spec']['volumeName'] }}"
+  when: nodered_pvc_info is defined
+
+- name: "Create NodeRed Settings {{ helm_release_name }}"
+  ansible.builtin.template:
+    src: templates/dataflow-stack/nodered/settings.js.j2
+    dest: /tmp/settings.js
+    mode: '0644'
+  when: nodered_pvc_info is defined
+
+- name: DEBUG copy destination
+  debug:
+    msg: "dest = {{ pv_path }}/{{ k8s_namespace }}-{{ nodered_pvc }}-{{ nodered_volumeName }}/settings.js"
+
+- name: "Copy NodeRed Settings {{ helm_release_name }}"
+  ansible.builtin.copy:
+    src: /tmp/settings.js
+    dest: "{{ pv_path }}/{{ k8s_namespace }}-{{ nodered_pvc }}-{{ nodered_volumeName }}/settings.js"
+    follow: yes
+    owner: acn
+    group: wheel
+    mode: '0644'
+  when: nodered_pvc_info is defined
+
+- name: "Clone NodeRed Flow for {{ helm_release_name }} into Pod"
+  ansible.builtin.shell: |
+    kubectl --kubeconfig="{{ k8s_config }}" --namespace "{{ k8s_namespace | lower }}" exec "{{ nodered_pod_name }}" -- bash -l -c "rm -rf /data/node_modules;rm -rf /data/projects/{{ nodered_repo_target_folder }};git clone https://{{ gitlab_access_user }}:{{ gitlab_api_access_token }}@{{ nodered_flow_project }} /data/projects/{{ nodered_repo_target_folder }}"
+  args:
+    executable: /bin/bash
+  when: nodered_pvc_info is defined
+
+- name: "Install modules for {{ helm_release_name }}"
+  ansible.builtin.shell: |
+    kubectl --kubeconfig="{{ k8s_config }}" --namespace "{{ k8s_namespace | lower }}" exec "{{ nodered_pod_name }}" -- bash -l -c "cd /data/projects/{{ nodered_repo_target_folder }}; npm install"
+  args:
+    executable: /bin/bash
+  when: nodered_pvc_info is defined

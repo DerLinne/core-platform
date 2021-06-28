@@ -1,0 +1,63 @@
+# Default values for dataflow-nodered.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: "{{ nodered.replicaCount }}"
+
+strategyType: "{{ nodered.strategyType }}"
+
+image:
+  repository: "{{ nodered.image_repository }}"
+  tag: "{{ nodered.image_tag }}"
+  pullPolicy: "{{ nodered.image_pullPolicy }}"
+
+nameOverride: "{{ nodered.nameOverride }}"
+fullnameOverride: "{{ nodered.fullnameOverride }}"
+
+livenessProbePath: "{{ nodered.livenessProbePath }}"
+readinessProbePath: "{{ nodered.readinessProbePath }}"
+
+flows: "{{ nodered.flows }}"
+safeMode: "{{ nodered.safeMode }}"
+enableProjects: "{{ nodered.enableProjects }}"
+nodeOptions: "{{ nodered.nodeOptions }}"
+extraEnvs: {{ nodered.extraEnvs }}
+timezone: "{{ nodered.timezone }}"
+
+podAnnotations: {}
+
+service:
+  type: "{{ nodered.service_type }}"
+  port: "{{ nodered.service_port }}"
+
+ingress:
+  enabled: "{{ nodered.ingress_enabled }}"
+  annotations:
+    kubernetes.io/ingress.class: "{{ nodered.ingress_class }}"
+    kubernetes.io/tls-acme: "{{ nodered.ingress_tls_acme }}"
+
+  hosts:
+    - host: "{{ nodered.ingress_host }}"
+      paths:
+        - path: "{{ nodered.ingress_host_path }}"
+          pathType: "{{ nodered.ingress_host_pathType }}"
+
+  tls:
+    - secretName: "{{ nodered.ingress_tls_secret }}"
+      hosts:
+        - "{{ nodered.ingress_host }}"
+
+persistence:
+  enabled: "{{ nodered.persistence_enabled }}"
+  storageClass: "{{ nodered.persistence_storageClass }}"
+  accessMode: "{{ nodered.persistence_accessMode }}"
+  size: "{{ nodered.persistence_size }}"
+  subPath: "{{ nodered.persistence_subPath }}"
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
