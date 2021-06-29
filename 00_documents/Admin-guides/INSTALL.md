@@ -6,7 +6,8 @@ This document describes how to:
 + install [MicroK8s](#microk8s) on a Linux server, running Debian or Ubuntu .
 + deploy the [WebGIS prototype](#webgis-prototype) into MicroK8s.
 + deploy [CKAN](#ckan) into MicroK8s.
-+ deploy [FROST](#frost) into MicroK8s
++ deploy [FROST](#frost) into MicroK8s.
++ deploy [DataFlow Stack](#dataflow-stack) into MicroK8s.
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -1015,4 +1016,182 @@ ansible-playbook -i inventory deploy_monitoring_loki.yml
 Install Grafana
 ```
 ansible-playbook -i inventory deploy_monitoring_grafana.yml
+```
+
+## DataFlow Stack
+
+The DataFlow Stack contains event-driven applications, that use [NodeRed](https://nodered.org/).
+As of now the following NodeRed applications are deployed:
+
+- [01_show_last_tweet](https://nr-show-last-tweet.utr-k8s.urban-data.cloud)
+- [05_luftdaten_info](https://nr-luftdaten-info.utr-k8s.urban-data.cloud)
+- [06_sensebox](https://nr-sensebox.utr-k8s.urban-data.cloud)
+- [07_switch_lights](https://nr-switch-lights.utr-k8s.urban-data.cloud)
+- [08_indicate_energy](https://nr-indicate-energy.utr-k8s.urban-data.cloud)
+- [09_paxcounter](https://nr-paxcounter.utr-k8s.urban-data.cloud)
+
+For further details, please take a look at [this](https://gitlab.com/berlintxl/futr-hub/platform/data-platform/-/tree/master/05_usecases) GitLab repository.
+
+The deployment is done via Ansible, using this [Helm chart](https://gitlab.com/berlintxl/futr-hub/platform/data-platform-k8s/-/tree/master/03_setup_k8s_platform/files/helmcharts/dataflow-nodered), that is derived from the (now deprecated) Helm chart [stable/node-red](https://github.com/helm/charts/tree/master/stable/node-red) .
+
+To deploy NodeRed, simply run the Ansible playbook `deploy_frost_playbook.yml` from within the ACN. This will deploy all NodeRed applications in the K8s namespace _dataflow-stack_.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_dataflow_stack.yml
+```
+
+After a view minutes the deployment should be finished.
+
+If you want to deploy a certain NodeRed application (use case), you can use tags.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_dataflow_stack.yml --tags "uc01"
+```
+
+The following tags are available:
+
+| Tag  | Use Case               |
+| :--- | :----------------------|
+| uc01 | 01_show_last_tweet.yml |
+| uc05 | 05_luftdaten_info.yml  |
+| uc06 | 06_sensebox.yml        |
+| uc07 | 07_switch_lights.yml   |
+| uc08 | 08_indicate_energy.yml |
+| uc09 | 09_paxcounter.yml      |
+
+If you want to add other use cases, you simply
+
+- create a new Ansible task-file in `03_setup_k8s_platform/tasks/dataflow-stack/`,
+- create a new Ansible var-file in `03_setup_k8s_platform/vars/dataflow-stack/`,
+- import the Ansible task-file in the Ansible playbook `03_setup_k8s_platform/deploy_dataflow_stack.yml`, and
+- tag this import, using `tags`.
+
+The values of the Helm chart are overriden by using the Ansible template `03_setup_k8s_platform/templates/dataflow-stack/dataflow_nodered_values.yaml.j2`,
+
+```yaml
+# Default values for dataflow-nodered.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: "{{ nodered.replicaCount }}"
+
+strategyType: "{{ nodered.strategyType }}"
+
+image:
+  repository: "{{ nodered.image_repository }}"
+  tag: "{{ nodered.image_tag }}"
+  pullPolicy: "{{ nodered.image_pullPolicy }}"
+
+nameOverride: "{{ nodered.nameOverride }}"
+fullnameOverride: "{{ nodered.fullnameOverride }}"
+
+livenessProbePath: "{{ nodered.livenessProbePath }}"
+readinessProbePath: "{{ nodered.readinessProbePath }}"
+
+flows: "{{ nodered.flows }}"
+safeMode: "{{ nodered.safeMode }}"
+enableProjects: "{{ nodered.enableProjects }}"
+nodeOptions: "{{ nodered.nodeOptions }}"
+extraEnvs: {{ nodered.extraEnvs }}
+timezone: "{{ nodered.timezone }}"
+
+podAnnotations: {}
+
+service:
+  type: "{{ nodered.service_type }}"
+  port: "{{ nodered.service_port }}"
+
+ingress:
+  enabled: "{{ nodered.ingress_enabled }}"
+  annotations:
+    kubernetes.io/ingress.class: "{{ nodered.ingress_class }}"
+    kubernetes.io/tls-acme: "{{ nodered.ingress_tls_acme }}"
+
+  hosts:
+    - host: "{{ nodered.ingress_host }}"
+      paths:
+        - path: "{{ nodered.ingress_host_path }}"
+          pathType: "{{ nodered.ingress_host_pathType }}"
+
+  tls:
+    - secretName: "{{ nodered.ingress_tls_secret }}"
+      hosts:
+        - "{{ nodered.ingress_host }}"
+
+persistence:
+  enabled: "{{ nodered.persistence_enabled }}"
+  storageClass: "{{ nodered.persistence_storageClass }}"
+  accessMode: "{{ nodered.persistence_accessMode }}"
+  size: "{{ nodered.persistence_size }}"
+  subPath: "{{ nodered.persistence_subPath }}"
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+```
+
+and the values defined in the file `03_setup_k8s_platform/vars/dataflow-stack/<use_case>`.
+
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/dataflow-stack/xy_name_of_use_case.yml
+
+# Helm Chart settings --->
+HELM_REPO_NAME: stable
+# HELM_CHART_NAME: node-red
+HELM_CHART_NAME: dataflow-nodered
+HELM_RELEASE_NAME: nr-show-last-tweet
+
+replicaCount: 1
+strategyType: Recreate
+# -
+image_repository: nodered/node-red
+image_tag: "1.2.9"
+image_pullPolicy: IfNotPresent
+# -
+nameOverride: ""
+fullnameOverride: ""
+# -
+livenessProbePath: /
+readinessProbePath: /
+# -
+flows: "sc-node-red-flows"  // <- Change name if necessary.
+safeMode: "false"
+enableProjects: "true"      // <- NodeRed projects are enabled automatically.
+nodeOptions: ""
+extraEnvs: []               // <- If you need to set further environment variables.
+timezone: "UTC"
+# -
+service_type: ClusterIP
+service_port: 1888
+# -
+ingress_enabled: true
+ingress_class: public
+ingress_tls_acme: true
+ingress_host: "nr-show-last-tweet.{{ DOMAIN }}"
+ingress_host_path: "/"
+ingress_host_pathType: ImplementationSpecific
+ingress_tls_secret: "nr-show-last-tweet.{{ DOMAIN }}-tls"
+# -
+persistence_enabled: true
+persistence_storageClass: microk8s-hostpath
+persistence_accessMode: ReadWriteOnce
+persistence_size: 5Gi
+persistence_subPath: null
+# <--- Helm Chart settings
+
+# Use Case settings --->
+NR_SETTINGS: "<name_of_use_case>-settings.js"   // <- Set name of your use case.
+NR_REPO_TARGET_FOLDER: "sc-node-red-flows"      // <- directory where you clone your NodeRed project. Needs to be the same value as parameter `flows` above.
+FLOW_PROJECT: "gitlab.com/berlintxl/futr-hub/use-cases/show-latest-tweet-of-twitter-account/platform-node-red-flows.git"                // <- URL of Git repo with where your NodeRed project resides.
+# <--- Use Case settings
+
 ```
