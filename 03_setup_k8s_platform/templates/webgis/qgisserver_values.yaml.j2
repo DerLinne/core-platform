@@ -68,6 +68,8 @@ nginx:
   #----------------------------------
   default_conf: "{{ qgisserver.nginx_default_conf }}"
   qgis_conf: "{{ qgisserver.nginx_qgis_conf }}"
+  server_name: "{{ qgisserver.nginx_server_name }}"
+  cors_origin: "{{ qgisserver.nginx_cors_origin }}"
 
 ingress:
   enabled: {{ qgisserver.ingress_enabled }}
