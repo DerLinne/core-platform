@@ -424,8 +424,14 @@ If you want to reach your QGIS Server from the Internet via HTTPS, you have to
 - add an entry `DOMAIN=<your domain>` to the file `inventory`.
 - make sure that `ingress_enabled` in `vars/webgis_qgisserver.yml` is set to `true`.
 
-If you want to change the host name from `mapserver` to something else, please edit `ingress_host`
-and make sure your DNS server can resolve this host name.
+If you want to change the host name from `mapserver` to something else, please edit
+
+- `nginx_server_name`
+- `ingress_host`
+
+accordingly and make sure your DNS server can resolve this host name.
+
+To allow access to the data of QGIS Server, [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled in the Nginx ConfigMap `qgis-nginx.conf`. You can set the value of the HTTP header `Access-Control-Allow-Origin` for request methods `POST`, `GET` and `OPTIONS`, using the parameter `nginx_cors_origin`. The default is, that every host of your domain `DOMAIN` can use those access methods.
 
 To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN.
 
