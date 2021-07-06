@@ -1,0 +1,43 @@
+---
+# file: 03_setup_k8s_platform/tasks/idm-stack/setup_keycloak_db.yml
+
+- name: Read values to setup PostgresSQL database
+  ansible.builtin.include_vars:
+    file: idm-stack/setup_keycloak_db.yml
+    name: postgresql
+
+- name: Deploy PostgresSQL database for KeyCloak via Zalando operator
+  community.kubernetes.k8s:
+    state: present
+    namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    definition:
+      kind: "postgresql"
+      apiVersion: "acid.zalan.do/v1"
+      metadata:
+        name: "{{ postgresql.cluster_team }}-{{ postgresql.cluster_name }}"
+        namespace: "{{ k8s_namespace }}"
+        labels:
+          team: "{{ postgresql.cluster_team }}"
+      spec:
+        teamId: "{{ postgresql.cluster_team }}"
+        postgresql:
+          version: "{{ postgresql.version }}"
+        numberOfInstances: 2
+        enableMasterLoadBalancer: true
+        volume:
+          size: "{{ postgresql.volume_size }}"
+        users:
+          keycloak: []
+        databases:
+          keycloak: "keycloak"
+        allowedSourceRanges:
+          # IP ranges to access your cluster go here
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 500Mi

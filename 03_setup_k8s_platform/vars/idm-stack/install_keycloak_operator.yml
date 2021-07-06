@@ -1,0 +1,7 @@
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/install_keycloak_operator.yml
+
+# Settings for KeyCloak operator
+git_repo_url: "git@github.com:keycloak/keycloak-operator.git"
+git_repo_dest: "/tmp/kc_op"
+git_repo_branch: "master"

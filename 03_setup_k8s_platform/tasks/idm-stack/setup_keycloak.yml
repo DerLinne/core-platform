@@ -1,0 +1,6 @@
+---
+# file: 03_setup_k8s_platform/tasks/idm-stack/setup_keycloak.yml
+
+- name: Setup KeyCloak Operator
+  debug:
+    msg: "@TODO: Implement"

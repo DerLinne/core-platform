@@ -1,0 +1,6 @@
+---
+# file: 03_setup_k8s_platform/tasks/idm-stack/install_openldap.yml
+
+- name: Install KeyCloak Operator
+  debug:
+    msg: "@TODO: Implement"
