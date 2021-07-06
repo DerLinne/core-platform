@@ -1,0 +1,43 @@
+---
+# file: 03_setup_k8s_platform/tasks/idm-stack/install_keycloak_operator.yml
+
+- name: Read values to install KeyCloak operator
+  ansible.builtin.include_vars:
+    file: idm-stack/install_keycloak_operator.yml
+    name: keycloak_op
+
+- name: Clone Git repository of KeyCloak Operator
+  ansible.builtin.git:
+    repo: "{{ keycloak_op.git_repo_url }}"
+    dest: "{{ keycloak_op.git_repo_dest }}"
+    version: "{{ keycloak_op.git_repo_branch }}"
+
+- name: Install KeyCloak Operator custom resource definitions
+  ansible.builtin.shell: |
+      kubectl --kubeconfig="{{ k8s_config }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/crds/"
+  args:
+    executable: /bin/bash
+
+- name: Deploy role for KeyCloak Operator
+  ansible.builtin.shell: |
+      kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/role.yaml"
+  args:
+    executable: /bin/bash
+
+- name: Deploy role binding for KeyCloak Operator
+  ansible.builtin.shell: |
+      kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/role_binding.yaml"
+  args:
+    executable: /bin/bash
+
+- name: Deploy service account for KeyCloak Operator
+  ansible.builtin.shell: |
+      kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/service_account.yaml"
+  args:
+    executable: /bin/bash
+
+- name: Deploy KeyCloak Operator
+  ansible.builtin.shell: |
+      kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/operator.yaml"
+  args:
+    executable: /bin/bash

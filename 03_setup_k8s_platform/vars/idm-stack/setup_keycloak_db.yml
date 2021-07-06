@@ -1,0 +1,8 @@
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/keycloak_db.yml
+
+# Settings for Zalando operator for PostgreSQL
+cluster_name: "{{ common.kc_db_name }}"
+cluster_team: "{{ common.kc_db_user }}"
+version: "10"
+volume_size: "1Gi"

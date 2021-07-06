@@ -1,0 +1,6 @@
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/common.yml
+
+# KeyCloak database
+kc_db_name: "keycloak"
+kc_db_user: "keycloak"
