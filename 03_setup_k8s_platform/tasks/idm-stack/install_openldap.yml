@@ -1,6 +1,168 @@
 ---
 # file: 03_setup_k8s_platform/tasks/idm-stack/install_openldap.yml
 
-- name: Install KeyCloak Operator
-  debug:
-    msg: "@TODO: Implement"
+- name: Read values to setup OpenLDAP
+  ansible.builtin.include_vars:
+    file: idm-stack/install_openldap.yml
+    name: openldap
+
+- name: Check if required ENV variables are set
+  assert:
+    that:
+      - openldap.ldap_admin_username != ""
+      - openldap.ldap_admin_password != ""
+      - openldap.ldap_users != ""
+      - openldap.ldap_passwords != ""
+    fail_msg: "ERROR: one or all of the required ENV variables (LDAP_ADMIN_USERNAME, LDAP_ADMIN_PASSWORD, LDAP_USERS and LDAP_PASSWORDS) are not set."
+    success_msg: "All required ENV variables are set."
+
+- name: Create PVC for OpenLDAP
+  community.kubernetes.k8s:
+    state: present
+    namespace: "{{ k8s_namespace }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    definition:
+      kind: PersistentVolumeClaim
+      apiVersion: v1
+      metadata:
+        name: openldap
+        labels:
+          app: openldap
+      spec:
+        accessModes:
+          - "{{ openldap.pv_accessMode }}"
+        resources:
+          requests:
+            storage: "{{ openldap.pv_size }}"
+        storageClassName: "{{ openldap.pv_storageClass }}"
+
+- name: Create Secret for OpenLDAP
+  community.kubernetes.k8s:
+    state: present
+    namespace: "{{ k8s_namespace }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    definition:
+      kind: Secret
+      apiVersion: v1
+      metadata:
+        name: openldap
+        labels:
+          app.kubernetes.io/name: openldap
+      type: Opaque
+      data:
+        LDAP_ADMIN_USERNAME: "{{ openldap.ldap_admin_username | b64encode | quote }}"
+        LDAP_ADMIN_PASSWORD: "{{ openldap.ldap_admin_password | b64encode | quote }}"
+        LDAP_USERS: "{{ openldap.ldap_users | b64encode | quote }}"
+        LDAP_PASSWORDS: "{{ openldap.ldap_passwords | b64encode | quote }}"
+
+- name: Deploy OpenLDAP
+  community.kubernetes.k8s:
+    state: present
+    namespace: "{{ k8s_namespace }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    definition:
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: openldap
+        labels:
+          app.kubernetes.io/name: openldap
+      spec:
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: openldap
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/name: openldap
+          spec:
+            containers:
+              - name: openldap
+                image: "docker.io/bitnami/openldap:{{ openldap.image_tag }}"
+                imagePullPolicy: "IfNotPresent"
+
+                ports:
+                  - name: tcp-ldap
+                    containerPort: 1389
+                    protocol: TCP
+
+                env:
+                  - name: LDAP_ADMIN_USERNAME
+                    valueFrom:
+                      secretKeyRef:
+                        key: LDAP_ADMIN_USERNAME
+                        name: openldap
+                  - name: LDAP_ADMIN_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        key: LDAP_ADMIN_PASSWORD
+                        name: openldap
+                  - name: LDAP_USERS
+                    valueFrom:
+                      secretKeyRef:
+                        key: LDAP_USERS
+                        name: openldap
+                  - name: LDAP_PASSWORDS
+                    valueFrom:
+                      secretKeyRef:
+                        key: LDAP_PASSWORDS
+                        name: openldap
+                  - name: LDAP_USER_DC
+                    value: "{{ openldap.ldap_user_dc }}"
+                  - name: LDAP_GROUP
+                    value: "{{ openldap.ldap_group }}"
+                  - name: LDAP_EXTRA_SCHEMAS
+                    value: "{{ openldap.ldap_extra_schemas }}"
+                  - name: LDAP_SKIP_DEFAULT_TREE
+                    value: "{{ openldap.ldap_skip_default_tree }}"
+                  - name: LDAP_ULIMIT_NOFILES
+                    value: "{{ openldap.ldap_ulimit_nofiles }}"
+
+                volumeMounts:
+                  - name: openldap-data
+                    mountPath: /bitnami/openldap/
+
+                livenessProbe:
+                  tcpSocket:
+                    port: tcp-ldap
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  failureThreshold: 10
+
+                readinessProbe:
+                  tcpSocket:
+                    port: tcp-ldap
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  failureThreshold: 10
+
+            volumes:
+              - name: openldap-data
+                persistenceVolumeClaim:
+                  claimName: openldap
+
+- name: Create Service for OpenLDAP
+  community.kubernetes.k8s:
+    state: present
+    namespace: "{{ k8s_namespace }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    definition:
+      kind: Service
+      apiVersion: v1
+      metadata:
+        name: openldap
+        labels:
+          app.kubernetes.io/name: openldap
+      spec:
+        type: ClusterIP
+        ports:
+          - name: tcp-ldap
+            port: 1389
+            targetPort: tcp-ldap
+        selector:
+          app.kubernetes.io/name: openldap
