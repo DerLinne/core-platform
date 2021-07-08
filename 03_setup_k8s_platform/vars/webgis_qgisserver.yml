@@ -49,9 +49,9 @@ postgis_sslmode: "disable"
 pgservicefile_dir: "/data/postgresql"
 pgservicefile: "qgis-pg-service.conf"
 
-# PostGIS: Credentials of PostGIS admin to create database artefacts for QGIS Server
-postgis_admin: "postgres"
-postgis_admin_password: "postgres123"
+# PostGIS: Credentials of PostgreSQL/PostGIS admin to create database artefacts for QGIS Server
+postgis_admin: "{{ lookup('env', 'WEBGIS_POSTGRES_ADMIN') }}"
+postgis_admin_password: "{{ lookup('env', 'WEBGIS_POSTGRES_ADMIN_PASSWORD') }}"
 
 # Ingress settings
 ingress_enabled: true
