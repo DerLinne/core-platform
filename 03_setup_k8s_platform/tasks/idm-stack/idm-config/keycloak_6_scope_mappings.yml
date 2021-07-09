@@ -30,21 +30,21 @@
   set_fact:
     api_read_id: "{{ scopes.json | json_query(query) }}"
   vars:
-    query: "[?name== '{{ IDM_SCOPE_API_READ }}'].id | [0]"
+    query: "[?name== '{{ keycloak.IDM_SCOPE_API_READ }}'].id | [0]"
   when: client_api_access_response.status != 409
 
 - name: Get client_scope ID API_WRITE
   set_fact:
     api_write_id: "{{ scopes.json | json_query(query) }}"
   vars:
-    query: "[?name== '{{ IDM_SCOPE_API_WRITE }}'].id | [0]"
+    query: "[?name== '{{ keycloak.IDM_SCOPE_API_WRITE }}'].id | [0]"
   when: client_api_access_response.status != 409
 
 - name: Get client_scope ID API_DELETE
   set_fact:
     api_delete_id: "{{ scopes.json | json_query(query) }}"
   vars:
-    query: "[?name== '{{ IDM_SCOPE_API_DELETE }}'].id | [0]"
+    query: "[?name== '{{ keycloak.IDM_SCOPE_API_DELETE }}'].id | [0]"
   when: client_api_access_response.status != 409
 
 - name: Get api-access roles

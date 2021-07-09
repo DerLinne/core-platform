@@ -1,0 +1,19 @@
+{
+    "username": "{{ ADMIN_USERNAME }}",
+    "enabled": true,
+    "totp": false,
+    "emailVerified": true,
+    "firstName": "{{ keycloak.PLATFORM_ADMIN_FIRST_NAME }}",
+    "lastName": "{{ keycloak.PLATFORM_ADMIN_SURNAME }}",
+    "email": "{{ keycloak.PLATFORM_ADMIN_EMAIL }}",
+    "disableableCredentialTypes": [],
+    "requiredActions": ["updatePassword"],
+    "notBefore": 0,
+    "access": {
+        "manageGroupMembership": true,
+        "view": true,
+        "mapRoles": true,
+        "impersonate": true,
+        "manage": true
+    }
+}

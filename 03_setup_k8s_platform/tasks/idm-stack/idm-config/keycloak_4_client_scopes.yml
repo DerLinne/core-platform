@@ -18,7 +18,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/scopes/tenants.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/scopes/tenants.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -36,7 +36,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/scopes/tenant-names.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/scopes/tenant-names.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -54,7 +54,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/scopes/api_read.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/scopes/api_read.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -72,7 +72,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/scopes/api_write.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/scopes/api_write.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -90,7 +90,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/scopes/api_delete.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/scopes/api_delete.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}

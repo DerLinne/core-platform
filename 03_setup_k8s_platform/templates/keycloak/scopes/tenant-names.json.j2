@@ -1,0 +1,24 @@
+{
+    "name": "{{ keycloak.IDM_SCOPE_TENANT_NAMES }}",
+    "description": "Scope for obtaining a list of tenant names.",
+    "protocol": "openid-connect",
+    "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true"
+    },
+    "protocolMappers": [
+    {
+        "name": "Only-tenant-names",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-script-based-protocol-mapper",
+        "consentRequired": false,
+        "config": {
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "script": "// This script gets the names of the groups marked as tenants, and adds them to\r\n// the token\r\nvar HashMap = Java.type('java.util.HashMap');\r\nvar HashSet = Java.type('java.util.HashSet');\r\nvar ArrayList = Java.type('java.util.ArrayList');\r\nvar ModelToRepresentation = Java.type('org.keycloak.models.utils.ModelToRepresentation');\r\nvar groups = user.getGroups();\r\nvar tenants = new ArrayList();\r\n\r\ngroups.forEach(scanTenant);\r\n\r\nfunction scanTenant(group){\r\n    if ( isTenant(group)===true ) {\r\n        found = getTenant(group.getName());\r\n        if ( !found ) {\r\n            tenants.add(group.getName());\r\n        }\r\n    } else if( group !== null && group.getParent() !== null ) {\r\n        scanTenant(group.getParent());\r\n    }\r\n}\r\n\r\nfunction getTenant(name){\r\n    for (i= 0; i<tenants.size(); i++){\r\n        item = tenants.get(i);\r\n        if (item===name)\r\n            return item;\r\n    }\r\n    return null;\r\n}\r\n\r\nfunction getRoot(group){\r\n    if(group.getParent() !== null)\r\n        return getRoot(group.getParent());\r\n    return group;\r\n}\r\n\r\n\r\nfunction isTenant(group){\r\n    if (group.getParent()===null &&\r\n        group.getFirstAttribute(\"tenant\") == \"true\"){\r\n        return true;\r\n    }\r\n    return false;\r\n}\r\n\r\ntoken.setOtherClaims(\"tenants\", tenants);",
+        "userinfo.token.claim": "true",
+        "multivalued": "true"
+        }
+    }
+    ]
+}
