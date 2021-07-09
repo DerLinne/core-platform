@@ -59,3 +59,8 @@
     - name: Install OpenLDAP and integrate with KeyCloak
       import_tasks: tasks/idm-stack/install_openldap.yml
       tags: keycloak_ldap
+
+    # 99. Delete Keycloak CR
+    - name: Delete Keycloak CR
+      import_tasks: tasks/idm-stack/delete_keycloak.yml
+      tags: keycloak_delete_cr
