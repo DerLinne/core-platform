@@ -147,10 +147,9 @@
           -- bash -c "psql -U {{ postgres.super_username }} -d {{ frost.frost_db_database }} -c 'CREATE EXTENSION postgis;'"
       register: result
       until: result.rc == 0
-      retries: 1
+      retries: 10
       delay: 5
       changed_when: True
-      ignore_errors: yes
 
     - name: Get password of user sensorthings, created by Zalando operator
       community.kubernetes.k8s_info:

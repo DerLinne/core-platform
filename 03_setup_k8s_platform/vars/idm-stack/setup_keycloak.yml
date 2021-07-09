@@ -17,4 +17,3 @@ IDM_SCOPE_API_READ: "api:read"
 IDM_SCOPE_API_WRITE: "api:write"
 IDM_SCOPE_API_DELETE: "api:delete"
 
-

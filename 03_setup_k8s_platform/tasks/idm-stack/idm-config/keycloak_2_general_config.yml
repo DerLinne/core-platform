@@ -4,7 +4,11 @@
     status_code: 200
   register: result
   until: result.status == 200
+<<<<<<< HEAD
   retries: 80
+=======
+  retries: 50
+>>>>>>> 70f8f1d (deployment and initial configs)
   delay: 10
 
 - name: Get Admin credentials

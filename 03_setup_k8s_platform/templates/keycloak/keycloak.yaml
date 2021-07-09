@@ -1,0 +1,60 @@
+apiVersion: keycloak.org/v1alpha1
+kind: Keycloak
+metadata:
+  labels:
+    app: sso
+  name: '{{ keycloak.k8s_name }}'
+  namespace: '{{ k8s_namespace }}'
+spec:
+  extensions:
+  - https://github.com/aerogear/keycloak-metrics-spi/releases/download/1.0.4/keycloak-metrics-spi-1.0.4.jar
+  externalAccess:
+    enabled: false
+  instances: 2
+  podDisruptionBudget:
+    enabled: true
+  externalDatabase:
+    enabled: true
+  keycloakDeploymentSpec:
+    experimental:
+      args:
+        - "-Dkeycloak.profile.feature.scripts=enabled"
+        - "-Dkeycloak.profile.feature.upload_scripts=enabled"
+      env:
+        - name: KEYCLOAK_LOGLEVEL
+          value: '{{ keycloak.log_level }}'
+        - name: KEYCLOAK_USER
+          valueFrom:
+            secretKeyRef:
+              key: MASTER_USERNAME
+              name: '{{ IDM_ADMIN_K8S_SECRET_NAME }}'
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: MASTER_PASSWORD
+              name: '{{ IDM_ADMIN_K8S_SECRET_NAME }}'
+    resources:
+      limits:
+        cpu: 1500m
+        memory: 1500Mi
+      requests:
+        cpu: 750m
+        memory: 750Mi
+
+# ---
+
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: keycloak-vpa-recommender
+# spec:
+#   targetRef:
+#     apiVersion: "apps/v1"
+#     kind: StatefulSet
+#     name: keycloak
+#   updatePolicy:
+#     updateMode: "Off"
+#   resourcePolicy:
+#     containerPolicies:
+#       - containerName: '*'
+#         controlledResources: ["cpu", "memory"]

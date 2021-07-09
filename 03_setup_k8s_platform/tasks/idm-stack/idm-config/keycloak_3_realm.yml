@@ -18,7 +18,11 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms"
     return_content: yes
     body_format: json
+<<<<<<< HEAD
     body: "{{ lookup('template', 'keycloak/realm/create_realm.json.j2') }}"
+=======
+    body: "{{ lookup('template', 'idm/create_realm.json.j2') }}"
+>>>>>>> 70f8f1d (deployment and initial configs)
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
