@@ -1,0 +1,72 @@
+- name: Re-Login to keycloak
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+        grant_type: "password"
+        client_id: "admin-cli"
+        username: "{{ ADMIN_USERNAME }}"
+        password: "{{ ADMIN_PASSWORD }}"
+    status_code: 200
+  register: keycloak_login
+
+- name: Create main realm with base config
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/realm/create_realm.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: realm
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Main realm may already exist."
+  when: realm.status == 409
+
+- name: Get OIDC Values
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/.well-known/openid-configuration"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_oidc_response
+
+- name: Check if already existing.
+  debug:
+    var: keycloak_oidc_response
+
+- name: "Set IDM endpoint urls."
+  set_fact:
+    IDM_ENDP_AUTHORIZE: "{{ keycloak_oidc_response.json.authorization_endpoint }}"
+    IDM_ENDP_TOKEN: "{{ keycloak_oidc_response.json.token_endpoint }}"
+    IDM_ENDP_TOKEN_INTROSPECT: "{{ keycloak_oidc_response.json.introspection_endpoint }}"
+    IDM_ENDP_USER_INFO: "{{ keycloak_oidc_response.json.userinfo_endpoint }}"
+    IDM_ENDP_USER_LOGOUT: "{{ keycloak_oidc_response.json.end_session_endpoint }}"
+    IDM_ENDP_ISSUER: "{{ keycloak_oidc_response.json.issuer }}"
+    cacheable: yes
+
+### Following configureation will be skipped if realm already exists
+
+- name: Set Password Policy
+  uri:
+    method: PUT
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}"
+    return_content: yes
+    body_format: json
+    body: |
+        {"passwordPolicy":"length(12) and upperCase(1) and lowerCase(1) and specialChars(2) and digits(1) and notUsername(undefined) and notEmail(undefined)"}
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: realm.status != 409

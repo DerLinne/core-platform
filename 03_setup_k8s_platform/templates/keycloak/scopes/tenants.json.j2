@@ -1,0 +1,49 @@
+{
+    "name": "tenants",
+    "description": "Scope for obtaining the full list of tenants and their subgroups.",
+    "protocol": "openid-connect",
+    "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true"
+    },
+    "protocolMappers": [
+    {
+        "name": "service",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-script-based-protocol-mapper",
+        "consentRequired": false,
+        "config": {
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "script": "// This script finds all the groups marked to represent service paths with, and\r\n// adds a map of them and their tenants to the token. See section above\r\n// for an example.\r\nvar HashMap = Java.type('java.util.HashMap');\r\nvar HashSet = Java.type('java.util.HashSet');\r\nvar ModelToRepresentation = Java.type('org.keycloak.models.utils.ModelToRepresentation');\r\nvar groups = user.getGroups();\r\nvar services = new HashMap();\r\n\r\ngroups.forEach(scanTenant);\r\ngroups.forEach(scanServicePath);\r\n\r\nfunction scanTenant(group){\r\n    if ( isTenant(group)===true ) {\r\n        if ( services.get(group.getName()) === null ) {\r\n            var servicePath = new HashSet();\r\n            services.put(group.getName(), servicePath);\r\n        }\r\n    } else if( group !== null && group.getParent() !== null ) {\r\n        scanTenant(group.getParent());\r\n    }\r\n}\r\n\r\nfunction scanServicePath(group){\r\n    if ( isServicePath(group)===true ) {\r\n        if ( services.get(getRoot(group).getName()) ){\r\n            var servicePath = Java.type('java.util.HashSet');\r\n            servicePath = services.get(getRoot(group).getName()) ;\r\n            var fullServicePath = ModelToRepresentation.buildGroupPath(group).substring((\"/\"+getRoot(group).getName()).length);\r\n            servicePath.add(fullServicePath);\r\n        }\r\n    }\r\n    if( group.getParent() !== null ) {\r\n        scanServicePath(group.getParent());\r\n    }\r\n}\r\n\r\nfunction getRoot(group){\r\n    if(group.getParent() !== null)\r\n        return getRoot(group.getParent());\r\n    return group;\r\n}\r\n\r\n\r\nfunction isServicePath(group){\r\n    if (group.getFirstAttribute(\"servicePath\") == \"true\")  \r\n        return true;\r\n    return false;\r\n}\r\n\r\nfunction isTenant(group){\r\n    if (group.getParent()===null &&\r\n        group.getFirstAttribute(\"tenant\") == \"true\"){\r\n        if (services.get(group.getName()) === null) {\r\n            var servicePath = new HashSet();\r\n            services.put(group.getName(), servicePath);\r\n        }\r\n        return true;\r\n    }\r\n    return false;\r\n}\r\n\r\ntoken.setOtherClaims(\"fiware-services\", services);",
+        "userinfo.token.claim": "true",
+        "multivalued": "true"
+        }
+    },
+    {
+        "name": "client_check",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-script-based-protocol-mapper",
+        "consentRequired": false,
+        "config": {
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "script": "// Add the clientID to the token\r\nvar clientId = keycloakSession.getContext().getClient().getClientId();\r\ntoken.setOtherClaims(\"client_check\", clientId);",
+        "userinfo.token.claim": "true"
+        }
+    },
+    {
+        "name": "tenant-groups-roles",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-script-based-protocol-mapper",
+        "consentRequired": false,
+        "config": {
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "script": "// Scans for the groups marked as tenants, and constructs an object to list the\r\n// subgroups marked as user roles, and includes their scopes. See section above\r\n// for an example.\r\nvar HashMap = Java.type('java.util.HashMap');\r\nvar HashSet = Java.type('java.util.HashSet');\r\nvar ArrayList = Java.type('java.util.ArrayList');\r\nvar ModelToRepresentation = Java.type('org.keycloak.models.utils.ModelToRepresentation');\r\nvar groups = user.getGroups();\r\nvar tenants = new ArrayList();\r\n\r\ngroups.forEach(scanTenant);\r\ngroups.forEach(scanGroups);\r\n\r\nfunction scanTenant(group){\r\n    if ( isTenant(group)===true ) {\r\n        found = getTenant(group.getName());\r\n        if ( !found ) {\r\n            var groups = new ArrayList();\r\n            var tenant = new HashMap();\r\n            tenant.put(\"id\",group.getId());\r\n            tenant.put(\"name\",group.getName());\r\n            tenant.put(\"groups\",groups);\r\n            tenants.add(tenant);\r\n        }\r\n    } else if( group !== null && group.getParent() !== null ) {\r\n        scanTenant(group.getParent());\r\n    }\r\n}\r\n\r\nfunction scanGroups(group){\r\n    if ( isTenant(group)===false )  {\r\n        found = getTenant(getRoot(group).getName());\r\n        if ( found ) {\r\n            groups = found.get(\"groups\");\r\n            current = getGroup(groups, group.getName());\r\n            if (! current ){\r\n                var newGroup = new HashMap();\r\n                newGroup.put(\"name\", group.getName());\r\n                newGroup.put(\"is_servicepath\", isServicePath(group));\r\n                newGroup.put(\"parent\", group.getParent().getName());\r\n                var rep = ModelToRepresentation.toRepresentation(group, true);\r\n                if (rep.getRealmRoles())\r\n                    newGroup.put(\"realmRoles\",rep.getRealmRoles());\r\n                if( keycloakSession.getContext().getClient()){\r\n                    var clientId = \"{{ keycloak.IDM_CLIENT_API_ACCESS }}\";\r\n                    //var clientId = keycloakSession.getContext().getClient().getClientId();\r\n                    if(rep.getClientRoles().get(clientId)) newGroup.put(\"clientRoles\",rep.getClientRoles().get(clientId));\r\n                } else {\r\n                    var clients = realm.getClients();\r\n                     for (i= 0; i<clients.size(); i++){\r\n                        item = clients.get(i);\r\n                        var clientId = item.getClientId();\r\n                        if(rep.getClientRoles().get(clientId)) newGroup.put(clientId,rep.getClientRoles().get(clientId));\r\n                    }\r\n                }\r\n                groups.add(newGroup);\r\n            }\r\n        }\r\n    }\r\n    if( group.getParent() !== null ) {\r\n        scanGroups(group.getParent());\r\n    }\r\n}\r\n\r\nfunction getTenant(name){\r\n    for (i= 0; i<tenants.size(); i++){\r\n        item = tenants.get(i);\r\n        if (item.get(\"name\")===name)\r\n            return item;\r\n    }\r\n    return null;\r\n}\r\n\r\nfunction getGroup(groups, name){\r\n    for (i= 0; i<groups.size(); i++){\r\n        item = groups.get(i);\r\n        if (item.get(\"name\")===name)\r\n            return item;\r\n    }\r\n    return null;\r\n}\r\n\r\nfunction getRoot(group){\r\n    if(group.getParent() !== null)\r\n        return getRoot(group.getParent());\r\n    return group;\r\n}\r\n\r\n\r\nfunction isServicePath(group){\r\n    if (group.getFirstAttribute(\"servicePath\") == \"true\" || group.getFirstAttribute(\"servicepath\") == \"true\")  \r\n        return true;\r\n    return false;\r\n}\r\n\r\nfunction isTenant(group){\r\n    if (group.getParent()===null &&\r\n        group.getFirstAttribute(\"tenant\") == \"true\"){\r\n        return true;\r\n    }\r\n    return false;\r\n}\r\n\r\ntoken.setOtherClaims(\"tenants\", tenants);\r\n",
+        "userinfo.token.claim": "true",
+        "multivalued": "true"
+        }
+    }
+    ]
+}

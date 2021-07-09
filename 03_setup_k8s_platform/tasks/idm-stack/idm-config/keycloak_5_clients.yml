@@ -1,0 +1,268 @@
+- name: Re-Login to keycloak
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+        grant_type: "password"
+        client_id: "admin-cli"
+        username: "{{ ADMIN_USERNAME }}"
+        password: "{{ ADMIN_PASSWORD }}"
+    status_code: 200
+  register: keycloak_login
+
+- name: Create API Access Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/api-access.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_api_access_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_api_access_response.status == 409
+
+- name: Create Grafana Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/grafana.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_grafana_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_grafana_response.status == 409
+
+- name: Create Gravitee Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/gravitee.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_gravitee_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_gravitee_response.status == 409
+
+- name: Create PGAdmin Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/pgadmin.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_pgadmin_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_pgadmin_response.status == 409
+
+# Retrieve id and secret for all clients
+
+- name: Get clients
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: clients
+
+- name: "Get keycloak client API Access ID."
+  set_fact:
+    client_id_api_access: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_API_ACCESS }}'].id | [0]"
+
+- name: "Get keycloak client Grafana ID."
+  set_fact:
+    client_id_grafana: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAFANA }}'].id | [0]"
+
+- name: "Get keycloak client Gravitee ID."
+  set_fact:
+    client_id_gravitee: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAVITEE }}'].id | [0]"
+
+- name: "Get keycloak client PGAdmin ID."
+  set_fact:
+    client_id_pgadmin: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_PGADMIN }}'].id | [0]"
+
+- name: Get Client Secret API Access
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_api_access }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_api_access_secret_response
+
+- name: Get Client Secret Grafana
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_grafana }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_grafana_secret_response
+
+- name: Get Client Secret Gravitee
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_gravitee }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_gravitee_secret_response
+
+- name: Get Client Secret PGAdmin
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_pgadmin }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_pgadmin_secret_response
+
+- name: "Set IDM client secret API Access."
+  set_fact:
+    IDM_CLIENT_SECRET_API_ACCESS: "{{ keycloak_client_api_access_secret_response.json.value }}"
+    cacheable: yes
+
+- name: "Set IDM client secret Grafana."
+  set_fact:
+    IDM_CLIENT_SECRET_GRAFANA: "{{ keycloak_client_grafana_secret_response.json.value }}"
+    cacheable: yes
+
+- name: "Set IDM client secret Gravitee."
+  set_fact:
+    IDM_CLIENT_SECRET_GRAVITEE: "{{ keycloak_client_gravitee_secret_response.json.value }}"
+    cacheable: yes
+
+- name: "Set IDM client secret PGAdmin."
+  set_fact:
+    IDM_CLIENT_SECRET_PGADMIN: "{{ keycloak_client_pgadmin_secret_response.json.value }}"
+    cacheable: yes
+
+### Following configureation will be skipped if target client already exists
+
+- name: Create API-Access roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_api_access }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "{{ item.role }}",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_api_access_response
+  when: client_api_access_response.status != 409
+  loop:
+    - {role: "dataConsumer"}
+    - {role: "dataProducer"}
+    - {role: "dataAdmin"}
+
+- name: Create Grafana roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_grafana }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "grafanaAdmin",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_grafana_response
+  when: client_grafana_response.status != 409
+
+- name: Create Gravitee roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_gravitee }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "graviteeAdmin",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_gravitee_response
+  when: client_gravitee_response.status != 409
+
+- name: Create PGAdmin roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_pgadmin }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "pgadminAdmin",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_pgadmin_response
+  when: client_pgadmin_response.status != 409

@@ -1,0 +1,214 @@
+- name: Re-Login to keycloak
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+        grant_type: "password"
+        client_id: "admin-cli"
+        username: "{{ ADMIN_USERNAME }}"
+        password: "{{ ADMIN_PASSWORD }}"
+    status_code: 200
+  register: keycloak_login
+
+- name: Create Platform Admin User
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/users/platform_admin.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: keycloak_platform_admin_response
+
+- name: "User already existing."
+  debug:
+    msg: "Failed. User {{ keycloak.PLATFORM_ADMIN_EMAIL }} already existing?"
+  when: keycloak_platform_admin_response.status == 409
+
+- name: Get users
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: users
+
+- name: "Set platform user id."
+  set_fact:
+    platform_user_id: "{{ users.json | json_query(query) }}"
+  vars:
+    query: "[?username== '{{ ADMIN_USERNAME }}'].id | [0]"
+
+- name: Get roles api_access
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_api_access }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: api_access_roles
+
+- name: Get roles grafana
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_grafana }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: grafana_roles
+
+- name: Get roles gravitee
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_gravitee }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: gravitee_roles
+
+- name: Get roles pgadmin
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_pgadmin }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: pgadmin_roles
+
+- name: "Set role id api_access."
+  set_fact:
+    api_access_role_id: "{{ api_access_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'dataAdmin'].id | [0]"
+
+- name: "Set role id grafana."
+  set_fact:
+    grafana_role_id: "{{ grafana_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'grafanaAdmin'].id | [0]"
+
+- name: "Set role id gravitee."
+  set_fact:
+    gravitee_role_id: "{{ gravitee_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'graviteeAdmin'].id | [0]"
+
+- name: "Set role id pgadmin."
+  set_fact:
+    pgadmin_role_id: "{{ pgadmin_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'pgadminAdmin'].id | [0]"
+
+### Following configureation will be skipped if target user already exists
+
+- name: Set Password for User (from k8s secret)
+  uri:
+    method: PUT
+    url: "{{ keycloak_platform_admin_response.location }}/reset-password"
+    return_content: yes
+    body_format: json
+    body: |
+        { "type":"password",
+          "value":"{{ ADMIN_PASSWORD }}",
+          "temporary":false}
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409
+
+- name: Assign Roles to Platform Admin (api-access)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_api_access }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ api_access_role_id }}",
+        "name": "dataAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_api_access }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409
+
+- name: Assign Roles to Platform Admin (grafana)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_grafana }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ grafana_role_id }}",
+        "name": "grafanaAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_grafana }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409
+
+- name: Assign Roles to Platform Admin (gravitee)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_gravitee }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ gravitee_role_id }}",
+        "name": "graviteeAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_gravitee }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409
+
+- name: Assign Roles to Platform Admin (pgadmin)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_pgadmin }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ pgadmin_role_id }}",
+        "name": "pgadminAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_pgadmin }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409

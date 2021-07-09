@@ -1,0 +1,13 @@
+- name: Re-Login to keycloak
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+        grant_type: "password"
+        client_id: "admin-cli"
+        username: "{{ ADMIN_USERNAME }}"
+        password: "{{ ADMIN_PASSWORD }}"
+    status_code: 200
+  register: keycloak_login
