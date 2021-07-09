@@ -1,0 +1,17 @@
+# IDM
+## General
+log_level: "INFO" # ALL, DEBUG, ERROR, FATAL, INFO, OFF, TRACE and WARN
+realm_master_username: "{{ IDM_REALM_MASTER_USERNAME }}"
+realm_master_password: "{{ IDM_REALM_MASTER_PASSWORD }}"
+
+## IDM Scopes
+IDM_SCOPE_TENANT_NAMES: "tenant-names"
+IDM_SCOPE_TENANT_VALUES: "tenants"
+IDM_SCOPE_API_READ: "api:read"
+IDM_SCOPE_API_WRITE: "api:write"
+IDM_SCOPE_API_DELETE: "api:delete"
+
+k8s_name: "fiware-keycloak"
+ingress_secert_name: "keycloak-cert"
+ingress_tls_host: "idm.{{ DOMAIN }}"
+ingress_rules_host: "idm.{{ DOMAIN }}"
