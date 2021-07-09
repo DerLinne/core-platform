@@ -12,36 +12,21 @@
     status_code: 200
   register: keycloak_login
 
-<<<<<<< HEAD
 - name: Create Default Tenant Group
-=======
-- name: Create IoT Tenant Group
->>>>>>> 70f8f1d (deployment and initial configs)
   uri:
     method: POST
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/groups"
     return_content: yes
     body_format: json
-<<<<<<< HEAD
     body: "{{ lookup('template', 'keycloak/groups/default_tenant.json.j2') }}"
-=======
-    body: "{{ lookup('template', 'idm/groups/iot_tenant.json.j2') }}"
->>>>>>> 70f8f1d (deployment and initial configs)
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 201,409
-<<<<<<< HEAD
   register: group_default_tenant_response
-=======
-  register: group_iot_tenant_response
->>>>>>> 70f8f1d (deployment and initial configs)
 
 - name: Check if already existing.
   debug:
     msg: "Failed. Group may already exist."
-<<<<<<< HEAD
   when: group_default_tenant_response.status == 409    
-=======
-  when: group_iot_tenant_response.status == 409
->>>>>>> 70f8f1d (deployment and initial configs)
+
