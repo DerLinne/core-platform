@@ -6,7 +6,7 @@
     context: "{{ k8s_context }}"
     state: present
   loop:
-    - "{{ lookup('template', 'templates/keycloak/keycloak.yaml') | from_yaml_all | list }}"
+    - "{{ lookup('template', 'templates/keycloak/deployment/keycloak.yaml') | from_yaml_all | list }}"
 
 - name: Deploy custom Keycloak Ingress
   k8s:
@@ -16,4 +16,4 @@
     context: "{{ k8s_context }}"
     state: present
   loop:
-    - "{{ lookup('template', 'templates/keycloak/keycloak-ingress.yaml') | from_yaml }}"
+    - "{{ lookup('template', 'templates/keycloak/deployment/keycloak-ingress.yaml') | from_yaml }}"

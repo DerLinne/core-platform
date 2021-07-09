@@ -18,7 +18,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/clients/api-access.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/clients/api-access.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -36,7 +36,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/clients/grafana.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/clients/grafana.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -54,7 +54,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/clients/gravitee.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/clients/gravitee.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -72,7 +72,7 @@
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'idm/clients/pgadmin.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/clients/pgadmin.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
@@ -83,80 +83,6 @@
   debug:
     msg: "Failed. Client may already exist."
   when: client_pgadmin_response.status == 409
-
-### Application Clients
-
-- name: Create Citywalks Client
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
-    return_content: yes
-    body_format: json
-    body: "{{ lookup('template', 'idm/clients/citywalks.json.j2') }}"
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201,409
-  register: client_citywalks_response
-
-- name: Check if already existing.
-  debug:
-    msg: "Failed. Client may already exist."
-  when: client_citywalks_response.status == 409
-
-- name: Create CKAN Client
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
-    return_content: yes
-    body_format: json
-    body: "{{ lookup('template', 'idm/clients/ckan.json.j2') }}"
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201,409
-  register: client_ckan_response
-
-- name: Check if already existing.
-  debug:
-    msg: "Failed. Client may already exist."
-  when: client_ckan_response.status == 409
-
-- name: Create Geodata Client
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
-    return_content: yes
-    body_format: json
-    body: "{{ lookup('template', 'idm/clients/geodata.json.j2') }}"
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201,409
-  register: client_geodata_response
-
-- name: Check if already existing.
-  debug:
-    msg: "Failed. Client may already exist."
-  when: client_geodata_response.status == 409
-
-- name: Create NodeRED Client
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
-    return_content: yes
-    body_format: json
-    body: "{{ lookup('template', 'idm/clients/nodered.json.j2') }}"
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201,409
-  register: client_nodered_response
-
-- name: Check if already existing.
-  debug:
-    msg: "Failed. Client may already exist."
-  when: client_nodered_response.status == 409
 
 # Retrieve id and secret for all clients
 
@@ -175,49 +101,25 @@
   set_fact:
     client_id_api_access: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ IDM_CLIENT_API_ACCESS }}'].id | [0]"
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_API_ACCESS }}'].id | [0]"
 
 - name: "Get keycloak client Grafana ID."
   set_fact:
     client_id_grafana: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ IDM_CLIENT_GRAFANA }}'].id | [0]"
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAFANA }}'].id | [0]"
 
 - name: "Get keycloak client Gravitee ID."
   set_fact:
     client_id_gravitee: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ IDM_CLIENT_GRAVITEE }}'].id | [0]"
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAVITEE }}'].id | [0]"
 
 - name: "Get keycloak client PGAdmin ID."
   set_fact:
     client_id_pgadmin: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ IDM_CLIENT_PGADMIN }}'].id | [0]"
-
-- name: "Get keycloak client citywalk ID."
-  set_fact:
-    client_id_citywalk: "{{ clients.json | json_query(query) }}"
-  vars:
-    query: "[?clientId== '{{ IDM_CLIENT_CITYWALKS }}'].id | [0]"
-
-- name: "Get keycloak client ckan ID."
-  set_fact:
-    client_id_ckan: "{{ clients.json | json_query(query) }}"
-  vars:
-    query: "[?clientId== '{{ IDM_CLIENT_CKAN }}'].id | [0]"
-
-- name: "Get keycloak client geodata ID."
-  set_fact:
-    client_id_geodata: "{{ clients.json | json_query(query) }}"
-  vars:
-    query: "[?clientId== '{{ IDM_CLIENT_GEODATA }}'].id | [0]"
-
-- name: "Get keycloak client nodered ID."
-  set_fact:
-    client_id_nodered: "{{ clients.json | json_query(query) }}"
-  vars:
-    query: "[?clientId== '{{ IDM_CLIENT_NODERED }}'].id | [0]"
+    query: "[?clientId== '{{ keycloak.IDM_CLIENT_PGADMIN }}'].id | [0]"
 
 - name: Get Client Secret API Access
   uri:
@@ -364,79 +266,3 @@
     status_code: 201
   register: roles_pgadmin_response
   when: client_pgadmin_response.status != 409
-
-- name: Create Citywalk roles
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_citywalk }}/roles"
-    return_content: yes
-    body_format: json
-    body: |
-      {
-        "name": "citywalkAdmin",
-        "composite": false,
-        "clientRole": true
-      }
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201
-  register: roles_citywalk_response
-  when: client_citywalks_response.status != 409
-
-- name: Create ckan roles
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_ckan }}/roles"
-    return_content: yes
-    body_format: json
-    body: |
-      {
-        "name": "ckanAdmin",
-        "composite": false,
-        "clientRole": true
-      }
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201
-  register: roles_ckan_response
-  when: client_ckan_response.status != 409
-
-- name: Create geodata roles
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_geodata }}/roles"
-    return_content: yes
-    body_format: json
-    body: |
-      {
-        "name": "geodataAdmin",
-        "composite": false,
-        "clientRole": true
-      }
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201
-  register: roles_geodata_response
-  when: client_geodata_response.status != 409
-
-- name: Create nodered roles
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_nodered }}/roles"
-    return_content: yes
-    body_format: json
-    body: |
-      {
-        "name": "noderedAdmin",
-        "composite": false,
-        "clientRole": true
-      }
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201
-  register: roles_nodered_response
-  when: client_nodered_response.status != 409

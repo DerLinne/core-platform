@@ -11,21 +11,3 @@
         password: "{{ ADMIN_PASSWORD }}"
     status_code: 200
   register: keycloak_login
-
-- name: Create IoT Tenant Group
-  uri:
-    method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/groups"
-    return_content: yes
-    body_format: json
-    body: "{{ lookup('template', 'idm/groups/iot_tenant.json.j2') }}"
-    headers:
-      Accept: application/json
-      Authorization: Bearer {{ keycloak_login.json.access_token }}
-    status_code: 201,409
-  register: group_iot_tenant_response
-
-- name: Check if already existing.
-  debug:
-    msg: "Failed. Group may already exist."
-  when: group_iot_tenant_response.status == 409
