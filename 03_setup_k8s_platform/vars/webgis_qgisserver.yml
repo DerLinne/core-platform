@@ -11,6 +11,8 @@ QGIS_CUSTOM_GITLAB_PROJECT: "berlintxl/futr-hub/platform/qgis-server-customizing
 qgis_data_dir: "/data/qgis"
 nginx_default_conf: "/etc/nginx/conf.d/"
 nginx_qgis_conf: "qgis-nginx.conf"
+nginx_server_name: "mapserver.{{ DOMAIN }}"
+nginx_cors_origin: "*.{{ DOMAIN }}"
 
 # QGIS Server
 server_replicaCount: 1

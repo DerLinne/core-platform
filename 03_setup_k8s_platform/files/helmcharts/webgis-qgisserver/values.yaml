@@ -68,6 +68,8 @@ nginx:
   #----------------------------------
   default_conf: "/etc/nginx/conf.d/"
   qgis_conf: "qgis-nginx.conf"
+  server_name: "_"
+  cors_origin: "*"
 
 ingress:
   #----------------------------------
