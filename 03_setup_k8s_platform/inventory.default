@@ -13,7 +13,7 @@ GITLAB_REGISTRY_ACCESS_TOKEN="<Your_GitLab_Registry_Token>"
 GITLAB_API_ACCESS_TOKEN="<Your_GitLab_Read_API_Token>"
 
 ## Minio settings
-
+#
 ## Access Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio' | base64)
 minio_tenant_accesskey='<your_access_key>'
 ## Secret Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio123' | base64)
@@ -28,7 +28,7 @@ MINIO_TENANT_CONSOLE_ACCESS_KEY='<your_soncole_access_ke>'
 MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
 
 ## IDM Settings
-
+#
 IDM_SCOPE='openid'
 IDM_CLIENT='<your_keycloak_client>'
 IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
@@ -37,14 +37,36 @@ IDM_ENDP_TOKEN='<your_token_url>'
 IDM_ENDP_USER_INFO='<your_user_info_url>'
 # -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
 OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+#
+## IDM General Values
+#
+IDM_REALM = '<realm name for the platform>'
+IDM_ADMIN_K8S_SECRET_NAME = '<k8s secret name for platform admin credentials>'
+IDM_DB_ADMIN_SECRET_NAME = '<k8s secret name for idm database credentials>'
+## Base64 encoded username and password (initial)
+IDM_REALM_MASTER_USERNAME = '<base64 of chosen platform admin username>'
+IDM_REALM_MASTER_PASSWORD = '<base64 of chosen platform admin password>'
+#
+## Email Server values and credentials
+#
+EMAIL_SERVER = '<email server used to send emails i.e. smtp.x.x>'
+EMAIL_USER = '<username to access email server>'
+EMAIL_PASSWORD = 'password to access email server'
+EMAIL_FROM = '<email address used as "from">'
 
 ## Timescale Settings
+<<<<<<< HEAD
 
 # Since TimescaleDB is deployed via Zalando operator, we do not need to set TIMESCALE_PASSWORD.
 # This is done by the operator during deployment of TimescaleDB.
 #TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
+=======
+#
+TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
+>>>>>>> aea9843 (Issue #60: Added IDM related variables to inventory.)
 
-# Master Portal Settings
+## Master Portal Settings
+#
 MP_IDM_CLIENT='<your_keycloak_client>'
 MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
 MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
