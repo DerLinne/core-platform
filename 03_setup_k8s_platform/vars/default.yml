@@ -14,6 +14,7 @@ HELM_REPO_NAME: futr-hub
 # Kubernetes
 K8S_KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/{{ kubeconfig_file }}"
 K8S_CONTEXT: microk8s
+<<<<<<< HEAD
 K8S_NAMESPACE_APIMSTACK: apim-stack
 K8S_NAMESPACE_GEODATA: geodata
 K8S_NAMESPACE_CKAN: ckan
@@ -24,6 +25,17 @@ K8S_NAMESPACE_DATA_MANAGEMENT: data-management
 K8S_NAMESPACE_PUBLIC: public
 K8S_NAMESPACE_MONITORING: monitoring-logging
 K8S_NAMESPACE_DATAFLOWSTACK: dataflow-stack
+=======
+K8S_NAMESPACE_GEODATA: geodata-stack
+K8S_NAMESPACE_CKAN: metadata-stack
+K8S_NAMESPACE_FROST: context-management-stack
+K8S_NAMESPACE_POSTGRES_OPERATOR: operator-stack
+K8S_NAMESPACE_MINIO_OPERATOR: operator-stack
+K8S_NAMESPACE_APIMSTACK: apim-stack
+K8S_NAMESPACE_DATA_MANAGEMENT: data-management-stack
+K8S_NAMESPACE_PUBLIC: public-stack
+K8S_NAMESPACE_MONITORING: monitoring-logging-stack
+>>>>>>> be5614b (gravitee deploy and config + 3 apis)
 K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK: context-management-stack
 K8S_NAMESPACE_IDMSTACK: idm-stack
 K8S_NAMESPACE_KEYCLOAK_OPERATOR: idm-stack
