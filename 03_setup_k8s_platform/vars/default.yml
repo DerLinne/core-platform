@@ -14,6 +14,7 @@ HELM_REPO_NAME: futr-hub
 # Kubernetes
 K8S_KUBECONFIG: "{{ lookup('env', 'HOME') }}/.kube/k8s-master_config"
 K8S_CONTEXT: microk8s
+K8S_NAMESPACE_APIMSTACK: apim-stack
 K8S_NAMESPACE_GEODATA: geodata
 K8S_NAMESPACE_CKAN: ckan
 K8S_NAMESPACE_FROST: frost-server

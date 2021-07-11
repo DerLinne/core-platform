@@ -1,0 +1,46 @@
+---
+# file: 03_setup_k8s_platform/deploy_apim_stack.yml
+
+- name: Deploy API Management Stack
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+      tags: always
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_APIMSTACK | lower}}"
+      tags: always
+
+    - name: Read common values of apim stack
+      ansible.builtin.include_vars:
+        file: apim-stack/common.yml
+        name: common
+      tags: always
+
+    # 1. Create namespace for APIM stack
+    - name: "Create namespace {{ k8s_namespace }}"
+      community.kubernetes.k8s:
+        state: present
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          api_version: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_namespace }}"
+            labels:
+              name: "{{ k8s_namespace }}"
+      tags: always
+
+    # 2. Setup Gravitee with all required resources
+    - name: Setup Gravitee with all required resources
+      import_tasks: tasks/apim-stack/setup_gravitee.yml
+      tags: gravitee_setup

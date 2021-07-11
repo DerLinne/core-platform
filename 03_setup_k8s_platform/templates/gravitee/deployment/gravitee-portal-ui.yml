@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gravitee-portal
+  name: gravitee-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gravitee-portal
+  template:
+    metadata:
+      labels:
+        app: gravitee-portal
+    spec:
+      containers:
+      - image: graviteeio/apim-portal-ui:3.7.0
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+          timeoutSeconds: 1
+        startupProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+        name: gravitee-portal
+        env:
+          - name: PORTAL_API_URL
+            value: "https://apim.{{ DOMAIN }}/portal/environments/DEFAULT"
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gravitee-portal
+  name: gravitee-portal
+spec:
+  ports:
+  - name: portal
+    port: 8085
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: gravitee-portal
+  type: ClusterIP
+status:
+  loadBalancer: {}

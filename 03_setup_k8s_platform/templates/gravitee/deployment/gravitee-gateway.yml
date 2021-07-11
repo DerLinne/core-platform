@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gravitee-gateway
+  name: gravitee-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gravitee-gateway
+  template:
+    metadata:
+      labels:
+        app: gravitee-gateway
+    spec:
+      containers:
+      - image: graviteeio/apim-gateway:3.7
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          tcpSocket:
+            port: 8082
+          timeoutSeconds: 1
+        startupProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60
+          tcpSocket:
+            port: 8082
+        name: gravitee-gateway
+        env:
+          - name: gravitee_management_mongodb_uri
+            value: "mongodb://gravitee-mongo:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000"
+          - name: gravitee_ratelimit_mongodb_uri
+            value: "mongodb://gravitee-mongo:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000"
+          - name: gravitee_reporters_elasticsearch_endpoints_0
+            value: "http://gravitee-elasticsearch.{{ k8s_namespace }}.svc.cluster.local:9200"
+        ports:
+        - containerPort: 8082
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 1200m
+            memory: 1500Mi
+          requests:
+            cpu: 500m
+            memory: 750Mi
+        volumeMounts:
+          - name: config
+            mountPath: /opt/graviteeio-gateway/config/logback.xml
+            subPath: logback.xml
+      volumes:
+        - name: config
+          configMap:
+            name: gravitee-gateway-config
+
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gravitee-gateway
+  name: gravitee-gateway
+spec:
+  ports:
+  - name: gateway
+    port: 8082
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    app: gravitee-gateway
+  type: ClusterIP
+status:
+  loadBalancer: {}

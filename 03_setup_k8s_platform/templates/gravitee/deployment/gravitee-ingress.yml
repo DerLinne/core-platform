@@ -1,0 +1,159 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
+    kubernetes.io/tls-acme: "true"
+  labels:
+    app: gravitee-gateway
+  name: gravitee-gateway
+  namespace: "{{ k8s_namespace }}"
+spec:
+  rules:
+  - host: '{{ gravitee.ingress_rules_host }}'
+    http:
+      paths:
+      - path: '{{ gravitee.gateway_endpoint }}'
+        pathType: Prefix
+        backend:
+          service:
+            name: gravitee-gateway
+            port:
+              number: 8082
+
+  tls:
+  - hosts:
+    - '{{ gravitee.ingress_tls_host }}'
+    secretName: '{{ gravitee.ingress_secret_name }}'
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      etag on;
+      proxy_pass_header ETag;
+      proxy_set_header if-match "";
+  labels:
+    app: gravitee-api-management
+  name: gravitee-api-management
+  namespace: "{{ k8s_namespace }}"
+spec:
+  rules:
+  - host: '{{ gravitee.ingress_rules_host }}'
+    http:
+      paths:
+      - path: '{{ gravitee.management_endpoint }}'
+        pathType: Prefix
+        backend:
+          service:
+            name: gravitee-api-management
+            port:
+              number: 8083
+  tls:
+  - hosts:
+    - '{{ gravitee.ingress_tls_host }}'
+    secretName: '{{ gravitee.ingress_secret_name }}'
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      etag on;
+      proxy_pass_header ETag;
+      proxy_set_header if-match "";
+  labels:
+    app: gravitee-api-portal
+  name: gravitee-api-portal
+  namespace: "{{ k8s_namespace }}"
+spec:
+  rules:
+  - host: '{{ gravitee.ingress_rules_host }}'
+    http:
+      paths:
+      - path: '{{ gravitee.portal_endpoint }}'
+        pathType: Prefix
+        backend:
+          service:
+            name: gravitee-api-management
+            port:
+              number: 8083
+  tls:
+  - hosts:
+    - '{{ gravitee.ingress_tls_host }}'
+    secretName: '{{ gravitee.ingress_secret_name }}'
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      etag on;
+      proxy_pass_header ETag;
+  labels:
+    app: gravitee-portal
+  name: gravitee-portal
+  namespace: "{{ k8s_namespace }}"
+spec:
+  rules:
+  - host: '{{ gravitee.ingress_rules_host }}'
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gravitee-portal
+            port:
+              number: 8085
+  tls:
+  - hosts:
+    - '{{ gravitee.ingress_tls_host }}'
+    secretName: '{{ gravitee.ingress_secret_name }}'
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      etag on;
+      proxy_pass_header ETag;
+    nginx.ingress.kubernetes.io/rewrite-target: /$1$2
+  labels:
+    app: gravitee-ui
+  name: gravitee-ui
+  namespace: "{{ k8s_namespace }}"
+spec:
+  rules:
+  - host: '{{ gravitee.ingress_rules_host }}'
+    http:
+      paths:
+      - path: '{{ gravitee.ui_endpoint }}'
+        pathType: Prefix
+        backend:
+          service:
+            name: gravitee-ui
+            port:
+              number: 8084
+  tls:
+  - hosts:
+    - '{{ gravitee.ingress_tls_host }}'
+    secretName: '{{ gravitee.ingress_secret_name }}'
+

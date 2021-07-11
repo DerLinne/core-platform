@@ -1,0 +1,610 @@
+- name: Deploy Mongo for API Management
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/mongo.yml') | from_yaml_all | list }}"
+
+- name: Deploy Gravitee Gateway Config
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-gateway-configmap.yml') | from_yaml }}"
+
+- name: Deploy Gravitee APIM Config
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-api-management-configmap.yml') | from_yaml }}"
+
+- name: Deploy Elasticsearch for API Management
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/elasticsearch.yml') | from_yaml_all | list }}"
+
+- name: Deploy Gateway for API Management
+  no_log: true
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-gateway.yml') | from_yaml_all | list }}"
+
+- name: Deploy Management for API Management
+  no_log: true
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-api-management.yml') | from_yaml_all | list }}"
+
+- name: Deploy Management UI for API Management
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-management-ui.yml') | from_yaml_all | list }}"
+
+- name: Deploy Portal UI for API Management
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-portal-ui.yml') | from_yaml_all | list }}"
+
+- name: Deploy Ingress Ressources for API Management
+  k8s:
+    definition: "{{ item }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: '{{ k8s_namespace }}'
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/gravitee/deployment/gravitee-ingress.yml') | from_yaml_all | list }}"
+
+- name: Wait for API Management to come up
+  uri:
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user/login"
+    status_code: 401
+  register: result
+  until: result.status == 401
+  retries: 200
+  delay: 2
+
+- name: Login into APIM management API using local admin user
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user/login"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: "{{ gravitee.DEFAULT_BASIC_AUTH }}"
+    status_code: 200
+  register: local_user
+
+####################################
+#### CREATE IDENTITY PROVIDER   ####
+####################################
+
+- name: Delete identity provider Keycloak
+  uri:
+    method: DELETE
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/configuration/identities/keycloak"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 204,-1,404,403
+  register: local_admin_exists # this register has status 403, if local admin is deactivated
+
+- name: Create identity provider Keycloak
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/configuration/identities/"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'templates/gravitee/create_identity_provider_keycloak.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 201
+  register: identity_provider
+  when: local_admin_exists.status != 403
+
+- name: Activate Keycloak Console Use
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/identities"
+    return_content: yes
+    body_format: json
+    body: |
+      [
+        { "identityProvider":"keycloak" }
+      ]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 204
+  register: portal_config
+  when: local_admin_exists.status != 403
+
+- name: Activate Keycloak Portal Use
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/identities"
+    return_content: yes
+    body_format: json
+    body: |
+      [
+        { "identityProvider":"keycloak" }
+      ]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 204
+  register: portal_config
+  when: local_admin_exists.status != 403
+
+- name: Finalize identity provider Keycloak settings
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/configuration/identities/keycloak"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'templates/gravitee/update_identity_provider_keycloak.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: identity_provider
+  when: local_admin_exists.status != 403
+
+
+####################################
+#### LOG IN IDENTITY PROVIDER   ####
+####################################
+
+- name: Login into APIM management API using IDM provider
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+    - [ grant_type, "password" ]
+    - [ username, "{{keycloak.PLATFORM_ADMIN_EMAIL }}" ]
+    - [ password, "{{ ADMIN_PASSWORD }}" ]
+    - [ client_id, "{{ keycloak.IDM_CLIENT_GRAVITEE }}" ]
+    - [ client_secret, "{{ IDM_CLIENT_SECRET_GRAVITEE }}" ]
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: user
+
+- name: Print login response
+  debug:
+    var: user
+
+- name: Exchange token at APIM
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/auth/oauth2/keycloak/exchange?token={{ user.json.access_token }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: new_token
+
+- name: Get IDM user id
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  register: idm_user_id
+
+########################################
+#### PROVIDE IDM ADMIN WITH ROLES   ####
+########################################
+
+- name: Get organization roles
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/configuration/rolescopes/ORGANIZATION/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200,403
+  register: org_roles
+
+- name: Print access error
+  debug:
+    msg: "Failed. Local admin user does not have admin rights anymore?"
+  when: org_roles.status == 403
+
+- name: Get admin org_role id
+  set_fact:
+    org_admin_role_id: "{{ org_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name == 'ADMIN'].id | [0]"
+  when: org_roles.status != 403
+
+- name: Get environment roles
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/configuration/rolescopes/ENVIRONMENT/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: env_roles
+  when: org_roles.status != 403
+
+
+- name: Get admin env_role id
+  set_fact:
+    env_admin_role_id: "{{ env_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name == 'ADMIN'].id | [0]"
+  when: org_roles.status != 403
+
+
+- name: Add admin roles to IDM admin user (1/2)
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/users/{{ idm_user_id.json.id }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "user": "{{ idm_user_id.json.id }}",
+        "referenceId": "DEFAULT",
+        "referenceType": "ENVIRONMENT",
+        "roles": ["{{ env_admin_role_id }}"]
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: portal_config
+  when: org_roles.status != 403
+
+
+- name: Add admin roles to IDM admin user (2/2)
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/users/{{ idm_user_id.json.id }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "user":"{{ idm_user_id.json.id }}",
+        "referenceId":"DEFAULT",
+        "referenceType":"ORGANIZATION",
+        "roles":["{{ org_admin_role_id }}"]
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: portal_config
+  when: org_roles.status != 403
+
+- name: Login into APIM management API using local admin user
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user/login"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: "{{ gravitee.DEFAULT_BASIC_AUTH }}"
+    status_code: 200
+  register: local_user
+
+
+- name: Get user id
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: local_user_id
+
+
+#############################
+#### DISABLE LOCAL ADMIN ####
+#############################
+
+
+- name: Disable local login
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/portal/"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "authentication": {
+          "localLogin": {
+            "enabled": false
+          }
+        }
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: portal_config
+  when: local_admin_exists.status != 403
+
+
+- name: Disable local admin account (1/2)
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/users/{{ local_user_id.json.id }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "user":"{{ local_user_id.json.id }}",
+        "referenceId":"DEFAULT",
+        "referenceType":"ENVIRONMENT",
+        "roles":[]
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: portal_config
+  when: local_admin_exists.status != 403
+
+- name: Disable local admin account (2/2)
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/users/{{ local_user_id.json.id }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "user":"{{ local_user_id.json.id }}",
+        "referenceId":"DEFAULT",
+        "referenceType":"ORGANIZATION",
+        "roles":[]
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ local_user.json.token }}
+    status_code: 200
+  register: portal_config
+  when: local_admin_exists.status != 403
+
+###################################
+#### ADJUST GENERAL SETTINGS   ####
+###################################
+
+- name: Change general settings for API Management
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/settings/"
+    return_content: yes
+    body_format: json
+    body: |
+        { "portal":
+         { "entrypoint": "apim.{{ DOMAIN }}"  }
+        }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  register: portal_settings
+
+
+####################################
+#### LOG IN IDENTITY PROVIDER   ####
+####################################
+
+- name: Login into APIM management API using IDM provider
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+    - [ grant_type, "password" ]
+    - [ username, "{{keycloak.PLATFORM_ADMIN_EMAIL }}" ]
+    - [ password, "{{ ADMIN_PASSWORD }}" ]
+    - [ client_id, "{{ keycloak.IDM_CLIENT_GRAVITEE }}" ]
+    - [ client_secret, "{{ IDM_CLIENT_SECRET_GRAVITEE }}" ]
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: user
+
+- name: Exchange token at APIM
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/auth/oauth2/keycloak/exchange?token={{ user.json.access_token }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: new_token
+
+- name: Get IDM user id
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  register: idm_user_id
+
+- name: Login into APIM management API using IDM provider
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+    - [ grant_type, "password" ]
+    - [ username, "{{keycloak.PLATFORM_ADMIN_EMAIL }}" ]
+    - [ password, "{{ ADMIN_PASSWORD }}" ]
+    - [ client_id, "{{ keycloak.IDM_CLIENT_GRAVITEE }}" ]
+    - [ client_secret, "{{ IDM_CLIENT_SECRET_GRAVITEE }}" ]
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: user
+
+- name: Print login response
+  debug:
+    var: user
+
+- name: Exchange token at APIM
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/auth/oauth2/keycloak/exchange?token={{ user.json.access_token }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: new_token
+
+- name: Get IDM user id
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/user"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  register: idm_user_id
+
+- name: Print user id response
+  debug:
+    var: idm_user_id
+
+- name: Get current applications
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/applications"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  register: applications
+
+- name: Print application response
+  debug:
+    var: applications
+
+- name: Get default application id
+  set_fact:
+    env_def_app_id: "{{ applications.json | json_query(query) }}"
+  vars:
+    query: "[?name == 'Default application' && owner.displayName == '{{ keycloak.PLATFORM_ADMIN_FIRST_NAME }} {{ keycloak.PLATFORM_ADMIN_SURNAME }}'].id | [0]"
+
+- name: Print application id
+  debug:
+    var: env_def_app_id
+
+- name: Delete default Application if present
+  uri:
+    method: DELETE
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/applications/{{ env_def_app_id }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 204
+  when: env_def_app_id | length > 0
+
+- name: Create Platform Portal Application
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/applications"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "description": "Default Intrgratio application used during ansible configuration",
+        "name": "{{ gravitee.PORTAL_APPLICATION }}",
+        "settings":
+        {
+            "app":
+            {
+                "client_id": "{{ keycloak.IDM_CLIENT_API_ACCESS }}"
+            }
+        }
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 201,400
+  register: portal_application
+
+- name: Print application response
+  debug:
+    var: portal_application.content
+  when: portal_application.status != 200
+
+- name: Get current applications
+  uri:
+    method: GET
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/applications"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  register: applications
+
+- name: Get portal application id
+  set_fact:
+    portal_app_id: "{{ applications.json | json_query(query) }}"
+  vars:
+    query: "[?name == '{{ gravitee.PORTAL_APPLICATION }}' && owner.displayName == '{{ keycloak.PLATFORM_ADMIN_FIRST_NAME }} {{ keycloak.PLATFORM_ADMIN_SURNAME }}'].id | [0]"
+
+- name: Print portal app id
+  debug:
+    var: portal_app_id
