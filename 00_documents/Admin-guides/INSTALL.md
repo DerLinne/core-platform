@@ -8,7 +8,11 @@ This document describes how to:
 + deploy [CKAN](#ckan) into MicroK8s.
 + deploy [FROST](#frost) into MicroK8s.
 + deploy [DataFlow Stack](#dataflow-stack) into MicroK8s.
+<<<<<<< HEAD
 + deploy [Context Management Stack](#context-management-stack) into MicroK8s.
+=======
++ deploy [Identity Management Stack](#identity-management-stack) into MicroK8s.
+>>>>>>> d651ddf (Issue #60:)
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -1203,6 +1207,7 @@ FLOW_PROJECT: "gitlab.com/berlintxl/futr-hub/use-cases/show-latest-tweet-of-twit
 
 ```
 
+<<<<<<< HEAD
 ## Context Management Stack
 
 To deploy the Context Management Stack into Kubernetes, you have to set values for the following variables in your inventory file.
@@ -1310,4 +1315,247 @@ mongodb_service: "orion-mongodb"
 
 # Orion
 image_tag: "2.4.2"
+=======
+## Identity Management Stack
+
+This chapter describes how to deploy and setup KeyCloak within a Kubernetes environment, using the [KeyCloak operator](https://www.keycloak.org/docs/latest/server_installation/index.html#_operator) for KeyCloak itself and the [Zalando Postgres Operator](https://github.com/zalando/postgres-operator) for the PostgreSQL database.
+
+The deployment is done via Ansible, using the playbook `deploy_idm_stack.yml`. This will install all required resources into the K8s namespace `idm-stack`.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform/
+
+ansible-playbook -i inventory deploy_idm_stack.yml
+```
+
+The playbook itself only imports variables and runs the following tasks, except `delete_keycloak_cr.yml`.
+
+```
+vars/idm-stack
+├── common.yml
+├── install_keycloak_operator.yml
+├── install_openldap.yml
+├── setup_keycloak.yml
+└── setup_keycloak_db.yml
+
+tasks/idm-stack
+├── delete_keycloak_cr.yml
+├── idm-config
+│   ├── keycloak_0_deploy_secrets.yml
+│   ├── keycloak_1_deploy_components.yml
+│   ├── keycloak_2_general_config.yml
+│   ├── keycloak_3_realm.yml
+│   ├── keycloak_4_client_scopes.yml
+│   ├── keycloak_5_clients.yml
+│   ├── keycloak_6_scope_mappings.yml
+│   ├── keycloak_7_groups.yml
+│   └── keycloak_8_users.yml
+├── install_keycloak_operator.yml
+├── install_openldap.yml
+├── setup_keycloak.yml
+└── setup_keycloak_db.yml
+```
+
+After a view minutes the deployment should be finished.
+
+**IMPORTANT**
+Before you run the playbook, make sure that all mandatory
+- environment variables,
+- variables in the Ansible invetory,
+are set as described further below.
+
+You can further configure you KeyCloak deployment by editing the file files beneath `vars/idm-stack` to your liking, which will be described in more detail further below.
+```
+vars/idm-stack/
+├── common.yml
+├── install_keycloak_operator.yml
+├── install_openldap.yml
+├── setup_keycloak.yml
+└── setup_keycloak_db.yml
+```
+
+You can use the following Ansible tags to execute certain tasks exclusively.
+
+- `keycloak_db`: will only deploy a PostgreSQL database for KeyCloak.
+- `keycloak_op`: will only deploy the KeyCloak operator.
+- `keycloak_setup`: will only create KeyCloak's Custom Resources.
+- `keycloak_ldap`: will only deploy OpenLDAP server and add an LDAP provider within KeyCloak, pointing to that OpenLDAP server.
+
+If you need to delete KeyCloak's Custom Resources, you can run the Ansible playbook with the tag `keycloak_delete_cr`.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform/
+
+ansible-playbook -i inventory deploy_idm_stack.yml --tags "keycloak_delete_cr"
+```
+
+### Mandatory Environment Variables
+Before you deploy KeyCloak via Ansible, you have to set at least the following environment variables.
+
+
+```
+export LDAP_ADMIN_USERNAME=<name of LDAP admin>
+export LDAP_ADMIN_PASSWORD=<password of LDAP admin>
+export LDAP_USERS=<list_of_LDAP_users, separated by ','>
+export LDAP_PASSWORDS=<list of user passwords, separated by ','>
+
+# Example
+export LDAP_ADMIN_USERNAME=admin
+export LDAP_ADMIN_PASSWORD=admin123
+export LDAP_USERS=user01
+export LDAP_PASSWORDS=password01
+```
+
+### Mandatory Inventory variables
+Before you deploy KeyCloak via Ansible, you have to make sure that the following variables are set in the file `inventory`.
+
+```yaml
+# IDM
+## IDM General Values
+IDM_REALM='<realm name for the platform>'
+IDM_ADMIN_K8S_SECRET_NAME='<k8s secret name for platform admin credentials>'
+IDM_DB_ADMIN_SECRET_NAME='<k8s secret name for idm database credentials>'
+
+## Base64 encoded username and password (initial)
+IDM_REALM_MASTER_USERNAME='<base64 of chosen platform admin username>'
+IDM_REALM_MASTER_PASSWORD='<base64 of chosen platform admin password>'
+
+## Email Server values and credentials
+EMAIL_SERVER='<email server used to send emails i.e. smtp.x.x>'
+EMAIL_USER='<username to access email server>'
+EMAIL_PASSWORD='<password to access email server>'
+EMAIL_FROM='<email address used as "from">'
+```
+
+### KeyCloak Custom Resources
+The required CRs for KeyCloak are created by executing the Ansible script `tasks/idm-stack/setup_keycloak.yml`, which then executes the scripts in `tasks/idm-stack/idm-config`.
+
+```
+tasks/idm-stack/idm-config
+├── keycloak_0_deploy_secrets.yml
+├── keycloak_1_deploy_components.yml
+├── keycloak_2_general_config.yml
+├── keycloak_3_realm.yml
+├── keycloak_4_client_scopes.yml
+├── keycloak_5_clients.yml
+├── keycloak_6_scope_mappings.yml
+├── keycloak_7_groups.yml
+└── keycloak_8_users.yml
+```
+
+### OpenLDAP
+The deployment of OpenLDAP server is based upon the [Bitnami Docker Image](https://github.com/bitnami/bitnami-docker-openldap) with version 2.4.58. If you want to use another version, you have to edit the value of `image_tag` in `vars/idm-stack/install_openldap.yml`.
+
+Also, if you want to increase the size of the Persistent Volume from `100Mi` to a greater value or change the storage class, you can edit those settings also within that file.
+
+The configuration of OpenLDAP itself can be done, using the environment variables, describe [here](https://github.com/bitnami/bitnami-docker-openldap#configuration), with the exception of `LDAP_CUSTOM_LDIF_DIR` and `LDAP_CUSTOM_SCHEMA_FILE`.
+
+The file `vars/idm-stack/install_openldap.yml` is describe in more detail below.
+
+### Configuration Files
+As mentioned above, you can further configure the KeyCloak deployment by editing the files beneath `vars/idm-stack`.
+
+#### common.yml
+Here you can configure the name of the PostgreSQL database cluster and it's user.
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/common.yml
+
+# KeyCloak database
+kc_db_name: "keycloak"
+kc_db_user: "keycloak"
+```
+
+#### setup_keycloak_db.yml
+This file lets you setup values, used by the Zalando operator to deploy the PostgreSQL database clustter, like version of PostgreSQL and size of the Persistent Volume.
+
+**NOTE**
+> The default version of PostgreSQL is set to the value `10`; the same version, that would be deployed by the KeyCloak operator.
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/keycloak_db.yml
+
+# Settings for Zalando operator for PostgreSQL
+cluster_name: "{{ common.kc_db_name }}"
+cluster_team: "{{ common.kc_db_user }}"
+version: "10"
+volume_size: "1Gi"
+```
+
+#### install_keycloak_operator.yml
+This file lets you
+
+- setup the URL of the KeyCloak operator's Git repository.
+- the Git repository's branch, you want to use.
+- the directory, where to checkout that branch.
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/install_keycloak_operator.yml
+
+# Settings for KeyCloak operator
+git_repo_url: "git@github.com:keycloak/keycloak-operator.git"
+git_repo_dest: "/tmp/kc_op"
+git_repo_branch: "master"
+```
+
+#### setup_keycloak.yml
+This file is used to setup parameters for Keycloak's Custom Resouces.
+
+```yaml
+# IDM
+## General
+log_level: "INFO" # ALL, DEBUG, ERROR, FATAL, INFO, OFF, TRACE and WARN
+realm_master_username: "{{ IDM_REALM_MASTER_USERNAME }}"
+realm_master_password: "{{ IDM_REALM_MASTER_PASSWORD }}"
+
+## Deployment
+k8s_name: "fiware-keycloak"
+ingress_secert_name: "keycloak-cert"
+ingress_tls_host: "idm.{{ DOMAIN }}"
+ingress_rules_host: "idm.{{ DOMAIN }}"
+
+## IDM Scopes
+IDM_SCOPE_TENANT_NAMES: "tenant-names"
+IDM_SCOPE_TENANT_VALUES: "tenants"
+IDM_SCOPE_API_READ: "api:read"
+IDM_SCOPE_API_WRITE: "api:write"
+IDM_SCOPE_API_DELETE: "api:delete"
+
+## IDM Clients
+IDM_CLIENT_API_ACCESS: "api-access"
+IDM_CLIENT_GRAFANA: "grafana"
+IDM_CLIENT_GRAVITEE: "gravitee"
+IDM_CLIENT_PGADMIN: "pgadmin"
+
+## IDM Users
+PLATFORM_ADMIN_FIRST_NAME: "Admin"
+PLATFORM_ADMIN_SURNAME: "Admin"
+PLATFORM_ADMIN_EMAIL: "admin-open-data@{{ DOMAIN }}"
+```
+
+#### install_openldap.yml
+This file lets you configure the PVC for OpenLDAP and sets default values for a parameter, if its value is not set via an environment variable.
+
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/idm-stack/install_openldap.yml
+
+# PVC settings
+pv_storageClass: microk8s-hostpath
+pv_accessMode: ReadWriteOnce
+pv_size: 100Mi
+
+# Deployment settings
+image_tag: "2.4.58"
+ldap_admin_username: "{{ lookup('env', 'LDAP_ADMIN_USERNAME') }}"
+ldap_admin_password: "{{ lookup('env', 'LDAP_ADMIN_PASSWORD') }}"
+ldap_users: "{{ lookup('env', 'LDAP_USERS') }}"
+ldap_passwords: "{{ lookup('env', 'LDAP_PASSWORDS') }}"
+ldap_root: "{{ lookup('env', 'LDAP_ROOT') | default('dc=example,dc=org', true) }}"
+ldap_user_dc: "{{ lookup('env', 'LDAP_USER_DC') | default('users', true) }}"
+ldap_group: "{{ lookup('env', 'LDAP_GROUP') | default('readers', true) }}"
+ldap_extra_schemas: "{{ lookup('env', 'LDAP_EXTRA_SCHEMAS') | default('cosine,inetorgperson,nis', true) }}"
+ldap_skip_default_tree: "{{ lookup('env', 'LDAP_SKIP_DEFAULT_TREE') | default('no', true) }}"
+ldap_ulimit_nofiles: "{{ lookup('env', 'LDAP_ULIMIT_NOFILES') | default('1024', true) }}"
+>>>>>>> d651ddf (Issue #60:)
 ```

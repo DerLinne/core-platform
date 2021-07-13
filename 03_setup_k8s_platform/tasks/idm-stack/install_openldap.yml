@@ -166,3 +166,55 @@
             targetPort: tcp-ldap
         selector:
           app.kubernetes.io/name: openldap
+
+- name: Setup OpenLDAP in KeyCloak
+  block:
+    - name: Get Admin credentials
+      community.kubernetes.k8s_info:
+        kubeconfig: "{{ k8s_config }}"
+        kind: Secret
+        namespace: "{{ k8s_namespace }}"
+        name: "{{ IDM_ADMIN_K8S_SECRET_NAME }}"
+      register: admin_credentials
+
+    - name: Store IDM Credentials
+      ansible.builtin.set_fact:
+        ADMIN_USERNAME: "{{ admin_credentials.resources[0].data.MASTER_USERNAME | b64decode }}"
+        ADMIN_PASSWORD: "{{ admin_credentials.resources[0].data.MASTER_PASSWORD | b64decode }}"
+        cacheable: yes
+
+    - name: Set OpenLDAP URL
+      ansible.builtin.set_fact:
+        openldap_url: "ldap://openldap.{{ k8s_namespace }}.svc.cluster.local:1389"
+
+    - name: Re-Login to KeyCloak
+      ansible.builtin.uri:
+        method: POST
+        url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+        return_content: yes
+        body_format: form-urlencoded
+        body:
+            grant_type: "password"
+            client_id: "admin-cli"
+            username: "{{ ADMIN_USERNAME }}"
+            password: "{{ ADMIN_PASSWORD }}"
+        status_code: 200
+      register: keycloak_login
+
+    - name: Add LDAP Provider
+      ansible.builtin.uri:
+        method: POST
+        url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/components"
+        return_content: yes
+        body_format: json
+        body: "{{ lookup('template', 'keycloak/components/ldap_provider.json.j2') }}"
+        headers:
+          Accept: application/json
+          Authorization: Bearer {{ keycloak_login.json.access_token }}
+        status_code: 201,409
+      register: keycloak_component_ldap_response
+
+    - name: "Provider LDAP already existing."
+      debug:
+        msg: "Failed. Provider LDAP already existing?"
+      when: keycloak_component_ldap_response.status == 409
