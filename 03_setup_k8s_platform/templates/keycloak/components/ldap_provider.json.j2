@@ -1,0 +1,92 @@
+{
+    "name": "{{ IDM_REALM | upper }} LDAP",
+    "providerId": "ldap",
+    "providerType": "org.keycloak.storage.UserStorageProvider",
+    "parentId": "{{ IDM_REALM }}",
+    "config": {
+        "fullSyncPeriod": [
+            "604800"
+        ],
+        "pagination": [
+            "true"
+        ],
+        "usersDn": [
+            "ou={{ openldap.ldap_user_dc }},{{ openldap.ldap_root }}"
+        ],
+        "connectionPooling": [
+            "true"
+        ],
+        "cachePolicy": [
+            "DEFAULT"
+        ],
+        "useKerberosForPasswordAuthentication": [
+            "false"
+        ],
+        "importEnabled": [
+            "true"
+        ],
+        "enabled": [
+            "true"
+        ],
+        "changedSyncPeriod": [
+            "300"
+        ],
+        "usernameLDAPAttribute": [
+            "uid"
+        ],
+        "bindDn": [
+            "cn={{ openldap.ldap_admin_username }},{{ openldap.ldap_root }}"
+        ],
+        "bindCredential": [
+            "{{ openldap.ldap_admin_password }}"
+        ],
+        "vendor": [
+            "other"
+        ],
+        "uuidLDAPAttribute": [
+            "entryUUID"
+        ],
+        "allowKerberosAuthentication": [
+            "false"
+        ],
+        "connectionUrl": [
+            "{{ openldap_url }}"
+        ],
+        "syncRegistrations": [
+            "true"
+        ],
+        "authType": [
+            "simple"
+        ],
+        "debug": [
+            "false"
+        ],
+        "searchScope": [
+            "1"
+        ],
+        "useTruststoreSpi": [
+            "ldapsOnly"
+        ],
+        "priority": [
+            "0"
+        ],
+        "trustEmail": [
+            "false"
+        ],
+        "userObjectClasses": [
+            "inetOrgPerson, organizationalPerson"
+        ],
+        "rdnLDAPAttribute": [
+            "uid"
+        ],
+        "editMode": [
+            "WRITABLE"
+        ],
+        "validatePasswordPolicy": [
+            "false"
+        ],
+        "batchSizeForSync": [
+            "1000"
+        ]
+    }
+}

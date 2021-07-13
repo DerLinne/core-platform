@@ -7,15 +7,14 @@ pv_accessMode: ReadWriteOnce
 pv_size: 100Mi
 
 # Deployment settings
-# @TODO: für alle variablen lookups('env', ...) verwenden, ggf. mit Default-Werten
 image_tag: "2.4.58"
 ldap_admin_username: "{{ lookup('env', 'LDAP_ADMIN_USERNAME') }}"
 ldap_admin_password: "{{ lookup('env', 'LDAP_ADMIN_PASSWORD') }}"
 ldap_users: "{{ lookup('env', 'LDAP_USERS') }}"
 ldap_passwords: "{{ lookup('env', 'LDAP_PASSWORDS') }}"
-ldap_root: "{{ lookup('env', 'LDAP_ROOT') | default('dc=example,dc=org') }}"
-ldap_user_dc: "{{ lookup('env', 'LDAP_USER_DC') | default('users') }}"
-ldap_group: "{{ lookup('env', 'LDAP_GROUP') | default('readers') }}"
-ldap_extra_schemas: "{{ lookup('env', 'LDAP_EXTRA_SCHEMAS') | default('cosine,inetorgperson,nis') }}"
-ldap_skip_default_tree: "{{ lookup('env', 'LDAP_SKIP_DEFAULT_TREE') | default('no') }}"
-ldap_ulimit_nofiles: "{{ lookup('env', 'LDAP_ULIMIT_NOFILES') | default('1024') }}"
+ldap_root: "{{ lookup('env', 'LDAP_ROOT') | default('dc=example,dc=org', true) }}"
+ldap_user_dc: "{{ lookup('env', 'LDAP_USER_DC') | default('users', true) }}"
+ldap_group: "{{ lookup('env', 'LDAP_GROUP') | default('readers', true) }}"
+ldap_extra_schemas: "{{ lookup('env', 'LDAP_EXTRA_SCHEMAS') | default('cosine,inetorgperson,nis', true) }}"
+ldap_skip_default_tree: "{{ lookup('env', 'LDAP_SKIP_DEFAULT_TREE') | default('no', true) }}"
+ldap_ulimit_nofiles: "{{ lookup('env', 'LDAP_ULIMIT_NOFILES') | default('1024', true) }}"
