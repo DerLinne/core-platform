@@ -1,0 +1,6 @@
+---
+# file: 03_setup_k8s_platform/tasks/context_management-stack/configure_orion.yml
+
+- name: Configure Orion
+  debug:
+    msg: "@TODO: Implementation"

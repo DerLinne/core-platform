@@ -1,0 +1,17 @@
+---
+# file: 03_setup_k8s_platform/tasks/context_management-stack/install_orion.yml
+
+- name: Read values for Orion
+  ansible.builtin.include_vars:
+    file: context_management-stack/orion.yml
+    name: orion
+
+- name: Deploy Orion
+  community.kubernetes.k8s:
+    state: present
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    definition: "{{ item }}"
+  loop:
+    - "{{ lookup('template', 'templates/context_management-stack/orion.yml') | from_yaml_all | list }}"
