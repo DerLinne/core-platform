@@ -30,11 +30,25 @@ spec:
         - name: WORKERS
           value: "6"
         - name: POSTGRES_HOST
+<<<<<<< HEAD
           value: {{ timescale_endpoint }}
         - name: POSTGRES_DB_USER
           value: {{ quantumleap_credentials_username }}
         - name: POSTGRES_DB_PASS
           value: {{ quantumleap_credentials_password }}
+=======
+          valueFrom:
+            secretKeyRef:
+              name: postgres.mngd-fiware-21-quantumleap-db.credentials.postgresql.acid.zalan.do
+              key: url
+        - name: POSTGRES_DB_USER
+          value: quantumleap
+        - name: POSTGRES_DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: quantumleap-database-secret
+              key: password
+>>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
         - name: POSTGRES_DB_NAME
           value: quantumleap
         - name: POSTGRES_PORT
@@ -46,7 +60,11 @@ spec:
         - name: USE_GEOCODING
           value: "False"
         imagePullPolicy: IfNotPresent
+<<<<<<< HEAD
         image: orchestracities/quantumleap:{{ quantumleap.image_tag }}
+=======
+        image: orchestracities/quantumleap:"{{ image_tag }}"
+>>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
         name: quantumleap
         resources:
           requests:
@@ -159,11 +177,25 @@ spec:
         - name: CACHE_QUERIES
           value: "false"
         - name: POSTGRES_HOST
+<<<<<<< HEAD
           value: {{ timescale_endpoint }}
         - name: POSTGRES_DB_USER
           value: {{ quantumleap_credentials_username }}
         - name: POSTGRES_DB_PASS
           value: {{ quantumleap_credentials_password }}
+=======
+          valueFrom:
+            secretKeyRef:
+              name: postgres.mngd-fiware-21-quantumleap-db.credentials.postgresql.acid.zalan.do
+              key: url
+        - name: POSTGRES_DB_USER
+          value: quantumleap
+        - name: POSTGRES_DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: quantumleap-database-secret
+              key: password
+>>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
         - name: POSTGRES_DB_NAME
           value: quantumleap
         - name: POSTGRES_PORT
@@ -188,6 +220,7 @@ status: {}
 
 ---
 
+<<<<<<< HEAD
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
@@ -209,6 +242,8 @@ spec:
 
 ---
 
+=======
+>>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -223,10 +258,28 @@ spec:
             - name: QL_DB_INIT_DIR
               value: "/ql-db-init"
             - name: QL_DB_PASS
+<<<<<<< HEAD
               value: {{ quantumleap_credentials_password }}
             - name: PG_HOST
               value: {{ timescale_endpoint }}
             - name: PG_PASS
               value: {{ postgres_credentials_password }}
           image: "smartsdk/{{ quantumleap.smartsdk_image_tag }}"
+=======
+              valueFrom:
+                secretKeyRef:
+                  name: quantumleap-database-secret
+                  key: password
+            - name: PG_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres.mngd-fiware-21-quantumleap-db.credentials.postgresql.acid.zalan.do
+                  key: url
+            - name: PG_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgres.mngd-fiware-21-quantumleap-db.credentials.postgresql.acid.zalan.do
+                  key: password
+          image: "smartsdk/quantumleap-pg-init:0.8.0@sha256:bb262755211e96eed6d6f8a12e25a899123140c6c9bd7ba3a72cc3c0e77f60fc"
+>>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
       restartPolicy: Never
