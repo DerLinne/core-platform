@@ -26,6 +26,7 @@ K8S_NAMESPACE_MONITORING: monitoring-logging
 K8S_NAMESPACE_DATAFLOWSTACK: dataflow-stack
 K8S_NAMESPACE_IDMSTACK: idm-stack
 K8S_NAMESPACE_KEYCLOAK_OPERATOR: idm-stack
+K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK: context-management-stack
 K8S_INGRESS_CLASS: public
 cert_manager_namespace: 'cert-manager'
 

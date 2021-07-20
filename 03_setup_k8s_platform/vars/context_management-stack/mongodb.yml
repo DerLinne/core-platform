@@ -1,0 +1,19 @@
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/mongodb.yml
+
+image_tag: "3.6"
+
+securityContext_fsGroup: 1001
+securityContext_runAsUser: 1001
+
+database: orion
+root_username: "{{ lookup('env', 'CMS_MONGODB_ROOT_USERNAME') }}"
+root_password: "{{ lookup('env', 'CMS_MONGODB_ROOT_PASSWORD') }}"
+username: "{{ lookup('env', 'CMS_MONGODB_USERNAME') }}"
+password: "{{ lookup('env', 'CMS_MONGODB_PASSWORD') }}"
+
+extra_flags: "--nojournal --storageEngine wiredTiger --maxConns 5000"
+
+pv_storageClass: microk8s-hostpath
+pv_accessMode: ReadWriteOnce
+pv_size: 100Mi # 8Gi

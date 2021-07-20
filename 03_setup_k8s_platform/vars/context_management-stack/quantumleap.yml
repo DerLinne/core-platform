@@ -1,0 +1,4 @@
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/quantumleap.yml
+
+image_tag: "0.8.1"

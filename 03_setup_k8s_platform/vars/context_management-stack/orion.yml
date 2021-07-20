@@ -1,0 +1,4 @@
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/orion.yml
+
+image_tag: "2.4.2"
