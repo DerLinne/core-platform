@@ -44,18 +44,6 @@ spec:
             secretKeyRef:
               name: orion-mongodb-credentials
               key: mongodb-root-password
-        - name: MONGODB_DATABASE
-          value: {{ mongodb.database }}
-        - name: MONGODB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: orion-mongodb-credentials
-              key: mongodb-username
-        - name: MONGDB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: orion-mongodb-credentials
-              key: mongodb-password
         - name: MONGODB_EXTRA_FLAGS
           value: {{ mongodb.extra_flags }}
         livenessProbe:
