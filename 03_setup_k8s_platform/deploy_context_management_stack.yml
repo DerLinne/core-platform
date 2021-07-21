@@ -8,13 +8,14 @@
   tasks:
     - name: Verify MongoDB credentials are set
       ansible.builtin.fail:
-        msg: "ERROR: environment variable {{ item.key | upper }} is not set."
+        msg: "ERROR: inventory variable {{ item.key | upper }} is not set."
       when: item.value  == ""
       with_items:
-       - { key: CMS_MONGODB_ROOT_USERNAME, value: "{{ lookup('env', 'CMS_MONGODB_ROOT_USERNAME') }}" }
-       - { key: CMS_MONGODB_ROOT_PASSWORD, value: "{{ lookup('env', 'CMS_MONGODB_ROOT_PASSWORD') }}" }
-       - { key: CMS_MONGODB_USERNAME, value: "{{ lookup('env', 'CMS_MONGODB_USERNAME') }}" }
-       - { key: CMS_MONGODB_PASSWORD, value: "{{ lookup('env', 'CMS_MONGODB_PASSWORD') }}" }
+       - { key: CMS_MONGO_INITDB_DATABASE, value: "{{ lookup('vars', 'CMS_MONGO_INITDB_DATABASE') }}"}
+       - { key: CMS_MONGO_INITDB_ROOT_USERNAME, value: "{{ lookup('vars', 'CMS_MONGO_INITDB_ROOT_USERNAME') }}" }
+       - { key: CMS_MONGO_INITDB_ROOT_PASSWORD, value: "{{ lookup('vars', 'CMS_MONGO_INITDB_ROOT_PASSWORD') }}" }
+       - { key: CMS_ORION_MONGODB_USER, value: "{{ lookup('vars', 'CMS_ORION_MONGODB_USER') }}" }
+       - { key: CMS_ORION_MONGODB_PASSWORD, value: "{{ lookup('vars', 'CMS_ORION_MONGODB_PASSWORD') }}" }
       tags: always
 
     - name: Read default values
