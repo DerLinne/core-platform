@@ -93,13 +93,13 @@ kind: Service
 metadata:
   labels:
     app: orion-mongodb
-  name: orion-mongodb
+  name: {{ mongodb.service_name }}
 spec:
   type: ClusterIP
   ports:
   - name: mongodb
-    port: 27017
-    targetPort: 27017
+    port: {{ mongodb.port }}
+    targetPort: {{ mongodb.port }}
   selector:
     app: orion-mongodb
 status:

@@ -15,3 +15,88 @@
     definition: "{{ item }}"
   loop:
     - "{{ lookup('template', 'templates/context_management-stack/mongodb.yml') | from_yaml_all | list }}"
+
+- name: Wait till deployment of MongoDB v3.6 is completed
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    kind: Pod
+    label_selectors:
+      - statefulset.kubernetes.io/pod-name=orion-mongodb-0
+      - app=orion-mongodb
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 360
+
+# To add MongoDB user for Orion we need to run kubectl port-forward
+- name: Set path of PID file for kubectl port-forward
+  ansible.builtin.set_fact:
+    kubectl_pid_file: "/tmp/kubectl_pid"
+  tags:
+  - always
+
+- name: Stop kubectl port-forward to MongoDB service
+  ansible.builtin.shell: |
+    kill "$(cat {{ kubectl_pid_file|quote }})" || true
+    rm -f {{ kubectl_pid_file | quote }}
+  args:
+    executable: /bin/bash
+    removes: "{{ kubectl_pid_file }}"
+  tags:
+  - always
+
+- name: Remove old PID files before running kubectl port-forward
+  ansible.builtin.file:
+    path: "{{ kubectl_pid_file }}"
+    state: absent
+  tags:
+  - always
+
+- name: Run kubectl port-forward to MongoDB service
+  ansible.builtin.shell: |
+    nohup kubectl --kubeconfig="{{ k8s_config }}" port-forward --namespace {{ k8s_namespace }} svc/{{ mongodb.service_name }} {{ mongodb.port }}:{{ mongodb.port }} </dev/null >/dev/null 2>&1 &
+    echo "$!" >{{ kubectl_pid_file | quote }}
+  args:
+    executable: /bin/bash
+    creates: "{{ kubectl_pid_file }}"
+
+- name: Wait for handling connections to MongoDB service ...
+  ansible.builtin.pause:
+    seconds: 15
+
+- name: Check connection to MongoDB
+  community.mongodb.mongodb_info:
+    login_user: "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}"
+    login_password: "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}"
+    login_host: "127.0.0.1"
+    login_port: "{{ mongodb.port }}"
+  register: mongodb_info
+
+- name: Fail if connection to MongoDB cannot be established
+  fail:
+    msg: "Unable to connect to MongoDB. Please, check deployment of MongoDB!"
+  when: mongodb_info is failed
+
+- name: Create MongoDB User for Orion
+  community.mongodb.mongodb_user:
+    state: present
+    login_user: "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}"
+    login_password: "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}"
+    login_host: "127.0.0.1"
+    login_port: "{{ mongodb.port }}"
+    database: "admin"
+    name: "{{ CMS_ORION_MONGODB_USER }}"
+    password: "{{ CMS_ORION_MONGODB_PASSWORD }}"
+    roles:
+      - { db: "{{ CMS_MONGO_INITDB_DATABASE }}", role: "readWrite" }
+
+- name: Stop kubectl port-forward to MongoDB service
+  ansible.builtin.shell: |
+    kill "$(cat {{ kubectl_pid_file|quote }})" || true
+    rm -f {{ kubectl_pid_file | quote }}
+  args:
+    executable: /bin/bash
+    removes: "{{ kubectl_pid_file }}"
+  tags:
+  - always
