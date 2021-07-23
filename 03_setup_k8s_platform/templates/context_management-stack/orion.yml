@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-dbuser", "{{ CMS_ORION_MONGODB_USER }}", "-dbpwd", "{{ CMS_ORION_MONGODB_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
-        image: fiware/orion:"{{ orion.image_tag }}"
+        image: fiware/orion:{{ orion.image_tag }}
         name: orion
         imagePullPolicy: IfNotPresent
         ports:
