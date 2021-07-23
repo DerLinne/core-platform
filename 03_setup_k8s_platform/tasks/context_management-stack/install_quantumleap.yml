@@ -27,7 +27,11 @@
     msg: "Internal endpoint {{ timescale_endpoint }} does not exist!"
   when: timescale_endpoint_exists['resources'][0] is undefined
 
+<<<<<<< HEAD
 - name: Check if QuantumLeap credentials exists in the cluster
+=======
+- name: Check if Quantumleap credentials exists in the cluster
+>>>>>>> eea6626 (Issue #62: Initial commit of Ansible files to deploy QuantumLeap into K8s. Additonal: updated size of MongoDB PVC to 8Gi.)
   community.kubernetes.k8s_info:
     kubeconfig: "{{ k8s_config }}"
     context: "{{ k8s_context }}"
@@ -37,12 +41,20 @@
   register: quantumleap_credentials_exists
   no_log: true
 
+<<<<<<< HEAD
 - name: Check state of QuantumLeap credentials
+=======
+- name: Check state of Quantumleap credentials
+>>>>>>> eea6626 (Issue #62: Initial commit of Ansible files to deploy QuantumLeap into K8s. Additonal: updated size of MongoDB PVC to 8Gi.)
   fail:
     msg: "Credentials {{ quantumleap_credentials_exists }} do not exist! Please, deploy TimescaleDB with user quantumleap."
   when: quantumleap_credentials_exists['resources'][0] is undefined
 
+<<<<<<< HEAD
 - name: Set QuantumLeap credentials to access TimescaleDB
+=======
+- name: Set Quantumleap credentials to access TimescaleDB
+>>>>>>> eea6626 (Issue #62: Initial commit of Ansible files to deploy QuantumLeap into K8s. Additonal: updated size of MongoDB PVC to 8Gi.)
   ansible.builtin.set_fact:
     quantumleap_credentials_username: "{{ quantumleap_credentials_exists['resources'][0]['data']['username'] | b64decode }}"
     quantumleap_credentials_password: "{{ quantumleap_credentials_exists['resources'][0]['data']['password'] | b64decode }}"
@@ -71,7 +83,11 @@
   when: postgres_credentials_exists['resources'][0] is defined
   no_log: true
 
+<<<<<<< HEAD
 - name: Deploy QuantumLeap
+=======
+- name: Deploy Quantumleap
+>>>>>>> eea6626 (Issue #62: Initial commit of Ansible files to deploy QuantumLeap into K8s. Additonal: updated size of MongoDB PVC to 8Gi.)
   k8s:
     kubeconfig: "{{ k8s_config }}"
     context: "{{ k8s_context }}"
@@ -80,6 +96,7 @@
     state: present
   loop:
     - "{{ lookup('template', 'templates/context_management-stack/quantumleap.yml') | from_yaml_all | list }}"
+<<<<<<< HEAD
 
 - name: Wait till deployment of QuantumLeap is completed
   community.kubernetes.k8s_info:
@@ -92,3 +109,5 @@
     wait: yes
     wait_sleep: 10
     wait_timeout: 360
+=======
+>>>>>>> eea6626 (Issue #62: Initial commit of Ansible files to deploy QuantumLeap into K8s. Additonal: updated size of MongoDB PVC to 8Gi.)

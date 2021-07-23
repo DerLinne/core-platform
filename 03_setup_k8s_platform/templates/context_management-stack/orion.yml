@@ -19,8 +19,13 @@ spec:
         app: orion
     spec:
       containers:
+<<<<<<< HEAD
       - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-db", "{{ CMS_MONGO_INITDB_DATABASE }}", "-dbuser", "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}", "-dbpwd", "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
         image: fiware/orion:{{ orion.image_tag }}
+=======
+      - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-dbuser", "{{ CMS_ORION_MONGODB_USER }}", "-dbpwd", "{{ CMS_ORION_MONGODB_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
+        image: fiware/orion:"{{ orion.image_tag }}"
+>>>>>>> eea6626 (Issue #62: Initial commit of Ansible files to deploy QuantumLeap into K8s. Additonal: updated size of MongoDB PVC to 8Gi.)
         name: orion
         imagePullPolicy: IfNotPresent
         ports:
