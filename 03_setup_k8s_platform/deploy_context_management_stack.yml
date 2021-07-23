@@ -16,6 +16,7 @@
        - { key: CMS_MONGO_INITDB_ROOT_PASSWORD, value: "{{ lookup('vars', 'CMS_MONGO_INITDB_ROOT_PASSWORD') }}" }
        - { key: CMS_ORION_MONGODB_USER, value: "{{ lookup('vars', 'CMS_ORION_MONGODB_USER') }}" }
        - { key: CMS_ORION_MONGODB_PASSWORD, value: "{{ lookup('vars', 'CMS_ORION_MONGODB_PASSWORD') }}" }
+      no_log: true
       tags: always
 
     - name: Read default values

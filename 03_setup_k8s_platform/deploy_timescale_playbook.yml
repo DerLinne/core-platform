@@ -38,7 +38,7 @@
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"         
+        context: "{{ k8s_context }}"
         definition:
           kind: "postgresql"
           apiVersion: "acid.zalan.do/v1"
@@ -57,8 +57,10 @@
               size: "20Gi"
             users:
               contextdata: []
+              quantumleap: []
             databases:
               contextdata: contextdata
+              quantumleap: quantumleap
             allowedSourceRanges:
               # IP ranges to access your cluster go here
             resources:
@@ -70,9 +72,9 @@
                 memory: 500Mi
 
     - name: Create timescale extension
-      command: | 
-        kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }} 
-          exec -it {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0 
+      command: |
+        kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+          exec -it {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0
           -- bash -c "psql -U {{ postgres.super_username }} -d contextdata -c 'CREATE EXTENSION timescaledb;'"
       register: result
       until: result.rc == 0

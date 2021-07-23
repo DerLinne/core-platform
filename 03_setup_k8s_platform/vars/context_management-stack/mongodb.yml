@@ -16,4 +16,4 @@ extra_flags: "--nojournal --storageEngine wiredTiger --maxConns 5000"
 
 pv_storageClass: microk8s-hostpath
 pv_accessMode: ReadWriteOnce
-pv_size: 100Mi # 8Gi
+pv_size: 8Gi

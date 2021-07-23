@@ -6,6 +6,27 @@
     file: context_management-stack/orion.yml
     name: orion
 
+- name: Set MongoDB internal endpoint
+  ansible.builtin.set_fact:
+    mongodb_endpoint: "{{ orion.mongodb_service }}.{{ orion.mongodb_namespace }}"
+  when:
+    - orion.mongodb_service is defined
+    - orion.mongodb_namespace is defined
+
+- name: Check if MongoDB internal endpoint exists
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ orion.mongodb_namespace }}"
+    kind: Service
+    name: "{{ orion.mongodb_service }}"
+  register: mongodb_endpoint_exists
+
+- name: Check for MongoDB internal endpoint failed
+  fail:
+    msg: "Internal endpoint {{ mongodb_endpoint }} does not exist!"
+  when: mongodb_endpoint_exists['resources'][0] is undefined
+
 - name: Deploy Orion
   community.kubernetes.k8s:
     state: present
