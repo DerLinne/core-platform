@@ -79,16 +79,10 @@ EMAIL_USER = '<username to access email server>'
 EMAIL_PASSWORD = 'password to access email server'
 EMAIL_FROM = '<email address used as "from">'
 
-## Timescale Settings
-<<<<<<< HEAD
 
 # Since TimescaleDB is deployed via Zalando operator, we do not need to set TIMESCALE_PASSWORD.
 # This is done by the operator during deployment of TimescaleDB.
 #TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
-=======
-#
-TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
->>>>>>> aea9843 (Issue #60: Added IDM related variables to inventory.)
 
 ## Master Portal Settings
 #
