@@ -19,7 +19,7 @@ spec:
         app: orion
     spec:
       containers:
-      - args: ["-dbhost" ,"{{ k8s_namespace }}-orion-rs0.mongodb.svc.cluster.local", "-rplSet", "rs0", "-dbAuthDb", "admin", "-dbuser", "{{ lookup('env', 'ORION_MONGODB_USER') }}", "-dbpwd", "{{ lookup('env', 'ORION_MONGODB_PASSWORD') }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
+      - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-dbuser", "{{ CMS_ORION_MONGODB_USER }}", "-dbpwd", "{{ CMS_ORION_MONGODB_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
         image: fiware/orion:"{{ orion.image_tag }}"
         name: orion
         imagePullPolicy: IfNotPresent

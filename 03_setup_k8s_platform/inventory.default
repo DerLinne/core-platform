@@ -40,7 +40,9 @@ OAUTH_COOKIE_SECRET='<see_generation_hint_above'
 
 ## Timescale Settings
 
-TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
+# Since TimescaleDB is deployed via Zalando operator, we do not need to set TIMESCALE_PASSWORD.
+# This is done by the operator during deployment of TimescaleDB.
+#TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
 
 # Master Portal Settings
 MP_IDM_CLIENT='<your_keycloak_client>'

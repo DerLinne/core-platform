@@ -6,37 +6,77 @@
     file: context_management-stack/quantumleap.yml
     name: quantumleap
 
-- name: Check if Quantumleap secret already exists in the cluster
+- name: Set TimescaleDB internal endpoint
+  ansible.builtin.set_fact:
+    timescale_endpoint: "{{ quantumleap.timescale_service }}.{{ quantumleap.timescale_namespace }}"
+  when:
+    - quantumleap.timescale_service is defined
+    - quantumleap.timescale_namespace is defined
+
+- name: Check if TimescaleDB internal endpoint exists
   community.kubernetes.k8s_info:
     kubeconfig: "{{ k8s_config }}"
-    namespace: "{{ k8s_namespace }}"
     context: "{{ k8s_context }}"
-    kind: Secret
-    name: 'quantumleap-database-secret'
-  register: quantumleap_secret
+    namespace: "{{ quantumleap.timescale_namespace }}"
+    kind: Service
+    name: "{{ quantumleap.timescale_service }}"
+  register: timescale_endpoint_exists
 
-- name: Create random Quantumleap secret if it does not exist
-  when: quantumleap_secret.resources | length == 0
-  vars:
-    ql_new_pass: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') | b64encode }}"
-  k8s:
-    state: present
-    namespace: '{{ k8s_namespace_name }}'
-    kubeconfig: '{{ kubeconfig }}'
-    definition:
-      apiVersion: v1
-      kind: Secret
-      type: Opaque
-      metadata:
-        name: quantumleap-database-secret
-      data:
-        password: "{{ ql_new_pass }}"
+- name: Check for TimescaleDB internal endpoint failed
+  fail:
+    msg: "Internal endpoint {{ timescale_endpoint }} does not exist!"
+  when: timescale_endpoint_exists['resources'][0] is undefined
+
+- name: Check if Quantumleap credentials exists in the cluster
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ quantumleap.timescale_namespace }}"
+    kind: Secret
+    name: "quantumleap.{{ quantumleap.timescale_service }}.credentials.postgresql.acid.zalan.do"
+  register: quantumleap_credentials_exists
+  no_log: true
+
+- name: Check state of Quantumleap credentials
+  fail:
+    msg: "Credentials {{ quantumleap_credentials_exists }} do not exist! Please, deploy TimescaleDB with user quantumleap."
+  when: quantumleap_credentials_exists['resources'][0] is undefined
+
+- name: Set Quantumleap credentials to access TimescaleDB
+  ansible.builtin.set_fact:
+    quantumleap_credentials_username: "{{ quantumleap_credentials_exists['resources'][0]['data']['username'] | b64decode }}"
+    quantumleap_credentials_password: "{{ quantumleap_credentials_exists['resources'][0]['data']['password'] | b64decode }}"
+  when: quantumleap_credentials_exists['resources'][0] is defined
+  no_log: true
+
+- name: Check if TimescaleDB superuser credentials exists in the cluster
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ quantumleap.timescale_namespace }}"
+    kind: Secret
+    name: "postgres.{{ quantumleap.timescale_service }}.credentials.postgresql.acid.zalan.do"
+  register: postgres_credentials_exists
+  no_log: true
+
+- name: Check state of TimescaleDB superuser credentials
+  fail:
+    msg: "Credentials {{ postgres_credentials_exists }} do not exist! Please, deploy TimescaleDB."
+  when: postgres_credentials_exists['resources'][0] is undefined
+
+- name: Set TimescaleDB superuser credentials
+  ansible.builtin.set_fact:
+    postgres_credentials_username: "{{ postgres_credentials_exists['resources'][0]['data']['username'] | b64decode }}"
+    postgres_credentials_password: "{{ postgres_credentials_exists['resources'][0]['data']['password'] | b64decode }}"
+  when: postgres_credentials_exists['resources'][0] is defined
+  no_log: true
 
 - name: Deploy Quantumleap
   k8s:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
     definition: "{{ item }}"
-    kubeconfig: '{{ kubeconfig }}'
-    namespace: '{{ k8s_namespace_name }}'
     state: present
   loop:
-    - "{{ lookup('template', 'templates/fiware/quantumleap.yml') | from_yaml_all | list }}"
+    - "{{ lookup('template', 'templates/context_management-stack/quantumleap.yml') | from_yaml_all | list }}"
