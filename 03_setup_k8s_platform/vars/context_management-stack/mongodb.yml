@@ -14,6 +14,9 @@ password: "{{ CMS_ORION_MONGODB_PASSWORD }}"
 
 extra_flags: "--nojournal --storageEngine wiredTiger --maxConns 5000"
 
+service_name: orion-mongodb
+port: 27017
+
 pv_storageClass: microk8s-hostpath
 pv_accessMode: ReadWriteOnce
 pv_size: 8Gi
