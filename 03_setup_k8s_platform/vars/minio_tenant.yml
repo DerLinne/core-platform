@@ -6,5 +6,8 @@ image_pullPolicy: IfNotPresent
 image_console_repository: "minio/console"
 image_console_tag: "v0.6.3"
 
-ingress_console_server_name: "minio-tenant"
-ingress_console_tls_secret: "minio-tenant-tls"
+ingress_console_server_name: "minio-console"
+ingress_console_tls_secret: "minio-console-tls"
+
+ingress_server_name: "minio-tenant"
+ingress_tls_secret: "minio-tenant-tls"

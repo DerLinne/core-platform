@@ -3,6 +3,9 @@
   hosts: localhost
   gather_facts: false
 
+  vars_files:
+    - vars/default.yml
+
   tasks:
     - name: Read default values
       ansible.builtin.include_vars:
@@ -69,7 +72,7 @@
         title: "Prometheus"
         state: present
 
-    - name: (Re-)Import Grafana Dashboard (Weather DWD)
+    - name: (Re-)Import Grafana Dashboards
       community.grafana.grafana_dashboard:
             grafana_url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
             url_username: "{{ monitoring_grafana.admin_user }}"
