@@ -8,11 +8,8 @@ This document describes how to:
 + deploy [CKAN](#ckan) into MicroK8s.
 + deploy [FROST](#frost) into MicroK8s.
 + deploy [DataFlow Stack](#dataflow-stack) into MicroK8s.
-<<<<<<< HEAD
 + deploy [Context Management Stack](#context-management-stack) into MicroK8s.
-=======
 + deploy [Identity Management Stack](#identity-management-stack) into MicroK8s.
->>>>>>> d651ddf (Issue #60:)
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -1207,7 +1204,6 @@ FLOW_PROJECT: "gitlab.com/berlintxl/futr-hub/use-cases/show-latest-tweet-of-twit
 
 ```
 
-<<<<<<< HEAD
 ## Context Management Stack
 
 To deploy the Context Management Stack into Kubernetes, you have to set values for the following variables in your inventory file.
@@ -1315,7 +1311,6 @@ mongodb_service: "orion-mongodb"
 
 # Orion
 image_tag: "2.4.2"
-=======
 ## Identity Management Stack
 
 This chapter describes how to deploy and setup KeyCloak within a Kubernetes environment, using the [KeyCloak operator](https://www.keycloak.org/docs/latest/server_installation/index.html#_operator) for KeyCloak itself and the [Zalando Postgres Operator](https://github.com/zalando/postgres-operator) for the PostgreSQL database.
@@ -1557,5 +1552,4 @@ ldap_group: "{{ lookup('env', 'LDAP_GROUP') | default('readers', true) }}"
 ldap_extra_schemas: "{{ lookup('env', 'LDAP_EXTRA_SCHEMAS') | default('cosine,inetorgperson,nis', true) }}"
 ldap_skip_default_tree: "{{ lookup('env', 'LDAP_SKIP_DEFAULT_TREE') | default('no', true) }}"
 ldap_ulimit_nofiles: "{{ lookup('env', 'LDAP_ULIMIT_NOFILES') | default('1024', true) }}"
->>>>>>> d651ddf (Issue #60:)
 ```
