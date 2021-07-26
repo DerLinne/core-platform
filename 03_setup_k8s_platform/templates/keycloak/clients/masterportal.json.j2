@@ -1,7 +1,8 @@
 {
-    "clientId": "{{ IDM_CLIENT_API_ACCESS }}",
+    "clientId": "{{ IDM_CLIENT_MASTERPORTAL }}",
     "description": "This client was created by ansible.",
     "rootUrl": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central",
+    "adminUrl": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central",
     "surrogateAuthRequired": false,
     "enabled": true,
     "alwaysDisplayInConsole": false,
@@ -9,7 +10,9 @@
     "redirectUris": [
         "https://*.{{ DOMAIN }}/*"
     ],
-    "webOrigins": [],
+    "webOrigins": [
+        "https://idm.{{ DOMAIN }}"
+    ],
     "notBefore": 0,
     "bearerOnly": false,
     "consentRequired": false,
@@ -39,7 +42,7 @@
         "saml.onetimeuse.condition": "false"
     },
     "authenticationFlowBindingOverrides": {},
-    "fullScopeAllowed": false,
+    "fullScopeAllowed": true,
     "nodeReRegistrationTimeout": -1,
     "protocolMappers": [
         {
@@ -53,13 +56,12 @@
                 "id.token.claim": "true",
                 "access.token.claim": "true",
                 "claim.name": "groups",
-                "usermodel.clientRoleMapping.clientId": "{{ IDM_CLIENT_API_ACCESS }}"
+                "usermodel.clientRoleMapping.clientId": "{{ IDM_CLIENT_MASTERPORTAL }}"
             }
         }
     ],
     "defaultClientScopes": [
         "web-origins",
-        "{{ keycloak.IDM_SCOPE_TENANT_VALUES }}",
         "role_list",
         "profile",
         "roles",
@@ -67,9 +69,6 @@
     ],
     "optionalClientScopes": [
         "address",
-        "{{ keycloak.IDM_SCOPE_API_READ }}",
-        "{{ keycloak.IDM_SCOPE_API_WRITE }}",
-        "{{ keycloak.IDM_SCOPE_API_DELETE }}",
         "phone",
         "offline_access",
         "microprofile-jwt"

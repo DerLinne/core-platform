@@ -22,3 +22,7 @@ HEAP/
 # Certain inventories
 02_setup_k8s/inventory
 03_setup_k8s_platform/inventory
+
+inventory
+inventory*
+.facts/

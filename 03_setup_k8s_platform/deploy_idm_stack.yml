@@ -5,6 +5,9 @@
   hosts: localhost
   gather_facts: false
 
+  vars_files:
+    - vars/default.yml
+
   tasks:
     - name: Read default values
       ansible.builtin.include_vars:
@@ -17,6 +20,7 @@
         k8s_config: "{{ default.K8S_KUBECONFIG }}"
         k8s_context: "{{ default.K8S_CONTEXT }}"
         k8s_namespace: "{{ default.K8S_NAMESPACE_IDMSTACK | lower}}"
+        k8s_operator_namespace: "{{ default.K8S_NAMESPACE_KEYCLOAK_OPERATOR | lower}}"
       tags: always
 
     - name: Read common values of IDM stack
@@ -26,6 +30,20 @@
       tags: always
 
     # 1. Create namespace for IDM stack
+    - name: "Create namespace {{ k8s_operator_namespace }}"
+      community.kubernetes.k8s:
+        state: present
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          api_version: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_operator_namespace }}"
+            labels:
+              name: "{{ k8s_operator_namespace }}"
+      tags: always
+
     - name: "Create namespace {{ k8s_namespace }}"
       community.kubernetes.k8s:
         state: present
@@ -38,6 +56,20 @@
             name: "{{ k8s_namespace }}"
             labels:
               name: "{{ k8s_namespace }}"
+      tags: always
+
+    - name: "Create namespace {{ k8s_namespace }}-db"
+      community.kubernetes.k8s:
+        state: present
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          api_version: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_namespace }}-db"
+            labels:
+              name: "{{ k8s_namespace }}-db"
       tags: always
 
     # 2. Setup PostgreSQL database via Zalando operator

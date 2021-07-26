@@ -3,6 +3,9 @@
   hosts: localhost
   gather_facts: false
 
+  vars_files:
+    - vars/default.yml
+
   tasks:
     - name: Read default values
       ansible.builtin.include_vars:
@@ -125,6 +128,7 @@
                     resources:
                       requests:
                         storage: 10Gi
+                    storageClassName: minio-storage
 
                 ## Used to specify a toleration for a pod
                 # tolerations:
@@ -216,11 +220,15 @@
                 v2.min.io: console-svc
 
             ## Add environment variables to be set in MinIO container (https://github.com/minio/minio/tree/master/docs/config)
-            # env:
-            # - name: MINIO_BROWSER
-            #   value: "off" # to turn-off browser
-            # - name: MINIO_STORAGE_CLASS_STANDARD
-            #   value: "EC:2"
+            env:
+            - name: MINIO_IDENTITY_OPENID_CONFIG_URL
+              value: "{{ IDM_ENDP_ISSUER }}/.well-known/openid-configuration" 
+            - name: MINIO_IDENTITY_OPENID_CLIENT_ID
+              value: "{{ IDM_CLIENT_MINIO }}"
+            - name: MINIO_IDENTITY_OPENID_CLIENT_SECRET
+              value: "{{ IDM_CLIENT_SECRET_MINIO }}" 
+            - name: MINIO_IDENTITY_OPENID_SCOPES
+              value: "openid,profile,email"  
 
             ## PriorityClassName indicates the Pod priority and hence importance of a Pod relative to other Pods.
             ## This is applied to MinIO pods only.
@@ -238,8 +246,17 @@
                 runAsUser: 1000
                 runAsGroup: 2000
                 runAsNonRoot: true
+              env:
+                - name: CONSOLE_IDP_URL
+                  value: "{{ IDM_ENDP_ISSUER }}"
+                - name: CONSOLE_IDP_CLIENT_ID
+                  value: "{{ IDM_CLIENT_MINIO }}"
+                - name: CONSOLE_IDP_SECRET
+                  value: "{{ IDM_CLIENT_SECRET_MINIO }}" 
+                - name: CONSOLE_IDP_CALLBACK
+                  value: "https://{{ minio.ingress_console_server_name }}.{{ DOMAIN }}/oauth_callback"
 
-    - name: Deploy minio test client console
+    - name: Deploy minio test client console ingress
       k8s:
         state: present
         namespace: "{{ k8s_namespace }}"
@@ -249,11 +266,12 @@
           apiVersion: networking.k8s.io/v1
           kind: Ingress
           metadata:
-            name: mt1-ingress
+            name: minio-t1-ingress-console
             namespace: "{{ k8s_namespace }}"
             annotations:
               kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
               kubernetes.io/tls-acme: "true"
+              nginx.ingress.kubernetes.io/proxy-buffer-size: 10k
           spec:
             tls:
             - hosts:
@@ -270,3 +288,36 @@
                       name: minio-console
                       port: 
                         number: 9090      
+
+    - name: Deploy minio test client ingress
+      k8s:
+        state: present
+        namespace: "{{ k8s_namespace }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"         
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: minio-t1-ingress
+            namespace: "{{ k8s_namespace }}"
+            annotations:
+              kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
+              kubernetes.io/tls-acme: "true"
+              nginx.ingress.kubernetes.io/proxy-buffer-size: 10k
+          spec:
+            tls:
+            - hosts:
+              - "{{ minio.ingress_server_name }}.{{ DOMAIN }}"
+              secretName: "{{ minio.ingress_tls_secret }}"
+            rules:
+            - host: "{{ minio.ingress_server_name }}.{{ DOMAIN }}"
+              http:
+                paths:  
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service: 
+                      name: minio
+                      port: 
+                        number: 80   
