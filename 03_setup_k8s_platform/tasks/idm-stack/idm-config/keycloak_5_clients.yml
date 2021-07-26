@@ -155,19 +155,31 @@
   set_fact:
     client_id_api_access: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_API_ACCESS }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_API_ACCESS }}'].id | [0]"
 
 - name: "Get keycloak client Grafana ID."
   set_fact:
     client_id_grafana: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAFANA }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_GRAFANA }}'].id | [0]"
 
 - name: "Get keycloak client Gravitee ID."
   set_fact:
     client_id_gravitee: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAVITEE }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_GRAVITEE }}'].id | [0]"
+
+- name: "Get keycloak client Admin Tools ID."
+  set_fact:
+    client_id_admin_tools: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_ADMIN_TOOLS }}'].id | [0]"
+
+- name: "Get keycloak client Masterportal ID."
+  set_fact:
+    client_id_masterportal: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
 
 - name: "Get keycloak client Admin Tools ID."
   set_fact:
@@ -192,7 +204,6 @@
     client_id_minio: "{{ clients.json | json_query(query) }}"
   vars:
     query: "[?clientId== '{{ IDM_CLIENT_MINIO }}'].id | [0]"   
-
 
 - name: Get Client Secret API Access
   uri:
