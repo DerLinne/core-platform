@@ -1,0 +1,23 @@
+---
+# file: 03_setup_k8s_platform/tasks/idm-stack/setup_keycloak.yml
+
+- name: Read values to setup and configure keycloak
+  ansible.builtin.include_vars:
+    file: idm-stack/setup_keycloak.yml
+    name: keycloak
+
+- name: Setup Keycloak IDM
+  include_tasks:
+    file: "{{ config_step }}"
+  loop:
+    - idm-config/keycloak_0_deploy_secrets.yml
+    - idm-config/keycloak_1_deploy_components.yml
+    - idm-config/keycloak_2_general_config.yml
+    - idm-config/keycloak_3_realm.yml
+    - idm-config/keycloak_4_client_scopes.yml
+    - idm-config/keycloak_5_clients.yml
+    - idm-config/keycloak_6_scope_mappings.yml
+    - idm-config/keycloak_7_groups.yml
+    - idm-config/keycloak_8_users.yml
+  loop_control:
+    loop_var: config_step

@@ -1,0 +1,103 @@
+- name: Re-Login to keycloak
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+        grant_type: "password"
+        client_id: "admin-cli"
+        username: "{{ ADMIN_USERNAME }}"
+        password: "{{ ADMIN_PASSWORD }}"
+    status_code: 200
+  register: keycloak_login
+
+- name: Create tenant client scope
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/scopes/tenants.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_scope_tenant_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Scope may already exist."
+  when: client_scope_tenant_response.status == 409
+
+- name: Create tenant-names client scope
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/scopes/tenant-names.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_scope_tenant_names_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Scope may already exist."
+  when: client_scope_tenant_names_response.status == 409
+
+- name: Create API-Read client scope
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/scopes/api_read.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_scope_api_read_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Scope may already exist."
+  when: client_scope_api_read_response.status == 409
+
+- name: Create API-Write client scope
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/scopes/api_write.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_scope_api_write_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Scope may already exist."
+  when: client_scope_api_write_response.status == 409
+
+- name: Create API-Delete client scope
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/scopes/api_delete.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_scope_api_delete_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Scope may already exist."
+  when: client_scope_api_delete_response.status == 409

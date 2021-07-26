@@ -1,0 +1,171 @@
+- name: Re-Login to keycloak
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
+    return_content: yes
+    body_format: form-urlencoded
+    body:
+        grant_type: "password"
+        client_id: "admin-cli"
+        username: "{{ ADMIN_USERNAME }}"
+        password: "{{ ADMIN_PASSWORD }}"
+    status_code: 200
+  register: keycloak_login
+
+### Following configuration will be skipped if target client or client-scopes already exists
+
+- name: Get client-scopes
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200,201,204
+  register: scopes
+  when: client_api_access_response.status != 409
+
+- name: Get client_scope ID API_READ
+  set_fact:
+    api_read_id: "{{ scopes.json | json_query(query) }}"
+  vars:
+    query: "[?name== '{{ keycloak.IDM_SCOPE_API_READ }}'].id | [0]"
+  when: client_api_access_response.status != 409
+
+- name: Get client_scope ID API_WRITE
+  set_fact:
+    api_write_id: "{{ scopes.json | json_query(query) }}"
+  vars:
+    query: "[?name== '{{ keycloak.IDM_SCOPE_API_WRITE }}'].id | [0]"
+  when: client_api_access_response.status != 409
+
+- name: Get client_scope ID API_DELETE
+  set_fact:
+    api_delete_id: "{{ scopes.json | json_query(query) }}"
+  vars:
+    query: "[?name== '{{ keycloak.IDM_SCOPE_API_DELETE }}'].id | [0]"
+  when: client_api_access_response.status != 409
+
+- name: Get api-access roles
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_api_access }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200,201,204
+  register: roles_api_access
+  when: client_api_access_response.status != 409
+
+- name: Get role ID API_ACCESS_dataConsumer
+  set_fact:
+    consumer_role_id: "{{ roles_api_access.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'dataConsumer'].id | [0]"
+  when: client_api_access_response.status != 409
+
+- name: Get role ID API_ACCESS_dataProducer
+  set_fact:
+    producer_role_id: "{{ roles_api_access.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'dataProducer'].id | [0]"
+  when: client_api_access_response.status != 409
+
+- name: Get role ID API_ACCESS_dataAdmin
+  set_fact:
+    admin_role_id: "{{ roles_api_access.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'dataAdmin'].id | [0]"
+  when: client_api_access_response.status != 409
+
+- name: Create scopemapping API_READ
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes/{{ api_read_id }}/scope-mappings/clients/{{ client_id_api_access }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [
+        {
+            "id": "{{ consumer_role_id }}",
+            "name": "dataConsumer",
+            "composite": false,
+            "clientRole": true,
+            "containerId": "{{ client_id_api_access }}"
+        },
+        {
+            "id": "{{ producer_role_id }}",
+            "name": "dataProducer",
+            "composite": false,
+            "clientRole": true,
+            "containerId": "{{ client_id_api_access }}"
+        },
+        {
+            "id": "{{ admin_role_id }}",
+            "name": "dataAdmin",
+            "composite": false,
+            "clientRole": true,
+            "containerId": "{{ client_id_api_access }}"
+        }
+      ]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200,201,204
+  register: roles_grafana_response
+  when: client_api_access_response.status != 409 and client_scope_api_read_response.status != 409
+
+- name: Create scopemapping API_WRITE
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes/{{ api_write_id }}/scope-mappings/clients/{{ client_id_api_access }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [
+        {
+            "id": "{{ producer_role_id }}",
+            "name": "dataProducer",
+            "composite": false,
+            "clientRole": true,
+            "containerId": "{{ client_id_api_access }}"
+        },
+        {
+            "id": "{{ admin_role_id }}",
+            "name": "dataAdmin",
+            "composite": false,
+            "clientRole": true,
+            "containerId": "{{ client_id_api_access }}"
+        }
+      ]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200,201,204
+  register: roles_grafana_response
+  when: client_api_access_response.status != 409 and client_scope_api_write_response.status != 409
+
+- name: Create scopemapping API_DELETE
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/client-scopes/{{ api_delete_id }}/scope-mappings/clients/{{ client_id_api_access }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [
+        {
+            "id": "{{ admin_role_id }}",
+            "name": "dataAdmin",
+            "composite": false,
+            "clientRole": true,
+            "containerId": "{{ client_id_api_access }}"
+        }
+      ]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200,201,204
+  register: roles_grafana_response
+  when: client_api_access_response.status != 409 and client_scope_api_delete_response.status != 409

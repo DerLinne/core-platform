@@ -12,7 +12,7 @@ frost_enableActuation: true
 frost_http_replicas: 1
 frost_http_ports_http_nodePort: 30888
 frost_http_ports_http_servicePort: 80
-frost_http_ingress_enabled: false
+frost_http_ingress_enabled: true
 frost_http_ingress_rewriteAnnotation: nginx.ingress.kubernetes.io/rewrite-target
 frost_http_ingress_rewriteTraget: /FROST-Server/$1
 frost_http_ingress_path: /(.*)

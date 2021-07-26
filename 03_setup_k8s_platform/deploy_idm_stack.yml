@@ -1,0 +1,66 @@
+---
+# file: 03_setup_k8s_platform/deploy_idm_stack.yml
+
+- name: Deploy Identity Management Stack
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Read default values
+      ansible.builtin.include_vars:
+        file: default.yml
+        name: default
+      tags: always
+
+    - name: Set default facts for K8S
+      ansible.builtin.set_fact:
+        k8s_config: "{{ default.K8S_KUBECONFIG }}"
+        k8s_context: "{{ default.K8S_CONTEXT }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_IDMSTACK | lower}}"
+      tags: always
+
+    - name: Read common values of IDM stack
+      ansible.builtin.include_vars:
+        file: idm-stack/common.yml
+        name: common
+      tags: always
+
+    # 1. Create namespace for IDM stack
+    - name: "Create namespace {{ k8s_namespace }}"
+      community.kubernetes.k8s:
+        state: present
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
+        definition:
+          api_version: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_namespace }}"
+            labels:
+              name: "{{ k8s_namespace }}"
+      tags: always
+
+    # 2. Setup PostgreSQL database via Zalando operator
+    - name: Setup PostgreSQL database for KeyCloak Operator
+      import_tasks: tasks/idm-stack/setup_keycloak_db.yml
+      tags: keycloak_db
+
+    # 3. Install KeyCloak operator
+    - name: Install KeyCloak Operator
+      import_tasks: tasks/idm-stack/install_keycloak_operator.yml
+      tags: keycloak_op
+
+    # 4. Setup KeyCloak
+    - name: Setup KeyCloak Administrator
+      import_tasks: tasks/idm-stack/setup_keycloak.yml
+      tags: keycloak_setup
+
+    # 5. Install OpenLDAP and integrate with KeyCloak
+    - name: Install OpenLDAP and integrate with KeyCloak
+      import_tasks: tasks/idm-stack/install_openldap.yml
+      tags: keycloak_ldap
+
+    # 99. Delete Keycloak CR
+    - name: Delete Keycloak CR
+      import_tasks: tasks/idm-stack/delete_keycloak_cr.yml
+      tags: [ 'never', 'keycloak_delete_cr' ]
