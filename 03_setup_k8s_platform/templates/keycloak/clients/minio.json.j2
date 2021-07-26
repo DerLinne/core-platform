@@ -8,7 +8,8 @@
     "alwaysDisplayInConsole": false,
     "clientAuthenticatorType": "client-secret",
     "redirectUris": [
-        "https://*.{{ DOMAIN }}/*"
+        "https://minio-tenant-console.{{ DOMAIN }}/*",
+        "https://minio-tenant.{{ DOMAIN }}/*"
     ],
     "webOrigins": [
         "https://idm.{{ DOMAIN }}"
@@ -57,6 +58,21 @@
                 "access.token.claim": "true",
                 "claim.name": "groups",
                 "usermodel.clientRoleMapping.clientId": "{{ IDM_CLIENT_MINIO }}"
+            }
+        },
+        {
+            "name": "min.io Policy Mapper",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-script-based-protocol-mapper",
+            "consentRequired": false,
+            "config": {
+                "multivalued": "false",
+                "userinfo.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "policy",
+                "script":"// Check for Client Roles\n// First initialize variables\nvar ArrayList = Java.type(\"java.util.ArrayList\");\n//var roles = new ArrayList();\nvar policy = \"\";\nvar forEach = Array.prototype.forEach;\n\n// Get current client from context\nvar client = keycloakSession.getContext().getClient();\n\n// Loop over \nforEach.call(user.getClientRoleMappings(client).toArray(), function(roleModel) {\n  // return highest policy - stop after first working \"if\"\n  if (roleModel.getName() == \"minioPolicyReadWrite\") {\n      policy = \"readwrite\";\n  } else if (roleModel.getName() == \"minioPolicyWrite\" && policy != \"readwrite\") {\n      policy = \"write\"\n  } else if (roleModel.getName() == \"minioPolicyRead\" && policy != \"readwrite\" && policy != \"write\") {\n      policy = \"read\"\n  }\n});\n\nexports = policy;"}}
+                "jsonType.label":"String"
             }
         }
     ],

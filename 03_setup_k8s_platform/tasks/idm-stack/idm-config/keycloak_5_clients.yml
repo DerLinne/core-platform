@@ -426,7 +426,7 @@
   register: roles_ckan_response
   when: client_ckan_response.status != 409
 
-- name: Create MINIO roles
+- name: Create MINIO roles 1/4
   uri:
     method: POST
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
@@ -437,9 +437,6 @@
         "name": "minioAdmin",
         "composite": false,
         "clientRole": true,
-        "attributes": {
-          "minio_policy": [ "readwrite" ]
-        }
       }
     headers:
       Accept: application/json
@@ -448,41 +445,59 @@
   register: roles_minio_response
   when: client_minio_response.status != 409
 
-# - name: Get roles minio
-#   uri:
-#     method: GET
-#     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
-#     return_content: yes
-#     headers:
-#       Accept: application/json
-#       Authorization: Bearer {{ keycloak_login.json.access_token }}
-#     status_code: 200
-#   register: minio_roles
+- name: Create MINIO roles 2/4
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "minioPolicyReadWrite",
+        "composite": false,
+        "clientRole": true,
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+  when: client_minio_response.status != 409
 
-# - name: "Set role id minio."
-#   set_fact:
-#     minio_role_id: "{{ minio_roles.json | json_query(query) }}"
-#   vars:
-#     query: "[?name== 'minioAdmin'].id | [0]"
+- name: Create MINIO roles 3/4
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "minioPolicyWrite",
+        "composite": false,
+        "clientRole": true,
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+  when: client_minio_response.status != 409
 
-# - name: Add min.io policy to role
-#   uri:
-#     method: PUT
-#     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles/{{ minio_role_id }}"
-#     return_content: yes
-#     body_format: json
-#     body: |
-#       {
-#         "name": "minioAdmin",
-#         "composite": false,
-#         "clientRole": true,
-#         "attributes": {
-#           "minio_policy": [ "readwrite" ]
-#         }
-#       }
-#     headers:
-#       Accept: application/json
-#       Authorization: Bearer {{ keycloak_login.json.access_token }}
-#     status_code: 204
-#   register: roles_minio_update_response
-#   when: client_minio_response.status != 409      
+- name: Create MINIO roles 4/4
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "minioPolicyRead",
+        "composite": false,
+        "clientRole": true,
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+  when: client_minio_response.status != 409  
