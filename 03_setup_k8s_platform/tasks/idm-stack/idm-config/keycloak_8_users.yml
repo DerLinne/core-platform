@@ -80,16 +80,49 @@
     status_code: 200
   register: gravitee_roles
 
-- name: Get roles pgadmin
+- name: Get roles Admin Tools
   uri:
     method: GET
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_pgadmin }}/roles"
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_admin_tools }}/roles"
     return_content: yes
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 200
-  register: pgadmin_roles
+  register: admin_tools_roles
+
+- name: Get roles Masterportal
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_masterportal }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: masterportal_roles
+
+- name: Get roles CKAN
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_ckan }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: ckan_roles
+
+- name: Get roles minio
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: minio_roles
 
 - name: "Set role id api_access."
   set_fact:
@@ -109,11 +142,29 @@
   vars:
     query: "[?name== 'graviteeAdmin'].id | [0]"
 
-- name: "Set role id pgadmin."
+- name: "Set role id admin tools."
   set_fact:
-    pgadmin_role_id: "{{ pgadmin_roles.json | json_query(query) }}"
+    admin_tools_role_id: "{{ admin_tools_roles.json | json_query(query) }}"
   vars:
-    query: "[?name== 'pgadminAdmin'].id | [0]"
+    query: "[?name== 'adminToolsAdmin'].id | [0]"
+
+- name: "Set role id masterportal."
+  set_fact:
+    masterportal_role_id: "{{ masterportal_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'masterportalAdmin'].id | [0]"
+
+- name: "Set role id CKAN."
+  set_fact:
+    ckan_role_id: "{{ ckan_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'ckanAdmin'].id | [0]"
+
+- name: "Set role id minio."
+  set_fact:
+    minio_role_id: "{{ minio_roles.json | json_query(query) }}"
+  vars:
+    query: "[?name== 'minioAdmin'].id | [0]"
 
 ### Following configureation will be skipped if target user already exists
 
@@ -193,22 +244,85 @@
     status_code: 204
   when: keycloak_platform_admin_response.status != 409
 
-- name: Assign Roles to Platform Admin (pgadmin)
+- name: Assign Roles to Platform Admin (Admin Tools)
   uri:
     method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_pgadmin }}"
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_admin_tools }}"
     return_content: yes
     body_format: json
     body: |
       [{
-        "id": "{{ pgadmin_role_id }}",
-        "name": "pgadminAdmin",
+        "id": "{{ admin_tools_role_id }}",
+        "name": "adminToolsAdmin",
         "composite": false,
         "clientRole": true,
-        "containerId": "{{ client_id_pgadmin }}"
+        "containerId": "{{ client_id_admin_tools }}"
       }]
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 204
   when: keycloak_platform_admin_response.status != 409
+
+- name: Assign Roles to Platform Admin (Masterportal)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_masterportal }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ masterportal_role_id }}",
+        "name": "masterportalAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_masterportal }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409
+
+- name: Assign Roles to Platform Admin (CKAN)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_ckan }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ ckan_role_id }}",
+        "name": "ckanAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_ckan }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409  
+
+- name: Assign Roles to Platform Admin (MINIO)
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/role-mappings/clients/{{ client_id_minio }}"
+    return_content: yes
+    body_format: json
+    body: |
+      [{
+        "id": "{{ minio_role_id }}",
+        "name": "minioAdmin",
+        "composite": false,
+        "clientRole": true,
+        "containerId": "{{ client_id_minio }}"
+      }]
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409    
+
+   
+

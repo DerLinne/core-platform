@@ -83,7 +83,7 @@
   stat: path={{ copy_local_key }}
   register: result
   become: no
-  when: not (root_login.unreachable is defined)
+  # when: not (root_login.unreachable is defined)
 
 - name: "Fail if root cannot login with password or ssh key."
   fail:

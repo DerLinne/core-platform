@@ -1,5 +1,5 @@
 {
-    "clientId": "{{ keycloak.IDM_CLIENT_PGADMIN }}",
+    "clientId": "{{ IDM_CLIENT_ADMIN_TOOLS }}",
     "description": "This client was created by ansible.",
     "rootUrl": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central",
     "adminUrl": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central",
@@ -8,7 +8,8 @@
     "alwaysDisplayInConsole": false,
     "clientAuthenticatorType": "client-secret",
     "redirectUris": [
-        "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central/*"
+        "https://monitoring.{{ DOMAIN }}/*",
+        "https://grafana.{{ DOMAIN }}/*"
     ],
     "webOrigins": [
         "https://idm.{{ DOMAIN }}"
@@ -56,7 +57,7 @@
                 "id.token.claim": "true",
                 "access.token.claim": "true",
                 "claim.name": "groups",
-                "usermodel.clientRoleMapping.clientId": "{{ keycloak.IDM_CLIENT_PGADMIN }}"
+                "usermodel.clientRoleMapping.clientId": "{{ IDM_CLIENT_ADMIN_TOOLS }}"
             }
         }
     ],
