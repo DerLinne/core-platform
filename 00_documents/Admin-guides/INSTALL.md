@@ -8,7 +8,11 @@ This document describes how to:
 + deploy [CKAN](#ckan) into MicroK8s.
 + deploy [FROST](#frost) into MicroK8s.
 + deploy [DataFlow Stack](#dataflow-stack) into MicroK8s.
+<<<<<<< HEAD
 + deploy [Identity Management Stack](#identity-management-stack) into MicroK8s.
+=======
++ deploy [Context Management Stack](#context-management-stack) into MicroK8s.
+>>>>>>> 9b66090 (Issue #62: Documentation now includes chapter about the deployment of Context Management Stack.)
 
 ## Prerequisites
 - [git](https://git-scm.com)
@@ -1444,4 +1448,111 @@ ldap_group: "{{ lookup('env', 'LDAP_GROUP') | default('readers', true) }}"
 ldap_extra_schemas: "{{ lookup('env', 'LDAP_EXTRA_SCHEMAS') | default('cosine,inetorgperson,nis', true) }}"
 ldap_skip_default_tree: "{{ lookup('env', 'LDAP_SKIP_DEFAULT_TREE') | default('no', true) }}"
 ldap_ulimit_nofiles: "{{ lookup('env', 'LDAP_ULIMIT_NOFILES') | default('1024', true) }}"
+## Context Management Stack
+
+To deploy the Context Management Stack into Kubernetes, you have to set values for the following variables in your inventory file.
+
+```ini
+...
+## Context Management Stack
+CMS_MONGO_INITDB_DATABASE='<name_of_orion_database>'
+CMS_MONGO_INITDB_ROOT_USERNAME='<name_of_mongodb_admin>'
+CMS_MONGO_INITDB_ROOT_PASSWORD='<password_of_mongodb_admin>'
+CMS_ORION_MONGODB_USER='<your_orion_mongodb_user>'
+CMS_ORION_MONGODB_PASSWORD='<your_orion_mongodb_user_password>'
+```
+
+before you run the Ansible playbook `03_setup_k8s_platform/deploy_context_management_stack.yml`.
+
+```bash
+cd 03_setup_k8s_platform
+ansible-playbook -i inventory deploy_context_management_stack.yml
+```
+
+This will deploy
+
+- MongoDB (version 3.6)
+- QuantumLeap
+- Orion
+
+and also configure the Orion API in Gravitee.
+
+**Important**
+This playbook uses the Ansible-Galaxy collection `community.mongodb`, which also requires the Python module `pymongo`.
+As of July 2021, both are not part of the ACN, so you have to install them manually.
+
+```shell
+$ ansible-galaxy collection install community.mongodb
+$ pip3 install pymongo
+```
+Also, before you run this playbook, please make sure, you already have deployed the [Data Management Stack](#data-management-stack), since QuantumLeap will use its instance of TimescaleDB!
+
+**NOTE**
+> You can run individual tasks by using the following tags: "mongodb", "quantumleap", "orion" and "config_orion".
+
+### MongoDB
+The deployment of MongoDB is done by calling the file `tasks/context_management-stack/install_mongodb.yml`, which reads the files `vars/context-management-stack/mongodb.yml` and `templates/context-management-stack/mongodb.yml`.
+
+After the deployment of MongoDB has finished, Ansible will create a MongoDB user with the name of`CMS_ORION_MONGODB_USER`.
+
+#### The file `vars/context-management-stack/mongodb.yml`
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/mongodb.yml
+
+image_tag: "3.6"
+
+securityContext_fsGroup: 1001
+securityContext_runAsUser: 1001
+
+database: "{{ CMS_MONGO_INITDB_DATABASE }}"
+root_username: "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}"
+root_password: "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}"
+username: "{{ CMS_ORION_MONGODB_USER }}"
+password: "{{ CMS_ORION_MONGODB_PASSWORD }}"
+
+extra_flags: "--nojournal --storageEngine wiredTiger --maxConns 5000"
+
+service_name: orion-mongodb
+port: 27017
+
+pv_storageClass: microk8s-hostpath
+pv_accessMode: ReadWriteOnce
+pv_size: 8Gi
+```
+
+### QuantumLeap
+The deployment of QuantumLeap is done by calling the file `tasks/context_management-stack/install_quantumleap.yml`, which reads the files `vars/context-management-stack/quantumleap.yml` and `templates/context-management-stack/quantumleap.yml`.
+
+#### The file `vars/context-management-stack/quantumleap.yml`
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/quantumleap.yml
+
+# Namespace where Service for TimescaleDB resides
+timescale_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR | lower }}"
+timescale_service: "futrhub-timescale"
+
+# Quantum Leap
+image_tag: "0.8.1"
+smartsdk_image_tag: "quantumleap-pg-init:0.8.0@sha256:bb262755211e96eed6d6f8a12e25a899123140c6c9bd7ba3a72cc3c0e77f60fc"
+```
+
+### Orion
+The deployment of Orion is done by calling the file `tasks/context_management-stack/install_orion.yml`, which reads the files `vars/context-management-stack/orion.yml` and `templates/context-management-stack/orion.yml`.
+
+After the deployment of Orion, the Ansible task file `tasks/context_management-stack/configure_orion.yml` will
+configure the Orion API in Gravitee.
+
+#### The file `vars/context-management-stack/orion.yml`
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/orion.yml
+
+# Namespace where Service for MongoDB resides
+mongodb_namespace: "{{ k8s_namespace }}"
+mongodb_service: "orion-mongodb"
+
+# Orion
+image_tag: "2.4.2"
 ```
