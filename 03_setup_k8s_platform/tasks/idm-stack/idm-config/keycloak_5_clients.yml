@@ -66,23 +66,77 @@
     msg: "Failed. Client may already exist."
   when: client_gravitee_response.status == 409
 
-- name: Create PGAdmin Client
+- name: Create Admin Tools Client
   uri:
     method: POST
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
     return_content: yes
     body_format: json
-    body: "{{ lookup('template', 'keycloak/clients/pgadmin.json.j2') }}"
+    body: "{{ lookup('template', 'keycloak/clients/admin_tools.json.j2') }}"
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 201,409
-  register: client_pgadmin_response
+  register: client_admin_tools_response
 
 - name: Check if already existing.
   debug:
     msg: "Failed. Client may already exist."
-  when: client_pgadmin_response.status == 409
+  when: client_admin_tools_response.status == 409
+
+- name: Create Masterportal Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/masterportal.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_masterportal_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_masterportal_response.status == 409
+
+- name: Create CKAN Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/ckan.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_ckan_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_ckan_response.status == 409
+
+- name: Create MINIO Client
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'keycloak/clients/minio.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201,409
+  register: client_minio_response
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Client may already exist."
+  when: client_minio_response.status == 409
 
 # Retrieve id and secret for all clients
 
@@ -101,25 +155,43 @@
   set_fact:
     client_id_api_access: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_API_ACCESS }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_API_ACCESS }}'].id | [0]"
 
 - name: "Get keycloak client Grafana ID."
   set_fact:
     client_id_grafana: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAFANA }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_GRAFANA }}'].id | [0]"
 
 - name: "Get keycloak client Gravitee ID."
   set_fact:
     client_id_gravitee: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_GRAVITEE }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_GRAVITEE }}'].id | [0]"
 
-- name: "Get keycloak client PGAdmin ID."
+- name: "Get keycloak client Admin Tools ID."
   set_fact:
-    client_id_pgadmin: "{{ clients.json | json_query(query) }}"
+    client_id_admin_tools: "{{ clients.json | json_query(query) }}"
   vars:
-    query: "[?clientId== '{{ keycloak.IDM_CLIENT_PGADMIN }}'].id | [0]"
+    query: "[?clientId== '{{ IDM_CLIENT_ADMIN_TOOLS }}'].id | [0]"
+
+- name: "Get keycloak client Masterportal ID."
+  set_fact:
+    client_id_masterportal: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
+
+- name: "Get keycloak client CKAN ID."
+  set_fact:
+    client_id_ckan: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_CKAN }}'].id | [0]"   
+
+- name: "Get keycloak client MINIO ID."
+  set_fact:
+    client_id_minio: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_MINIO }}'].id | [0]"   
 
 - name: Get Client Secret API Access
   uri:
@@ -154,16 +226,50 @@
     status_code: 200
   register: keycloak_client_gravitee_secret_response
 
-- name: Get Client Secret PGAdmin
+- name: Get Client Secret Admin Tools
   uri:
     method: GET
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_pgadmin }}/client-secret"
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_admin_tools }}/client-secret"
     return_content: yes
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 200
-  register: keycloak_client_pgadmin_secret_response
+  register: keycloak_client_admin_tools_secret_response
+
+- name: Get Client Secret Masterportal
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_masterportal }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_masterportal_secret_response
+
+- name: Get Client Secret CKAN
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_ckan }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_ckan_secret_response
+
+- name: Get Client Secret MINIO
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_minio_secret_response
+
 
 - name: "Set IDM client secret API Access."
   set_fact:
@@ -180,10 +286,25 @@
     IDM_CLIENT_SECRET_GRAVITEE: "{{ keycloak_client_gravitee_secret_response.json.value }}"
     cacheable: yes
 
-- name: "Set IDM client secret PGAdmin."
+- name: "Set IDM client secret Admin Tools."
   set_fact:
-    IDM_CLIENT_SECRET_PGADMIN: "{{ keycloak_client_pgadmin_secret_response.json.value }}"
+    IDM_CLIENT_SECRET_ADMIN_TOOLS: "{{ keycloak_client_admin_tools_secret_response.json.value }}"
     cacheable: yes
+
+- name: "Set IDM client secret Masterportal."
+  set_fact:
+    IDM_CLIENT_SECRET_MASTERPORTAL: "{{ keycloak_client_masterportal_secret_response.json.value }}"
+    cacheable: yes
+
+- name: "Set IDM client secret CKAN."
+  set_fact:
+    IDM_CLIENT_SECRET_CKAN: "{{ keycloak_client_ckan_secret_response.json.value }}"
+    cacheable: yes    
+
+- name: "Set IDM client secret MINIO."
+  set_fact:
+    IDM_CLIENT_SECRET_MINIO: "{{ keycloak_client_minio_secret_response.json.value }}"
+    cacheable: yes  
 
 ### Following configureation will be skipped if target client already exists
 
@@ -248,15 +369,15 @@
   register: roles_gravitee_response
   when: client_gravitee_response.status != 409
 
-- name: Create PGAdmin roles
+- name: Create Admin Tools roles
   uri:
     method: POST
-    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_pgadmin }}/roles"
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_admin_tools }}/roles"
     return_content: yes
     body_format: json
     body: |
       {
-        "name": "pgadminAdmin",
+        "name": "adminToolsAdmin",
         "composite": false,
         "clientRole": true
       }
@@ -264,5 +385,104 @@
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 201
-  register: roles_pgadmin_response
-  when: client_pgadmin_response.status != 409
+  register: roles_admin_tools_response
+  when: client_admin_tools_response.status != 409
+
+- name: Create Masterportal roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_masterportal }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "masterportalAdmin",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_masterportal_response
+  when: client_masterportal_response.status != 409
+
+- name: Create CKAN roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_ckan }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "ckanAdmin",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_ckan_response
+  when: client_ckan_response.status != 409
+
+- name: Create MINIO roles
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "minioAdmin",
+        "composite": false,
+        "clientRole": true,
+        "attributes": {
+          "minio_policy": [ "readwrite" ]
+        }
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+  when: client_minio_response.status != 409
+
+# - name: Get roles minio
+#   uri:
+#     method: GET
+#     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+#     return_content: yes
+#     headers:
+#       Accept: application/json
+#       Authorization: Bearer {{ keycloak_login.json.access_token }}
+#     status_code: 200
+#   register: minio_roles
+
+# - name: "Set role id minio."
+#   set_fact:
+#     minio_role_id: "{{ minio_roles.json | json_query(query) }}"
+#   vars:
+#     query: "[?name== 'minioAdmin'].id | [0]"
+
+# - name: Add min.io policy to role
+#   uri:
+#     method: PUT
+#     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles/{{ minio_role_id }}"
+#     return_content: yes
+#     body_format: json
+#     body: |
+#       {
+#         "name": "minioAdmin",
+#         "composite": false,
+#         "clientRole": true,
+#         "attributes": {
+#           "minio_policy": [ "readwrite" ]
+#         }
+#       }
+#     headers:
+#       Accept: application/json
+#       Authorization: Bearer {{ keycloak_login.json.access_token }}
+#     status_code: 204
+#   register: roles_minio_update_response
+#   when: client_minio_response.status != 409      

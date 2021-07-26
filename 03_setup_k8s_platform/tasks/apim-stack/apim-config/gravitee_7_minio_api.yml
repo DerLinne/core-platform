@@ -14,7 +14,7 @@
           "endpoints": [
             {
               "name":"default",
-              "target" : "http://minio.{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}.svc.cluster.local:80",
+              "target" : "http://minio.{{ default.K8S_NAMESPACE_DATA_MANAGEMENT }}.svc.cluster.local:80",
               "inherit":true
             }
           ],

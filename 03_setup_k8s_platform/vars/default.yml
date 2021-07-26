@@ -12,7 +12,7 @@ HELM_REPO_URL: http://127.0.0.1
 HELM_REPO_NAME: futr-hub
 
 # Kubernetes
-K8S_KUBECONFIG: "{{ lookup('env', 'HOME') }}/.kube/k8s-master_config"
+K8S_KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/{{ kubeconfig_file }}"
 K8S_CONTEXT: microk8s
 K8S_NAMESPACE_APIMSTACK: apim-stack
 K8S_NAMESPACE_GEODATA: geodata
@@ -20,12 +20,22 @@ K8S_NAMESPACE_CKAN: ckan
 K8S_NAMESPACE_FROST: frost-server
 K8S_NAMESPACE_POSTGRES_OPERATOR: op-postgres
 K8S_NAMESPACE_MINIO_OPERATOR: op-minio
-K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR: data-management
+K8S_NAMESPACE_DATA_MANAGEMENT: data-management
 K8S_NAMESPACE_PUBLIC: public
 K8S_NAMESPACE_MONITORING: monitoring-logging
 K8S_NAMESPACE_DATAFLOWSTACK: dataflow-stack
 K8S_NAMESPACE_IDMSTACK: idm-stack
+K8S_NAMESPACE_KEYCLOAK_OPERATOR: idm-stack
 K8S_INGRESS_CLASS: public
 
 # GitLab-API-URL
 GITLAB_API_URL: "https://gitlab.com/api/v4"
+
+## IDM Clients
+IDM_CLIENT_API_ACCESS: "api-access"
+IDM_CLIENT_GRAFANA: "grafana"
+IDM_CLIENT_GRAVITEE: "gravitee"
+IDM_CLIENT_ADMIN_TOOLS: "admin_tools"
+IDM_CLIENT_MASTERPORTAL: "masterportal"
+IDM_CLIENT_CKAN: "ckan"
+IDM_CLIENT_MINIO: "minio"

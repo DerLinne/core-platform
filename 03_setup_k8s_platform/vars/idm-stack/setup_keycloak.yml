@@ -5,8 +5,8 @@ realm_master_username: "{{ IDM_REALM_MASTER_USERNAME }}"
 realm_master_password: "{{ IDM_REALM_MASTER_PASSWORD }}"
 
 ## Deployment
-k8s_name: "fiware-keycloak"
-ingress_secert_name: "keycloak-cert"
+k8s_name: "keycloak"
+ingress_secert_name: "{{ DOMAIN }}-idm-cert"
 ingress_tls_host: "idm.{{ DOMAIN }}"
 ingress_rules_host: "idm.{{ DOMAIN }}"
 
@@ -16,12 +16,6 @@ IDM_SCOPE_TENANT_VALUES: "tenants"
 IDM_SCOPE_API_READ: "api:read"
 IDM_SCOPE_API_WRITE: "api:write"
 IDM_SCOPE_API_DELETE: "api:delete"
-
-## IDM Clients
-IDM_CLIENT_API_ACCESS: "api-access"
-IDM_CLIENT_GRAFANA: "grafana"
-IDM_CLIENT_GRAVITEE: "gravitee"
-IDM_CLIENT_PGADMIN: "pgadmin"
 
 ## IDM Users
 PLATFORM_ADMIN_FIRST_NAME: "Admin"

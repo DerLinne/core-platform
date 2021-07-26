@@ -1,5 +1,5 @@
 {
-    "clientId": "{{ keycloak.IDM_CLIENT_GRAVITEE }}",
+    "clientId": "{{ IDM_CLIENT_GRAVITEE }}",
     "rootUrl": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central",
     "adminUrl": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/central",
     "surrogateAuthRequired": false,
@@ -55,7 +55,7 @@
                 "id.token.claim": "true",
                 "access.token.claim": "true",
                 "claim.name": "groups",
-                "usermodel.clientRoleMapping.clientId": "{{ keycloak.IDM_CLIENT_GRAVITEE }}"
+                "usermodel.clientRoleMapping.clientId": "{{ IDM_CLIENT_GRAVITEE }}"
             }
         }
     ],

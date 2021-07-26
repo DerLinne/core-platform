@@ -9,7 +9,7 @@
 - name: Deploy PostgresSQL database for KeyCloak via Zalando operator
   community.kubernetes.k8s:
     state: present
-    namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+    namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT }}"
     kubeconfig: "{{ k8s_config }}"
     context: "{{ k8s_context }}"
     definition:
@@ -17,7 +17,7 @@
       apiVersion: "acid.zalan.do/v1"
       metadata:
         name: "{{ postgresql.cluster_team }}-{{ postgresql.cluster_name }}"
-        namespace: "{{ k8s_namespace }}"
+        namespace: "{{ k8s_namespace }}-db"
         labels:
           team: "{{ postgresql.cluster_team }}"
       spec:
@@ -25,7 +25,7 @@
         postgresql:
           version: "{{ postgresql.version }}"
         numberOfInstances: 2
-        enableMasterLoadBalancer: true
+        enableMasterLoadBalancer: false
         volume:
           size: "{{ postgresql.volume_size }}"
         users:
