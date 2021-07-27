@@ -19,8 +19,8 @@ spec:
         app: orion
     spec:
       containers:
-      - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-db", "{{ CMS_MONGO_INITDB_DATABASE }}", "-dbuser", "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}", "-dbpwd", "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
-        image: fiware/orion:"{{ orion.image_tag }}"
+      - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-dbuser", "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}", "-dbpwd", "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
+        image: fiware/orion:{{ orion.image_tag }}
         name: orion
         imagePullPolicy: IfNotPresent
         ports:
@@ -33,7 +33,7 @@ spec:
           periodSeconds: 2
         livenessProbe:
           httpGet:
-            path: /v2/entities
+            path: /version
             port: 1026
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -42,7 +42,7 @@ spec:
           failureThreshold: 5
         startupProbe:
           httpGet:
-            path: /v2/entities
+            path: /version
             port: 1026
           initialDelaySeconds: 30
           periodSeconds: 5
