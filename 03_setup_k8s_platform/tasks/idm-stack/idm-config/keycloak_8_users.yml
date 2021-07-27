@@ -25,11 +25,6 @@
     status_code: 201,409
   register: keycloak_platform_admin_response
 
-- name: "User already existing."
-  debug:
-    msg: "Failed. User {{ keycloak.PLATFORM_ADMIN_EMAIL }} already existing?"
-  when: keycloak_platform_admin_response.status == 409
-
 - name: Get users
   uri:
     method: GET
@@ -40,6 +35,10 @@
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 200
   register: users
+
+- name: Print the gateway for each host when defined
+  ansible.builtin.debug:
+    msg: "{{ users }}"
 
 - name: "Set platform user id."
   set_fact:
@@ -184,6 +183,10 @@
     status_code: 204
   when: keycloak_platform_admin_response.status != 409
 
+- name: Print the gateway for each host when defined
+  ansible.builtin.debug:
+    msg: "{{ platform_user_id }}"
+
 - name: Assign Roles to Platform Admin (api-access)
   uri:
     method: POST
@@ -324,5 +327,33 @@
     status_code: 204
   when: keycloak_platform_admin_response.status != 409    
 
-   
+### Manage Group Assignments
+
+- name: Get groups
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/groups"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: realm_groups
+
+- name: "Set group id default_tenant."
+  set_fact:
+    group_default_tenant_id: "{{ realm_groups.json | json_query(query) }}"
+  vars:
+    query: "[?name== '{{ IDM_GROUP_DEFAULT_TENANT_NAME }}'].id | [0]"
+
+- name: Join Platform-Admin to Default-Tenant Group
+  uri:
+    method: PUT
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/users/{{ platform_user_id }}/groups/{{ group_default_tenant_id }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 204
+  when: keycloak_platform_admin_response.status != 409   
 
