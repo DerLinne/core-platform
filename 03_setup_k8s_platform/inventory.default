@@ -79,9 +79,10 @@ EMAIL_USER = '<username to access email server>'
 EMAIL_PASSWORD = 'password to access email server'
 EMAIL_FROM = '<email address used as "from">'
 
-## Timescale Settings
-#
-TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
+
+# Since TimescaleDB is deployed via Zalando operator, we do not need to set TIMESCALE_PASSWORD.
+# This is done by the operator during deployment of TimescaleDB.
+#TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
 
 ## Master Portal Settings
 #
@@ -90,3 +91,10 @@ MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
 MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
 # -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
 MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+
+## Context Management Stack
+CMS_MONGO_INITDB_DATABASE='<name_of_orion_database>'
+CMS_MONGO_INITDB_ROOT_USERNAME='<name_of_mongodb_admin>'
+CMS_MONGO_INITDB_ROOT_PASSWORD='<password_of_mongodb_admin>'
+CMS_ORION_MONGODB_USER='<your_orion_mongodb_user>'
+CMS_ORION_MONGODB_PASSWORD='<your_orion_mongodb_user_password>'

@@ -1,0 +1,10 @@
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/quantumleap.yml
+
+# Namespace where Service for TimescaleDB resides
+timescale_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT | lower }}"
+timescale_service: "futrhub-timescale"
+
+# Quantum Leap
+image_tag: "0.8.1"
+smartsdk_image_tag: "quantumleap-pg-init:0.8.0@sha256:bb262755211e96eed6d6f8a12e25a899123140c6c9bd7ba3a72cc3c0e77f60fc"

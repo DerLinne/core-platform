@@ -1,0 +1,151 @@
+---
+# file: 03_setup_k8s_platform/templates/context_management-stack/mongodb.yml
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: orion-mongodb
+  name: orion-mongodb
+spec:
+  selector:
+    matchLabels:
+      app: orion-mongodb
+  replicas: 1
+  serviceName: orion-mongodb
+  template:
+    metadata:
+      labels:
+        app: orion-mongodb
+    spec:
+      securityContext:
+        fsGroup: {{ mongodb.securityContext_fsGroup }}
+        runAsUser: {{ mongodb.securityContext_runAsUser }}
+        # net.core.somaxconn is considered as an unsafe sysctl.
+        # Take a look at
+        # https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/
+        # for further details.
+        # sysctls:
+        # - name: net.core.somaxconn
+        #   value: "65535"
+      containers:
+      - name: mongo
+        image: mongo:{{ mongodb.image_tag }}
+        env:
+        - name: MONGO_INITDB_DATABASE
+          value: "{{ mongodb.database }}"
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: orion-mongodb-credentials
+              key: mongodb-root-username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orion-mongodb-credentials
+              key: mongodb-root-password
+        - name: MONGODB_EXTRA_FLAGS
+          value: {{ mongodb.extra_flags }}
+        livenessProbe:
+          exec:
+            command:
+              - mongo
+              - --disableImplicitSessions
+              - --eval
+              - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          exec:
+            command:
+              - bash
+              - -ec
+              - |
+                mongo --disableImplicitSessions $TLS_OPTIONS --eval 'db.hello().isWritablePrimary || db.hello().secondary' | grep -q 'true'
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 60
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        - name: init-orion-db-js
+          mountPath: /docker-entrypoint-initdb.d/init_orion_db.js
+          subPath: init_orion_db.js
+
+      restartPolicy: Always
+      volumes:
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: orion-mongodb-data
+        - name: init-orion-db-js
+          configMap:
+            name: init-orion-db-js
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: orion-mongodb
+  name: {{ mongodb.service_name }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: mongodb
+    port: {{ mongodb.port }}
+    targetPort: {{ mongodb.port }}
+  selector:
+    app: orion-mongodb
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: orion-mongodb-data
+spec:
+  storageClassName: {{ mongodb.pv_storageClass }}
+  accessModes:
+    - {{ mongodb.pv_accessMode}}
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ mongodb.pv_size }}
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: orion-mongodb-credentials
+  labels:
+    app: orion-mongodb
+type: Opaque
+data:
+  mongodb-root-username: "{{ mongodb.root_username | b64encode | quote }}"
+  mongodb-root-password: "{{ mongodb.root_password | b64encode | quote }}"
+  mongodb-username: "{{ mongodb.username | b64encode | quote }}"
+  mongodb-password: "{{ mongodb.password | b64encode | quote }}"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-orion-db-js
+  labels:
+    app: orion-mongodb
+data:
+  init_orion_db.js: |-
+    db.entities.dropIndexes();
+    db.entities.createIndex( {"_id.servicePath": 1, "_id.id": 1, "_id.type": 1} );
+    db.entities.createIndex( {"creDate": 1} );
+    db.entities.reIndex();

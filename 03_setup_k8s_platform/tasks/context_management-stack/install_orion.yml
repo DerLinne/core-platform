@@ -1,0 +1,50 @@
+---
+# file: 03_setup_k8s_platform/tasks/context_management-stack/install_orion.yml
+
+- name: Read values for Orion
+  ansible.builtin.include_vars:
+    file: context_management-stack/orion.yml
+    name: orion
+
+- name: Set MongoDB internal endpoint
+  ansible.builtin.set_fact:
+    mongodb_endpoint: "{{ orion.mongodb_service }}.{{ orion.mongodb_namespace }}"
+  when:
+    - orion.mongodb_service is defined
+    - orion.mongodb_namespace is defined
+
+- name: Check if MongoDB internal endpoint exists
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ orion.mongodb_namespace }}"
+    kind: Service
+    name: "{{ orion.mongodb_service }}"
+  register: mongodb_endpoint_exists
+
+- name: Check for MongoDB internal endpoint failed
+  fail:
+    msg: "Internal endpoint {{ mongodb_endpoint }} does not exist!"
+  when: mongodb_endpoint_exists['resources'][0] is undefined
+
+- name: Deploy Orion
+  community.kubernetes.k8s:
+    state: present
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    definition: "{{ item }}"
+  loop:
+    - "{{ lookup('template', 'templates/context_management-stack/orion.yml') | from_yaml_all | list }}"
+
+- name: Wait till deployment of Orion is completed
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    kind: Pod
+    label_selectors:
+      - app=orion
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 360

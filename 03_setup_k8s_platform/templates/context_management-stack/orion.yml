@@ -1,0 +1,78 @@
+---
+# file: 03_setup_k8s_platform/templates/context_management-stack/orion.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: orion
+  name: orion
+spec:
+  selector:
+    matchLabels:
+      app: orion
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: orion
+    spec:
+      containers:
+      - args: ["-dbhost" ,"{{ mongodb_endpoint }}", "-dbAuthDb", "admin", "-dbuser", "{{ CMS_MONGO_INITDB_ROOT_USERNAME }}", "-dbpwd", "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}" ,"-corsOrigin" , "__ALL" ,"-logLevel" ,"WARN" ,"-reqMutexPolicy" ,"none" ,"-reqPoolSize" ,"6"]
+        image: fiware/orion:{{ orion.image_tag }}
+        name: orion
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 1026
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /version
+            port: 1026
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+        startupProbe:
+          httpGet:
+            path: /version
+            port: 1026
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 60
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 256Mi
+      restartPolicy: Always
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: orion
+  name: orion
+spec:
+  ports:
+  - name: "1026"
+    port: 1026
+    targetPort: 1026
+  selector:
+    app: orion
+status:
+  loadBalancer: {}

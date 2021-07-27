@@ -23,12 +23,14 @@
       ansible.builtin.set_fact:
         k8s_config: "{{ default.K8S_KUBECONFIG }}"
         k8s_context: "{{ default.K8S_CONTEXT }}"
-        k8s_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+        k8s_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT }}"
         k8s_host: "{{ lookup('env','K8S_MASTER')}}"
 
     - name: Create a k8s namespace
       community.kubernetes.k8s:
-        name: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR }}"
+        name: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT }}"
+        kubeconfig: "{{ k8s_config }}"
+        context: "{{ k8s_context }}"
         api_version: v1
         kind: Namespace
         state: present
@@ -38,7 +40,7 @@
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"         
+        context: "{{ k8s_context }}"
         definition:
           kind: "postgresql"
           apiVersion: "acid.zalan.do/v1"
@@ -52,13 +54,17 @@
             postgresql:
               version: "11"
             numberOfInstances: 2
-            enableMasterLoadBalancer: true
+            enableMasterLoadBalancer: false
             volume:
               size: "20Gi"
             users:
-              contextdata: []
+              quantumleap: []
             databases:
-              contextdata: contextdata
+              quantumleap: quantumleap
+            preparedDatabases:
+              quantumleap:
+                extensions:
+                  timescaledb: public
             allowedSourceRanges:
               # IP ranges to access your cluster go here
             resources:
@@ -68,15 +74,27 @@
               limits:
                 cpu: 500m
                 memory: 500Mi
+            patroni:
+              pg_hba:
+                - local     all           all                     trust
+                - hostssl   all           +zalandos 127.0.0.1/32  pam
+                - host      all           all       127.0.0.1/32  md5
+                - hostssl   all           +zalandos ::1/128       pam
+                - host      all           all       ::1/128       md5
+                - hostssl   replication   standby   all           md5
+                - hostnossl all           all       10.0.0.0/8    md5
+                - hostnossl all           all       10.0.0.0/8    pam
+                - hostssl   all           +zalandos all           pam
+                - hostssl   all           all       all           md5
 
-    - name: Create timescale extension
-      command: | 
-        kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }} 
-          exec -it {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0 
-          -- bash -c "psql -U {{ postgres.super_username }} -d contextdata -c 'CREATE EXTENSION timescaledb;'"
-      register: result
-      until: result.rc == 0
-      retries: 20
-      delay: 10
-      changed_when: True
+    # - name: Create timescale extension
+    #   command: |
+    #     kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+    #       exec -it {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0
+    #       -- bash -c "psql -U {{ postgres.super_username }} -d contextdata -c 'CREATE EXTENSION timescaledb;'"
+    #   register: result
+    #   until: result.rc == 0
+    #   retries: 20
+    #   delay: 10
+    #   changed_when: True
 

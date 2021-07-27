@@ -1,0 +1,94 @@
+---
+# file: 03_setup_k8s_platform/tasks/context_management-stack/install_quantumleap.yml
+
+- name: Read values for Quantum Leap
+  ansible.builtin.include_vars:
+    file: context_management-stack/quantumleap.yml
+    name: quantumleap
+
+- name: Set TimescaleDB internal endpoint
+  ansible.builtin.set_fact:
+    timescale_endpoint: "{{ quantumleap.timescale_service }}.{{ quantumleap.timescale_namespace }}"
+  when:
+    - quantumleap.timescale_service is defined
+    - quantumleap.timescale_namespace is defined
+
+- name: Check if TimescaleDB internal endpoint exists
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ quantumleap.timescale_namespace }}"
+    kind: Service
+    name: "{{ quantumleap.timescale_service }}"
+  register: timescale_endpoint_exists
+
+- name: Check for TimescaleDB internal endpoint failed
+  fail:
+    msg: "Internal endpoint {{ timescale_endpoint }} does not exist!"
+  when: timescale_endpoint_exists['resources'][0] is undefined
+
+- name: Check if QuantumLeap credentials exists in the cluster
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ quantumleap.timescale_namespace }}"
+    kind: Secret
+    name: "quantumleap.{{ quantumleap.timescale_service }}.credentials.postgresql.acid.zalan.do"
+  register: quantumleap_credentials_exists
+  no_log: true
+
+- name: Check state of QuantumLeap credentials
+  fail:
+    msg: "Credentials {{ quantumleap_credentials_exists }} do not exist! Please, deploy TimescaleDB with user quantumleap."
+  when: quantumleap_credentials_exists['resources'][0] is undefined
+
+- name: Set QuantumLeap credentials to access TimescaleDB
+  ansible.builtin.set_fact:
+    quantumleap_credentials_username: "{{ quantumleap_credentials_exists['resources'][0]['data']['username'] | b64decode }}"
+    quantumleap_credentials_password: "{{ quantumleap_credentials_exists['resources'][0]['data']['password'] | b64decode }}"
+  when: quantumleap_credentials_exists['resources'][0] is defined
+  no_log: true
+
+- name: Check if TimescaleDB superuser credentials exists in the cluster
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ quantumleap.timescale_namespace }}"
+    kind: Secret
+    name: "postgres.{{ quantumleap.timescale_service }}.credentials.postgresql.acid.zalan.do"
+  register: postgres_credentials_exists
+  no_log: true
+
+- name: Check state of TimescaleDB superuser credentials
+  fail:
+    msg: "Credentials {{ postgres_credentials_exists }} do not exist! Please, deploy TimescaleDB."
+  when: postgres_credentials_exists['resources'][0] is undefined
+
+- name: Set TimescaleDB superuser credentials
+  ansible.builtin.set_fact:
+    postgres_credentials_username: "{{ postgres_credentials_exists['resources'][0]['data']['username'] | b64decode }}"
+    postgres_credentials_password: "{{ postgres_credentials_exists['resources'][0]['data']['password'] | b64decode }}"
+  when: postgres_credentials_exists['resources'][0] is defined
+  no_log: true
+
+- name: Deploy QuantumLeap
+  k8s:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    definition: "{{ item }}"
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/context_management-stack/quantumleap.yml') | from_yaml_all | list }}"
+
+- name: Wait till deployment of QuantumLeap is completed
+  community.kubernetes.k8s_info:
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    namespace: "{{ k8s_namespace }}"
+    kind: Pod
+    label_selectors:
+      - app=quantumleap
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 360

@@ -1,0 +1,9 @@
+---
+# file: 03_setup_k8s_platform/vars/context_management-stack/orion.yml
+
+# Namespace where Service for MongoDB resides
+mongodb_namespace: "{{ k8s_namespace }}"
+mongodb_service: "orion-mongodb"
+
+# Orion
+image_tag: "2.4.2"

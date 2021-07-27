@@ -1,0 +1,232 @@
+---
+# file: 03_setup_k8s_platform/templates/context_management-stack/quantumleap.yml
+
+# Quantumleap Front-end
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: quantumleap
+  name: quantumleap
+spec:
+  selector:
+    matchLabels:
+      app: quantumleap
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: quantumleap
+    spec:
+      containers:
+      - env:
+        - name: LOGLEVEL
+          value: "INFO"
+        - name: WQ_OFFLOAD_WORK
+          value: "false"
+        - name: CACHE_QUERIES
+          value: "true"
+        - name: WORKERS
+          value: "6"
+        - name: POSTGRES_HOST
+          value: {{ timescale_endpoint }}
+        - name: POSTGRES_DB_USER
+          value: {{ quantumleap_credentials_username }}
+        - name: POSTGRES_DB_PASS
+          value: {{ quantumleap_credentials_password }}
+        - name: POSTGRES_DB_NAME
+          value: quantumleap
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USE_SSL
+          value: "False"
+        - name: QL_DEFAULT_DB
+          value: timescale
+        - name: USE_GEOCODING
+          value: "False"
+        imagePullPolicy: IfNotPresent
+        image: orchestracities/quantumleap:{{ quantumleap.image_tag }}
+        name: quantumleap
+        resources:
+          requests:
+            cpu: "700m"
+            memory: "750Mi"
+          limits:
+            cpu: "3000m"
+            #memory: 1500Mi
+        # Keepalive needed for database connectivity
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "sh"
+              - "-c"
+              - >
+                quantumcron=$(echo '*/1 * * * * for i in {1..4} ; do curl -f http://localhost:8668/v2/notify -H "Content-Type: application/json" -d'"'"'{"subscriptionID":"ping","data":[{"id":"keepalive","type":"ping","one":{"type":"Text","value":"1"}}]}'"'"' && curl -f -X DELETE http://localhost:8668/v2/entities/keepalive; done');
+                ( crontab -l; echo "$quantumcron" ) | crontab -;
+                crond -b;
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          initialDelaySeconds: 30
+          failureThreshold: 10
+          periodSeconds: 60
+          timeoutSeconds: 60
+          httpGet:
+            path: /version
+            port: 8668
+            scheme: HTTP
+        startupProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60
+          httpGet:
+            path: /version
+            port: 8668
+            scheme: HTTP
+      restartPolicy: Always
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: quantumleap
+  name: quantumleap
+spec:
+  ports:
+  - name: "8668"
+    port: 8668
+    targetPort: 8668
+  selector:
+    app: quantumleap
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: quantumleap
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: quantumleap
+  minReplicas: 1
+  maxReplicas: 1
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 160
+
+---
+
+# Quantumleap backend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: quantumleap-wq
+  name: quantumleap-wq
+spec:
+  selector:
+    matchLabels:
+      app: quantumleap-wq
+  replicas: 0
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: quantumleap-wq
+    spec:
+      containers:
+      - env:
+        - name: LOGLEVEL
+          value: "WARNING"
+        - name: CACHE_QUERIES
+          value: "false"
+        - name: POSTGRES_HOST
+          value: {{ timescale_endpoint }}
+        - name: POSTGRES_DB_USER
+          value: {{ quantumleap_credentials_username }}
+        - name: POSTGRES_DB_PASS
+          value: {{ quantumleap_credentials_password }}
+        - name: POSTGRES_DB_NAME
+          value: quantumleap
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USE_SSL
+          value: "False"
+        - name: QL_DEFAULT_DB
+          value: timescale
+        - name: USE_GEOCODING
+          value: "False"
+        - name: WQ_WORKERS
+          value: "8"
+        - name: WQ_MAX_RETRIES
+          value: "5"
+        imagePullPolicy: Always
+        image: orchestracities/quantumleap:work-q
+        command: ["supervisord"]
+        args: ["-n","-c","./wq/supervisord.conf"]
+        name: quantumleap-wq
+      restartPolicy: Always
+status: {}
+
+---
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: quantumleap-wq
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: quantumleap-wq
+  minReplicas: 1
+  maxReplicas: 1
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 160
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: timescaledb-pg-init
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+        - name: timescale
+          env:
+            - name: QL_DB_INIT_DIR
+              value: "/ql-db-init"
+            - name: QL_DB_PASS
+              value: {{ quantumleap_credentials_password }}
+            - name: PG_HOST
+              value: {{ timescale_endpoint }}
+            - name: PG_PASS
+              value: {{ postgres_credentials_password }}
+          image: "smartsdk/{{ quantumleap.smartsdk_image_tag }}"
+      restartPolicy: Never
