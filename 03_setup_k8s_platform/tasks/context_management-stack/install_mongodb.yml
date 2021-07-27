@@ -85,11 +85,11 @@
     login_password: "{{ CMS_MONGO_INITDB_ROOT_PASSWORD }}"
     login_host: "127.0.0.1"
     login_port: "{{ mongodb.port }}"
-    database: "admin"
+    database: "{{ CMS_MONGO_INITDB_DATABASE }}"
     name: "{{ CMS_ORION_MONGODB_USER }}"
     password: "{{ CMS_ORION_MONGODB_PASSWORD }}"
     roles:
-      - { db: "{{ CMS_MONGO_INITDB_DATABASE }}", role: "readWrite" }
+      - { db: "{{ CMS_MONGO_INITDB_DATABASE }}", role: "dbOwner" }
 
 - name: Stop kubectl port-forward to MongoDB service
   ansible.builtin.shell: |
