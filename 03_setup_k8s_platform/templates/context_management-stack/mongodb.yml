@@ -93,22 +93,13 @@ kind: Service
 metadata:
   labels:
     app: orion-mongodb
-<<<<<<< HEAD
   name: {{ mongodb.service_name }}
-=======
-  name: orion-mongodb
->>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
 spec:
   type: ClusterIP
   ports:
   - name: mongodb
-<<<<<<< HEAD
     port: {{ mongodb.port }}
     targetPort: {{ mongodb.port }}
-=======
-    port: 27017
-    targetPort: 27017
->>>>>>> 90ed697 (Issue #62: Initial commit of Ansible playbook to deploy MongoDB v3.6.)
   selector:
     app: orion-mongodb
 status:
