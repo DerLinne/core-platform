@@ -26,6 +26,10 @@ K8S_NAMESPACE_DATAFLOWSTACK: dataflow-stack-stack
 K8S_NAMESPACE_IDMSTACK: idm-stack
 K8S_NAMESPACE_KEYCLOAK_OPERATOR: idm-stack
 K8S_INGRESS_CLASS: public
+cert_manager_namespace: 'cert-manager'
+
+# K8s Config
+k8s_ingress_class: "public"
 
 # GitLab-API-URL
 GITLAB_API_URL: "https://gitlab.com/api/v4"
@@ -38,3 +42,6 @@ IDM_CLIENT_ADMIN_TOOLS: "admin_tools"
 IDM_CLIENT_MASTERPORTAL: "masterportal"
 IDM_CLIENT_CKAN: "ckan"
 IDM_CLIENT_MINIO: "minio"
+
+## IDM Groups 
+IDM_GROUP_DEFAULT_TENANT_NAME: "default_dataspace"
