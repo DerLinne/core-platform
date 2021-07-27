@@ -128,7 +128,6 @@
                     resources:
                       requests:
                         storage: 10Gi
-                    storageClassName: minio-storage
 
                 ## Used to specify a toleration for a pod
                 # tolerations:
