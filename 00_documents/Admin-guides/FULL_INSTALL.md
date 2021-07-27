@@ -1,3 +1,64 @@
+This document describes how to:
+
++ Prepare the configuration with the [Preconfiguration](#pre-setup-steps)
++ install [MicroK8s](#install-microk8s) on a Linux server, running Debian or Ubuntu .
++ Deploy the full platform installation
++ 
+## Prerequisites
+- [git](https://git-scm.com)
+- a SSH key pair to use.
+- IP address of the Linux server you want to install [MicroK8s](https://microk8s.io).
+- Credentials to access the Linux server.
+- An email address for [cert-manager](https://cert-manager.io)
+
+## Pre-Setup Steps
+
+In Order to be able to run the complete installation, one central Ansible Inventory File has to be prepared. 
+
+Additionally some Environment Variables have to be set.
+
+### Configure Environment Variables
+
+First create a copy based on the template-
+
+```
+# Copy template
+cp local.env.template local.env
+
+# Edit and set right parameters
+vim local.env
+
+# source values to current session
+source local.env
+
+```
+
+The File `local.env` containes the following parameters to set
+
+```env
+export FUTR_HUB_ACN_SSHKEY_PATH=$HOME/.ssh/
+export FUTR_HUB_ACN_SSHKEY=<filename>
+export LDAP_ADMIN_USERNAME=<admin_username>
+export LDAP_ADMIN_PASSWORD=<secure_admin_password>
+export LDAP_USERS=<username>
+export LDAP_PASSWORDS=<secure_password>
+```
+
+### Configure Inventory File
+
+First create a copy based on the template-
+
+```
+# Copy template
+cp inventory.default inventory
+
+# Edit and set right parameters
+vim inventory
+```
+
+The File `inventory` containes the following parameters to set:
+
+```ini
 [k8s_cluster]
 k8s-master ansible_host="<ip_address>"
 
@@ -80,15 +141,8 @@ EMAIL_PASSWORD = 'password to access email server'
 EMAIL_FROM = '<email address used as "from">'
 
 ## Timescale Settings
-<<<<<<< HEAD
-
-# Since TimescaleDB is deployed via Zalando operator, we do not need to set TIMESCALE_PASSWORD.
-# This is done by the operator during deployment of TimescaleDB.
-#TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
-=======
 #
 TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
->>>>>>> aea9843 (Issue #60: Added IDM related variables to inventory.)
 
 ## Master Portal Settings
 #
@@ -97,10 +151,36 @@ MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
 MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
 # -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
 MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+```
 
-## Context Management Stack
-CMS_MONGO_INITDB_DATABASE='<name_of_orion_database>'
-CMS_MONGO_INITDB_ROOT_USERNAME='<name_of_mongodb_admin>'
-CMS_MONGO_INITDB_ROOT_PASSWORD='<password_of_mongodb_admin>'
-CMS_ORION_MONGODB_USER='<your_orion_mongodb_user>'
-CMS_ORION_MONGODB_PASSWORD='<your_orion_mongodb_user_password>'
+After setting all parameters accordingly, save the file.
+
+## Install MicroK8s
+
+Run the following command from Repo Root Folder to preconfigure the VM.
+
+```
+ansible-playbook -i inventory -l k8s-master -u root 02_setup_k8s/setup_k8s_playbook_01.yml
+```
+
+Next start the installation of MicroK8s with the next two commands:
+
+```
+ansible-playbook -i inventory -l k8s-master -u acn --private-key ~/.ssh/id_rsa_cloud_urban-data_dev_admin 02_setup_k8s/setup_k8s_playbook_02.yml
+
+ansible-playbook -i inventory -l localhost -u acn --private-key ~/.ssh/id_rsa_cloud_urban-data_dev_admin 02_setup_k8s/setup_k8s_playbook_03.yml
+
+```
+
+Now you have a running Installation of MicroK8s and a kubeconfig file in you .kube folder of your home directory.
+
+## Install Platform Components
+
+Run the following command from Repo Root Folder to preconfigure the VM.
+
+```
+ansible-playbook -i inventory -l localhost  03_setup_k8s_platform/full_install.yml
+```
+
+Now the Base Platform is up and running.
+

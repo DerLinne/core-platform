@@ -436,7 +436,7 @@
       {
         "name": "minioAdmin",
         "composite": false,
-        "clientRole": true,
+        "clientRole": true
       }
     headers:
       Accept: application/json
@@ -455,7 +455,7 @@
       {
         "name": "minioPolicyReadWrite",
         "composite": false,
-        "clientRole": true,
+        "clientRole": true
       }
     headers:
       Accept: application/json
@@ -474,7 +474,7 @@
       {
         "name": "minioPolicyWrite",
         "composite": false,
-        "clientRole": true,
+        "clientRole": true
       }
     headers:
       Accept: application/json
@@ -493,7 +493,7 @@
       {
         "name": "minioPolicyRead",
         "composite": false,
-        "clientRole": true,
+        "clientRole": true
       }
     headers:
       Accept: application/json
