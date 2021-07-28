@@ -420,6 +420,94 @@ sudo microk8s ctr images list | grep webgis
 
 ### QGIS Server
 
+**IMPORTANT**
+Since there is no official Docker image for QGIS Server, you will have to create your own and deploy it either
+
++ into the local K8s registry of MicroK8s or
++ use a GitLab pipeline, like the following, and use GitLab's registry.
+
+```yaml
+services:
+  - docker:dind
+
+stages:
+  - build
+
+do build:
+  tags:
+    - shared
+  image: docker:stable
+  stage: build
+  before_script:
+    - docker info
+    - env
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  script:
+    - docker build -t webgis-qgisserver .
+    - docker tag webgis-qgisserver "$CI_REGISTRY_IMAGE:webgis-qgisserver"
+    - docker push "$CI_REGISTRY_IMAGE:webgis-qgisserver"
+
+
+```
+How to create and deploy such an image locally, using the MicroK8s registry, will be described further [below](#how-to-build-the-qgis-server-docker-image).
+
+---
+
+To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN, after you have created the Docker image of QGIS Server.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_qgisserver_playbook.yml
+```
+
+After a view minutes the deployment should be finished.
+
+The deployment creates the ConfigMap `qgis-nginx.conf` and the Secret `geodata-qgisserver-webgis-qgisserver`.
+The later one contains the values for the file `pg_service.conf` that is mounted into the QGIS Server pod. An according database and its user will be created within the PostGIS Pod.
+
+The file `pg_service.conf` has the following content.
+```ini
+[qwc_geodb]
+host=name-of-yourwebgis-postgis
+port=5432
+dbname=name_of_your_qgis_database
+user=user_to_access_qgis_database
+password=password_to_access_qgis_database
+sslmode=disable
+```
+---
+
+The QGIS project file `project.qgs` is part of the QGIS Server Docker image, that you host in a [GitLab repository](https://gitlab.com/berlintxl/futr-hub/platform/qgis-server-customizing/-/blob/master/project.qgs).
+
+You have to define the the path to this GitLab project in the file `03_setup_k8s_platform/vars/webgis_qgisserver.yml`.
+
+```yaml
+
+# file: 03_setup_k8s_platform/vars/webgis_qgisserver.yml
+
+HELM_CHART_NAME: webgis-qgisserver
+HELM_RELEASE_NAME: geodata-qgisserver
+
+# Name of the GitLab project where we store all files to build QGIS Docker image.
+QGIS_CUSTOM_GITLAB_PROJECT: "the/path/to/QGIS_Docker_image/GitLab_project"
+```
+
+If you want QGIS Server to use a new version of your QGIS project file, you have to
+
++ commit your new `project.qgs` into the Git repo of the QGIS Server Docker image,
++ wait until the new image has been build and then
++ update the QGIS Server Pod by running the Ansible playbook `update_qgis_project.yml`.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+ansible-playbook -i inventory update_qgis_project_playbook.yml
+```
+
+After a few seconds a new Pod, using the new QGIS project file, will be ready.
+
+---
 If you want to reach your QGIS Server from the Internet via HTTPS, you have to
 
 - make sure, that the Nginx Ingress Controler and the CertManager are setup for your K8s cluster.
@@ -435,102 +523,7 @@ accordingly and make sure your DNS server can resolve this host name.
 
 To allow access to the data of QGIS Server, [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled in the Nginx ConfigMap `qgis-nginx.conf`. You can set the value of the HTTP header `Access-Control-Allow-Origin` for request methods `POST`, `GET` and `OPTIONS`, using the parameter `nginx_cors_origin`. The default is, that every host of your domain `DOMAIN` can use those access methods.
 
-To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN.
-
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-
-ansible-playbook -i inventory deploy_webgis_qgisserver_playbook.yml
-```
-
-After a view minutes the deployment should be finished.
-
-The deployment creates two new ConfigMaps
-
-- project.qgs
-- qgis-nginx.conf
-
-and the Secret _geodata-qgisserver-webgis-qgisserver_.
-The later one contains the values for the file `pg_service.conf` that is mounted into the QGIS Server pod. An according database and its user will be created within the PostGIS Pod.
-
-The file `pg_service.conf` has the following content.
-```ini
-[qwc_geodb]
-host=geodata-postgis-webgis-postgis
-port=5432
-dbname=qwc_demo
-user=qgis_server
-password=qgis_server123
-sslmode=disable
-```
-
-The ConfigMap `project.qgs` contains the content of your QGIS project file, that you host in a [GitLab repository](https://gitlab.com/berlintxl/futr-hub/platform/qgis-server-customizing/-/blob/master/project.qgs).
-
-You have to define the GitLab project, where your file _project.qgs_ resides, in the file
- `03_setup_k8s_platform/vars/webgis_qgisserver.yml`.
-
-```yaml
 ---
-# file: 03_setup_k8s_platform/vars/webgis_qgisserver.yml
-
-HELM_CHART_NAME: webgis-qgisserver
-HELM_RELEASE_NAME: geodata-qgisserver
-
-# Name of the GitLab project where we store our QGIS project file
-QGIS_CUSTOM_GITLAB_PROJECT: "the/path/to/your/project"
-```
-
-The URL of the GitLab API server is defined in the file
-`03_setup_k8s_platform/vars/default.yml`.
-
-```yaml
----
-# file: 03_setuup_k8s_platform/vars/default.yml
-…
-# GitLab-API-URL
-GITLAB_API_URL: "https://gitlab.com/api/v4"
-
-```
-
-**IMPORTANT**
-If your QGIS project file is hosted in a private GitLab repository, you need to create a read_api token and insert the token in your inventory file with the key `GITLAB_API_ACCESS_TOKEN`.
-
-```ini
-[localhost]
-127.0.0.1   ansible_connection=local
-
-[localhost:vars]
-ansible_python_interpreter="{{ ansible_playbook_python }}"
-GITLAB_REGISTRY_ACCESS_USER_EMAIL="<Your_GitLab_User_Email>"
-GITLAB_REGISTRY_ACCESS_USER="<Your_GitLab_User>"
-GITLAB_REGISTRY_ACCESS_TOKEN="<Your_GitLab_Registry_Token>"
-
-GITLAB_API_ACCESS_TOKEN="<Your_GitLab_Read_API_Token>"
-```
-
-
-To update, you can either
-
-+ simply edit the ConfigMap and restart the deployment of the QGIS Server `geodata-qgisserver-webgis-qgisserver-server`.
-```
-kubectl --kubeconfig=$HOME/.kube/k8s-master_config -n geodata edit cm project.qgs
-kubectl --kubeconfig=$HOME/.kube/k8s-master_config -n geodata rollout restart deployment geodata-qgisserver-webgis-qgisserver-server
-```
-+ run the Ansible playbook `update_qgis_project.yml`.
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-ansible-playbook -i inventory update_qgis_project_playbook.yml
-```
-
-After a few seconds a new Pod, using the new QGIS project file, will be ready.
-
-To verify the installation you will have to execute the following command:
-```
-kubectl --namespace geodata port-forward \
-    svc/geodata-qgisserver-webgis-qgisserver-http 30080:80
-```
-and open the URL
-[http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
 
 
 If you have deployed QGIS Server, so it can be reached via HTTPS, you have to open the URL
@@ -539,19 +532,21 @@ https://mapserver.{{ YOUR DOMAIN }}/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUE
 
 in your Web browser.
 
----
-**IMPORTANT**
-Since there is no official Docker image for QGIS Server you will have to create your own and deploy it into the local K8s registry of MicroK8s!
+If not, you will have to execute the following command:
+```
+kubectl --namespace geodata port-forward \
+    svc/geodata-qgisserver-webgis-qgisserver-http 30080:80
+```
+and open the URL
+[http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
 
-How to create and deploy such an image will be described below!
-
-AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
-PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
-YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
-
----
 
 #### How to build the QGIS Server Docker image
+
+**NOTE**
+> AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
+PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
+YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
 
 To build the Docker image, please execute the following commands:
 

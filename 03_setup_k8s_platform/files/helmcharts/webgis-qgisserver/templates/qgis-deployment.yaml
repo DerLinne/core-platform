@@ -49,15 +49,10 @@ spec:
             - name: PGSERVICEFILE
               value: "{{ .Values.qgis.pgservicefile_dir}}/{{ .Values.qgis.pgservicefile}}"
           volumeMounts:
-            - name: qgis-project-file
-              mountPath: {{ .Values.qgis.data_dir | quote }}
             - name: qgis-pgserviceconf-file
               mountPath: {{ .Values.qgis.pgservicefile_dir | quote }}
               readOnly: true
       volumes:
-        - name: qgis-project-file
-          configMap:
-            name: {{ .Values.qgis.project_file | quote }}
         - name: qgis-pgserviceconf-file
           secret:
             secretName: {{ $secretName }}

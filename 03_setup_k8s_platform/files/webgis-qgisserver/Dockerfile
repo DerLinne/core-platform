@@ -36,6 +36,10 @@ ENV QGIS_PREFIX_PATH /usr
 ENV QGIS_SERVER_LOG_STDERR 1
 ENV QGIS_SERVER_LOG_LEVEL 2
 
+COPY qgis-sample.qgs /data/qgis/project.qgs
+RUN chmod -R 644 /data/qgis/project.qgs
+RUN chown qgis:qgis /data/qgis/project.qgs
+
 COPY cmd.sh /home/qgis/cmd.sh
 RUN chmod -R 777 /home/qgis/cmd.sh
 RUN chown qgis:qgis /home/qgis/cmd.sh
