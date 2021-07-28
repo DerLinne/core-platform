@@ -20,8 +20,8 @@ serverDefinitions_enabled: true
 serverDefinitions_Name: WebGIS Prototyp – PostGIS
 serverDefinitions_Group: Servers
 serverDefinitions_Port: 5432
-serverDefintions_Username: "{{ lookup('env','POSTGIS_USER') | default('postgres', true) }}"
-serverDefintions_Host: "{{ lookup('env', 'POSTGIS_HOST') | default('geodata-postgis-webgis-postgis', true) }}"
+serverDefintions_Username: "{{ MAPSERVER_POSTGIS_USER }}"
+serverDefintions_Host: "{{ MAPSERVER_POSTGIS_HOST }}"
 serverDefinitions_SSLMode: prefer
 serverDefinitions_MaintenanceDB: "{{ serverDefinitions_MaintenanceDB }}"
 
@@ -35,11 +35,10 @@ tls_secretName: pgadmin.{{ DOMAIN }}-tls
 
 existingSecret: ""
 
-env_email: "{{ lookup('env','PGADMIN_DEFAULT_EMAIL') | default('max@mustermann.de', true) }}"
-env_password: "{{ lookup('env','PGADMIN_DEFAULT_PASSWORD') | default('pgadmin123', true) }}"
-env_enhanced_cookie_protection: "{{ lookup('env','PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION') | default('True', true) }}"
-# Add more env variables if necessary, e.g.
-# PGADMIN_ENABLE_TLS: "{{ lookup('env','PGADMIN_ENABLE_TLS') | default('false', true) }}"
+env_email: "{{ PGADMIN_DEFAULT_EMAIL }}"
+env_password: "{{ PGADMIN_DEFAULT_PASSWORD }}"
+env_enhanced_cookie_protection: "{{ PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION }}"
+
 
 persistentVolume_enabled: true
 persistentVolume_accessModes: ReadWriteOnce

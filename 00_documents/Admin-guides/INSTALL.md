@@ -162,6 +162,9 @@ This section describes how to install the following components:
 
 - You need to have a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
 
+- Create a copy of `secrets.default` with the name `secrets.env`, containing all necessary credentials.
+
+
 
 **NOTE**
 > If you installed MicroK8s from within the ACN, you will already have a kubeconfig-file in the directory `~/.kube/` with the name `k8s-master_config`.
@@ -183,6 +186,32 @@ cp inventory.default inventory
 # edit the values for the above mentioned variables.
 vim inventory
 ```
+
+The deployments of
+
++ CKAN
++ FROST Server
++ Grafana
++ PostgreSQL/PostGIS
++ pgAdmin
++ QGIS Server
+
+all require credentials, that are read from environment variables.
+To setup those, you have to make a copy of the file `secrets.default` and name it `secrets.env`.
+
+The file-ending `.env` ensures that this file will be ignored by Git, if you have not changed the file `.gitignore` from this repository.
+
+```
+cd ~/data-platform-k8s/03_setup_k8s_platform
+cp secrets.default secrets.env
+
+# set credentials in the file secrets.env.
+vim secrets.env
+
+# after you have edited the file, source it.
+source secrets.env
+```
+
 
 Make sure that ChartMuseum is running.
 ```

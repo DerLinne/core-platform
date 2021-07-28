@@ -14,5 +14,5 @@ ingress_tls_acme: "true"
 ingress_server_name: "monitoring"
 ingress_tls_secret: "monitoring.{{ DOMAIN }}-tls"
 
-admin_user: "admin"
-admin_password: "kijlsaf78sda987sad"
+admin_user: "{{ GRAFANA_ADMIN }}"
+admin_password: "{{ GRAFANA_ADMIN_PASSWORD }}"
