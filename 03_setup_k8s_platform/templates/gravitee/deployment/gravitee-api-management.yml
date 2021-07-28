@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gravitee-api-management
+  name: gravitee-api-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gravitee-api-management
+  template:
+    metadata:
+      labels:
+        app: gravitee-api-management
+    spec:
+      containers:
+      - image: graviteeio/apim-management-api:3.7.0
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          httpGet:
+            path: /management/organizations/DEFAULT/environments/DEFAULT/apis
+            port: 8083
+            httpHeaders:
+            - name: Authorization
+              value: Basic YWRtaW46YWRtaW4=
+          timeoutSeconds: 1
+        startupProbe:
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 60
+          httpGet:
+            path: /management/organizations/DEFAULT/environments/DEFAULT/apis
+            port: 8083
+            httpHeaders:
+            - name: Authorization
+              value: Basic YWRtaW46YWRtaW4=
+        name: gravitee-api-management
+        env:
+          - name: gravitee_management_mongodb_uri
+            value: "mongodb://gravitee-mongo:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000"
+          - name: gravitee_analytics_elasticsearch_endpoints_0
+            value: "http://gravitee-elasticsearch.{{ k8s_namespace }}.svc.cluster.local:9200"
+          - name: gravitee_jwt_cookiepath
+            value: "/"
+          - name: gravitee_jwt_cookiesecure
+            value: "true"
+          - name: gravitee_jwt_cookiedomain
+            value: "apim.{{ DOMAIN }}"
+        ports:
+        - containerPort: 8083
+          name: http
+          protocol: TCP
+        - containerPort: 18083
+          name: technical
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1500Mi
+          requests:
+            cpu: 200m
+            memory: 1Gi
+        volumeMounts:
+          - name: config
+            mountPath: /opt/graviteeio-management-api/config/logback.xml
+            subPath: logback.xml
+      volumes:
+        - name: config
+          configMap:
+            name: gravitee-api-config
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: gravitee-api-management
+  name: gravitee-api-management
+spec:
+  ports:
+  - name: api
+    port: 8083
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    app: gravitee-api-management
+  type: ClusterIP
+status:
+  loadBalancer: {}
+

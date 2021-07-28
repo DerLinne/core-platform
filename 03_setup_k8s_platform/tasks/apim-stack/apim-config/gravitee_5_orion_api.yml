@@ -1,0 +1,122 @@
+#############################
+#### CREATE FIWARE API   ####
+#############################
+
+- name: Create FIWARE API Entry
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/import"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "proxy": {
+          "endpoints": [
+            {
+              "name":"default",
+              "target":"http://orion.{{ K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK }}.svc.cluster.local:9200",
+              "inherit":true
+            }
+          ],
+          "context_path":"{{ gravitee.gateway_endpoint }}{{ gravitee.ORION_API_PATH }}"
+        },
+        "pages":[],
+        "plans":[],
+        "tags":[],
+        "name":"FIWARE NGSI",
+        "version":"1.0",
+        "description":"FIWARE NGSI API for Orion Context Broker"
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200,400
+  register: fiwareAPI
+
+- name: Print FIWARE API already exists
+  debug:
+    msg: "Failed. FIWARE API already existing?"
+  when: fiwareAPI.status == 400
+
+
+# - name: Create SWAGGER Documentation Page
+#   uri:
+#     method: POST
+#     url: "https://api.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ fiwareAPI.json.id }}/pages/"
+#     return_content: yes
+#     body_format: json
+#     body: |
+#       { "content": "{{ lookup('template', 'templates/gravitee/apis/orion/swagger_ngsi.json.j2') }}",
+#         "name": "API SWAGGER Doc",
+#         "parentId": "",
+#         "published": true,
+#         "type": "SWAGGER"
+#       }
+#     headers:
+#       Accept: application/json
+#       Authorization: Bearer {{ new_token.json.token }}
+#     status_code: 201
+#   when: fiwareAPI.status != 400
+#   register: swagger
+
+# - name: Print swagger response
+#   debug:
+#     var: swagger
+
+- name: Update to final Values
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ fiwareAPI.json.id }}"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'templates/gravitee/apis/orion/orion_ngsi_v2.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  when: fiwareAPI.status != 400
+
+- name: Create Subscription Plan based on keycloak-auth
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ fiwareAPI.json.id }}/plans"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'templates/gravitee/apis/orion/create_plan_oauth_keycloak.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 201
+  register: fiwarePlan
+  when: fiwareAPI.status != 400
+
+- name: Start the API
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ fiwareAPI.json.id }}?action=START"
+    return_content: yes
+    headers:
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 204
+  when: fiwareAPI.status != 400
+
+- name: Subscribe platform application to Orion
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ fiwareAPI.json.id }}/subscriptions?application={{ portal_app_id }}&plan={{ fiwarePlan.json.id }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 201,400
+  register: portal_orion_subscription
+  when: fiwareAPI.status != 400
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Subscription may already exist."
+  when: fiwareAPI.status != 400 and portal_orion_subscription.status == 400
+
+- name: Print subscription response
+  debug:
+    var: portal_orion_subscription

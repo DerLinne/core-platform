@@ -1,0 +1,147 @@
+{
+  "labels" : [
+
+  ],
+  "tags" : [
+
+  ],
+  "proxy" : {
+    "groups" : [
+      {
+        "proxy" : {
+          "enabled" : false,
+          "host" : "null",
+          "type" : "HTTP",
+          "port" : 0
+        },
+        "services" : {
+          "discovery" : {
+            "enabled" : false
+          }
+        },
+        "http" : {
+          "idleTimeout" : 60000,
+          "pipelining" : false,
+          "connectTimeout" : 5000,
+          "keepAlive" : true,
+          "followRedirects" : false,
+          "maxConcurrentConnections" : 100,
+          "useCompression" : true,
+          "encodeURI" : false,
+          "readTimeout" : 10000
+        },
+        "ssl" : {
+          "trustAll" : false,
+          "hostnameVerifier" : false
+        },
+        "endpoints" : [
+          {
+            "target" : "http://minio.{{ default.K8S_NAMESPACE_DATA_MANAGEMENT }}.svc.cluster.local:80",
+            "weight" : 1,
+            "backup" : false,
+            "inherit" : true,
+            "type" : "HTTP",
+            "healthcheck" : {
+              "trigger" : {
+                "unit" : "SECONDS",
+                "rate" : 60
+              },
+              "enabled" : true,
+              "steps" : [
+                {
+                  "name" : "default-step",
+                  "request" : {
+                    "path" : "/",
+                    "method" : "GET",
+                    "fromRoot" : false
+                  },
+                  "response" : {
+                    "assertions" : [
+                      "#response.status == 403"
+                    ]
+                  }
+                }
+              ],
+              "inherit" : false
+            },
+            "name" : "minio-s3"
+          }
+        ],
+        "load_balancing" : {
+          "type" : "ROUND_ROBIN"
+        },
+        "name" : "Local Deployment"
+      }
+    ],
+    "preserve_host" : false,
+    "virtual_hosts" : [
+      {
+        "path" : "{{ gravitee.gateway_endpoint }}{{ gravitee.MINIO_API_PATH }}"
+      }
+    ],
+    "strip_context_path" : false
+  },
+  "disable_membership_notifications" : false,
+  "visibility" : "public",
+  "name" : "{{ gravitee.MINIO_API_PORTAL_NAME }}",
+  "version" : "1.0",
+  "services" : {
+    "health-check" : {
+      "enabled" : true,
+      "trigger" : {
+        "unit" : "SECONDS",
+        "rate" : 60
+      },
+      "steps" : [
+        {
+          "name" : "default-step",
+          "request" : {
+            "path" : "/",
+            "method" : "GET",
+            "fromRoot" : false
+          },
+          "response" : {
+            "assertions" : [
+              "#response.status == 403"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "response_templates" : {
+
+  },
+  "resources" : [
+    {
+      "name": "{{ gravitee.OAUTH_RESOURCE_NAME }}",
+      "type": "oauth2",
+      "enabled": true,
+      "configuration": {
+        "authorizationServerUrl": "https://idm.{{ DOMAIN }}/auth",
+        "introspectionEndpoint": "/realms/{{ IDM_REALM }}/protocol/openid-connect/token/introspect",
+        "introspectionEndpointMethod": "POST",
+        "scopeSeparator": " ",
+        "userInfoEndpoint": "/realms/{{ IDM_REALM }}/protocol/openid-connect/userinfo",
+        "userInfoEndpointMethod": "GET",
+        "useClientAuthorizationHeader": true,
+        "clientAuthorizationHeaderName": "Authorization",
+        "clientAuthorizationHeaderScheme": "Basic",
+        "tokenIsSuppliedByQueryParam": false,
+        "tokenQueryParamName": "token",
+        "tokenIsSuppliedByHttpHeader": false,
+        "tokenIsSuppliedByFormUrlEncoded": true,
+        "tokenFormUrlEncodedName": "token",
+        "userClaim": "sub",
+        "clientSecret": "{{ IDM_CLIENT_SECRET_API_ACCESS }}",
+        "clientId": "{{ IDM_CLIENT_API_ACCESS }}",
+        "tokenHeaderName": ""
+      }
+    }
+  ],
+  "paths" : {
+    "/" : []
+  },
+  "description" : "{{ gravitee.MINIO_API_PORTAL_DESCRIPTION }}",
+  "lifecycle_state": "PUBLISHED"
+  }

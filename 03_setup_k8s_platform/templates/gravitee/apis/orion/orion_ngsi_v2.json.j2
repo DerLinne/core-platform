@@ -1,0 +1,261 @@
+{
+  "labels" : [
+
+  ],
+  "tags" : [
+
+  ],
+  "proxy" : {
+    "groups" : [
+      {
+        "proxy" : {
+          "enabled" : false,
+          "host" : "null",
+          "type" : "HTTP",
+          "port" : 0
+        },
+        "services" : {
+          "discovery" : {
+            "enabled" : false
+          }
+        },
+        "http" : {
+          "idleTimeout" : 60000,
+          "pipelining" : false,
+          "connectTimeout" : 5000,
+          "keepAlive" : true,
+          "followRedirects" : false,
+          "maxConcurrentConnections" : 100,
+          "useCompression" : true,
+          "encodeURI" : false,
+          "readTimeout" : 10000
+        },
+        "ssl" : {
+          "trustAll" : false,
+          "hostnameVerifier" : false
+        },
+        "endpoints" : [
+          {
+            "target" : "http://orion.{{ K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK }}.svc.cluster.local:1026",
+            "weight" : 1,
+            "backup" : false,
+            "inherit" : true,
+            "type" : "HTTP",
+            "healthcheck" : {
+              "trigger" : {
+                "unit" : "SECONDS",
+                "rate" : 60
+              },
+              "enabled" : true,
+              "steps" : [
+                {
+                  "name" : "default-step",
+                  "request" : {
+                    "path" : "/version",
+                    "method" : "GET",
+                    "fromRoot" : false
+                  },
+                  "response" : {
+                    "assertions" : [
+                      "#response.status == 200"
+                    ]
+                  }
+                }
+              ],
+              "inherit" : false
+            },
+            "name" : "orion-v2"
+          }
+        ],
+        "load_balancing" : {
+          "type" : "ROUND_ROBIN"
+        },
+        "name" : "Local Deployment"
+      }
+    ],
+    "preserve_host" : false,
+    "virtual_hosts" : [
+      {
+        "path": "{{ gravitee.gateway_endpoint }}{{ gravitee.ORION_API_PATH }}"
+      }
+    ],
+    "strip_context_path" : false
+  },
+  "disable_membership_notifications" : false,
+  "visibility" : "public",
+  "name" : "{{ gravitee.ORION_API_PORTAL_NAME }}",
+  "version" : "1.0",
+  "services" : {
+    "health-check" : {
+      "enabled" : true,
+      "trigger" : {
+        "unit" : "SECONDS",
+        "rate" : 60
+      },
+      "steps" : [
+        {
+          "name" : "default-step",
+          "request" : {
+            "path" : "/version",
+            "method" : "GET",
+            "fromRoot" : false
+          },
+          "response" : {
+            "assertions" : [
+              "#response.status == 200"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "response_templates" : {
+
+  },
+  "resources" : [
+    {
+      "name": "{{ gravitee.OAUTH_RESOURCE_NAME }}",
+      "type": "oauth2",
+      "enabled": true,
+      "configuration": {
+        "authorizationServerUrl": "https://idm.{{ DOMAIN }}/auth",
+        "introspectionEndpoint": "/realms/{{ IDM_REALM }}/protocol/openid-connect/token/introspect",
+        "introspectionEndpointMethod": "POST",
+        "scopeSeparator": " ",
+        "userInfoEndpoint": "/realms/{{ IDM_REALM }}/protocol/openid-connect/userinfo",
+        "userInfoEndpointMethod": "GET",
+        "useClientAuthorizationHeader": true,
+        "clientAuthorizationHeaderName": "Authorization",
+        "clientAuthorizationHeaderScheme": "Basic",
+        "tokenIsSuppliedByQueryParam": false,
+        "tokenQueryParamName": "token",
+        "tokenIsSuppliedByHttpHeader": false,
+        "tokenIsSuppliedByFormUrlEncoded": true,
+        "tokenFormUrlEncodedName": "token",
+        "userClaim": "sub",
+        "clientSecret": "{{ IDM_CLIENT_SECRET_API_ACCESS }}",
+        "clientId": "{{ IDM_CLIENT_API_ACCESS }}",
+        "tokenHeaderName": ""
+      }
+    }
+  ],
+  "paths" : {
+    "/version": [],
+    "/": [
+      {
+        "methods": [
+          "GET"
+        ],
+        "oauth2": {
+          "extractPayload": true,
+          "checkRequiredScopes": true,
+          "modeStrict": false,
+          "propagateAuthHeader": true,
+          "requiredScopes": [
+            "{{ keycloak.IDM_SCOPE_API_READ }}"
+          ],
+          "oauthResource": "{{ gravitee.OAUTH_RESOURCE_NAME }}"
+        },
+        "description": "{{ keycloak.IDM_SCOPE_API_READ }} Policy, created with ansible.",
+        "enabled": true
+      },
+      {
+        "methods": [
+          "PATCH",
+          "POST",
+          "PUT"
+        ],
+        "oauth2": {
+          "extractPayload": true,
+          "checkRequiredScopes": true,
+          "modeStrict": false,
+          "propagateAuthHeader": true,
+          "requiredScopes": [
+            "{{ keycloak.IDM_SCOPE_API_WRITE }}"
+          ],
+          "oauthResource": "{{ gravitee.OAUTH_RESOURCE_NAME }}"
+        },
+        "description": "{{ keycloak.IDM_SCOPE_API_WRITE }} Policy, created with ansible.",
+        "enabled": true
+      },
+      {
+        "methods": [
+          "DELETE"
+        ],
+        "oauth2": {
+          "extractPayload": true,
+          "checkRequiredScopes": true,
+          "modeStrict": false,
+          "propagateAuthHeader": true,
+          "requiredScopes": [
+            "{{ keycloak.IDM_SCOPE_API_DELETE }}"
+          ],
+          "oauthResource": "{{ gravitee.OAUTH_RESOURCE_NAME }}"
+        },
+        "description": "{{ keycloak.IDM_SCOPE_API_DELETE }} Policy, created with ansible.",
+        "enabled": true
+      },
+      {
+        "methods": [
+          "CONNECT",
+          "DELETE",
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "PATCH",
+          "POST",
+          "PUT",
+          "TRACE"
+        ],
+        "groovy": {
+          "onResponseScript": "",
+          "onRequestScript": "def value = request.parameters().find{ key, val -> key ==~ /maxDistance:\\d+/ }\nif (value) {\ndef k = value.key\nrequest.parameters().'georel' = 'near;' + k\nrequest.parameters().remove(k)\n}"
+        },
+        "description": "NGSI Georel Policy, created with ansible.",
+        "enabled": true
+      },
+      {
+        "methods": [
+          "CONNECT",
+          "DELETE",
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "PATCH",
+          "POST",
+          "PUT",
+          "TRACE"
+        ],
+        "groovy": {
+          "onRequestScript": "import io.gravitee.policy.groovy.PolicyResult.State\nimport groovy.json.JsonSlurper\nimport groovy.json.JsonOutput\n\ndef jsonSlurper = new JsonSlurper()\n\ndef authorised = false;\n\ndef content = null;\n\nif(context.attributes['oauth.payload']){\n\tcontent =  jsonSlurper.parseText(context.attributes['oauth.payload']);\n}\nif (request.headers.containsKey('fiware-Service') && content) {\n   def service = request.headers.get('fiware-Service').get(0)\n   if (content['{{ keycloak.IDM_SCOPE_TENANT_VALUES }}'].findAll{ it.name == service }){\n      authorised = true;\n   }\n}\n\nif (authorised == false) {\n  \tresult.state = State.FAILURE;\n\tresult.code = 401;\n\tresult.error = '{\"error\":\"Missing authorisation for specified fiware-service and fiware-servicePath\",\"code\":\"UNAUTHORISED\"}';\n}",
+          "extractPayload": false,
+          "checkRequiredScopes": false,
+          "modeStrict": true,
+          "propagateAuthHeader": true,
+          "requiredScopes": []
+        },
+        "description": "Tenant Authorization policy, created with ansible.",
+        "enabled": true
+      }
+    ]
+  },
+  "path_mappings" : [
+    "/v2/op/notify",
+    "/v2/entities",
+    "/v2/registrations",
+    "/v2/subscriptions",
+    "/v2/entities/:entityId/attrs",
+    "/v2/entities/:entityId/attrs/:attrName",
+    "/v2/entities/:entityId/attrs/:attrName/value",
+    "/v2/registrations/:registrationId",
+    "/v2",
+    "/v2/types/",
+    "/v2/op/query",
+    "/v2/types/:entityType",
+    "/v2/subscriptions/:subscriptionId",
+    "/v2/op/update",
+    "/v2/entities/:entityId"
+  ],
+  "description" : "{{ gravitee.ORION_API_PORTAL_DESCRIPTION }}",
+  "lifecycle_state": "PUBLISHED"
+  }

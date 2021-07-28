@@ -1,0 +1,4 @@
+# PVC settings
+pv_storageClass: microk8s-hostpath
+pv_accessMode: ReadWriteOnce
+pv_size: 100Mi

@@ -1,0 +1,12 @@
+{
+  "name": "{{ gravitee.OAUTH_PLAN_NAME }}",
+  "description": "Plan using keycloak tokens, created by ansible.",
+  "validation": "AUTO",
+  "security": "OAUTH2",
+  "securityDefinition": "{\"extractPayload\":true,\"checkRequiredScopes\":false,\"modeStrict\":false,\"propagateAuthHeader\":true,\"oauthResource\":\"{{ gravitee.OAUTH_RESOURCE_NAME }}\"}",
+  "type": "API",
+  "status": "PUBLISHED",
+  "paths": {
+  },
+  "comment_required": false
+}

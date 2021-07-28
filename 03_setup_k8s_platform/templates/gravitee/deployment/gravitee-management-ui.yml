@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gravitee-ui
+  name: gravitee-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gravitee-ui
+  template:
+    metadata:
+      labels:
+        app: gravitee-ui
+    spec:
+      containers:
+      - image: graviteeio/apim-management-ui:3.7.0
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+          timeoutSeconds: 1
+        startupProbe:
+          initialDelaySeconds: 240
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+        name: gravitee-ui
+        env:
+          - name: MGMT_API_URL
+            value: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT"
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gravitee-ui
+  name: gravitee-ui
+spec:
+  ports:
+  - name: ui
+    port: 8084
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: gravitee-ui
+  type: ClusterIP
+status:
+  loadBalancer: {}

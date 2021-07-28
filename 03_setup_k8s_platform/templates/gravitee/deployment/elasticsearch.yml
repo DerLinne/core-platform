@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: gravitee-elasticsearch
+  name: gravitee-elasticsearch
+spec:
+  selector:
+    matchLabels:
+      app: gravitee-elasticsearch
+  replicas: 1
+  serviceName: gravitee-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: gravitee-elasticsearch
+    spec:
+      containers:
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+        name: gravitee-elasticsearch
+        imagePullPolicy: IfNotPresent
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 1500Mi
+            requests:
+              cpu: 200m
+              memory: 1Gi
+        ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        env:
+          - name: http.host
+            value: "0.0.0.0"
+          - name: transport.host
+            value: "0.0.0.0"
+          - name: xpack.security.enabled
+            value: "false"
+          - name: xpack.monitoring.enabled
+            value: "false"
+          - name: cluster.name
+            value: "gravitee-elasticsearch"
+          - name: bootstrap.memory_lock
+            value: "true"
+          - name: discovery.type
+            value: "single-node"
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+        volumeMounts:
+        - mountPath: /usr/share/elasticsearch/data
+          name: elasticsearch-data
+        readinessProbe:
+          exec:
+            command:
+              - "true"
+          failureThreshold: 2
+          periodSeconds: 2
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          httpGet:
+            path: /_cluster/health?local=true
+            port: 9200
+        startupProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          httpGet:
+            path: /_cluster/health?local=true
+            port: 9200
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /usr/share/elasticsearch/data
+      restartPolicy: Always
+      volumes:
+        - name: elasticsearch-data
+          persistentVolumeClaim:
+            claimName: gravitee-elasticsearch-data
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gravitee-elasticsearch
+  name: gravitee-elasticsearch
+spec:
+  ports:
+  - name: "9200"
+    port: 9200
+    targetPort: 9200
+  selector:
+    app: gravitee-elasticsearch
+status:
+  loadBalancer: {}
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gravitee-elasticsearch-data
+spec:
+  storageClassName: '{{ common.pv_storageClass }}'
+  accessModes:
+    - {{ common.pv_accessMode}}
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ common.pv_size }}

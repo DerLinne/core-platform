@@ -1,0 +1,97 @@
+#############################
+####  CREATE MINIO API   ####
+#############################
+
+- name: Create MINIO API Entry
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/import"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "proxy": {
+          "endpoints": [
+            {
+              "name":"default",
+              "target" : "http://minio.{{ default.K8S_NAMESPACE_DATA_MANAGEMENT }}.svc.cluster.local:80",
+              "inherit":true
+            }
+          ],
+          "context_path":"{{ gravitee.gateway_endpoint }}{{ gravitee.MINIO_API_PATH }}"
+        },
+        "pages":[],
+        "plans":[],
+        "tags":[],
+        "name":"MinIO S3",
+        "version":"1.0",
+        "description":"MinIO S3 API"
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200,400
+  register: minioAPI
+
+- name: Print MINIO API already exists
+  debug:
+    msg: "Failed. MINIO API already existing?"
+  when: minioAPI.status == 400
+
+- name: Update to final Values
+  uri:
+    method: PUT
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ minioAPI.json.id }}"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'templates/gravitee/apis/minio/minio_s3.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 200
+  when: minioAPI.status != 400
+
+- name: Create Subscription Plan based on keycloak-auth
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ minioAPI.json.id }}/plans"
+    return_content: yes
+    body_format: json
+    body: "{{ lookup('template', 'templates/gravitee/apis/minio/create_plan_oauth_keycloak.json.j2') }}"
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 201
+  register: miniPlan
+  when: minioAPI.status != 400
+
+- name: Start the API
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ minioAPI.json.id }}?action=START"
+    return_content: yes
+    headers:
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 204
+  when: minioAPI.status != 400
+
+- name: Subscribe platform application to MINIO API
+  uri:
+    method: POST
+    url: "https://apim.{{ DOMAIN }}/management/organizations/DEFAULT/environments/DEFAULT/apis/{{ minioAPI.json.id }}/subscriptions?application={{ portal_app_id }}&plan={{ miniPlan.json.id }}"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ new_token.json.token }}
+    status_code: 201,400
+  register: portal_minio_subscription
+  when: minioAPI.status != 400
+
+- name: Check if already existing.
+  debug:
+    msg: "Failed. Subscription may already exist."
+  when: minioAPI.status != 400 and portal_minio_subscription.status == 400
+
+- name: Print subscription response
+  debug:
+    var: portal_orion_subscription

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: gravitee-mongo
+  name: gravitee-mongo
+spec:
+  selector:
+    matchLabels:
+      app: gravitee-mongo
+  replicas: 1
+  serviceName: gravitee-mongo
+  template:
+    metadata:
+      labels:
+        app: gravitee-mongo
+    spec:
+      containers:
+      - image: mongo:3.6
+        name: mongo
+        livenessProbe:
+          exec:
+            command:
+              - mongo
+              - --disableImplicitSessions
+              - --eval
+              - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          exec:
+            command:
+              - bash
+              - -ec
+              - |
+                mongo --disableImplicitSessions $TLS_OPTIONS --eval 'db.hello().isWritablePrimary || db.hello().secondary' | grep -q 'true'
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 60
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongodb-data
+      restartPolicy: Always
+      volumes:
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: gravitee-mongo-data
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gravitee-mongo
+  name: gravitee-mongo
+spec:
+  ports:
+  - name: "27017"
+    port: 27017
+    targetPort: 27017
+  selector:
+    app: gravitee-mongo
+status:
+  loadBalancer: {}
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gravitee-mongo-data
+spec:
+  storageClassName: '{{ common.pv_storageClass }}'
+  accessModes:
+    - {{ common.pv_accessMode}}
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ common.pv_size }}

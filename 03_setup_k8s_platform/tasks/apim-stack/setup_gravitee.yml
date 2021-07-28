@@ -1,0 +1,26 @@
+- name: Read values to setup and configure gravitee
+  ansible.builtin.include_vars:
+    file: apim-stack/setup_gravitee.yml
+    name: gravitee
+
+- name: Read keycloak configuration values
+  ansible.builtin.include_vars:
+    file: idm-stack/setup_keycloak.yml
+    name: keycloak
+
+- name: Read frost configuration values
+  ansible.builtin.include_vars:
+    file: frost_frost.yml
+    name: frost
+
+- name: Setup Gravitee APIM
+  include_tasks:
+    file: "{{ config_step }}"
+  loop:
+    - apim-config/gravitee_0_retrieve_client_secrets.yml
+    - apim-config/gravitee_1_setup_gravitee.yml
+    - apim-config/gravitee_5_orion_api.yml
+    - apim-config/gravitee_6_frost_api.yml
+    - apim-config/gravitee_7_minio_api.yml
+  loop_control:
+    loop_var: config_step

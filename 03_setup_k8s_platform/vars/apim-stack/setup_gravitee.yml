@@ -1,0 +1,40 @@
+# Gravitee
+## General
+ingress_tls_host: "apim.{{ DOMAIN }}"
+ingress_rules_host: "apim.{{ DOMAIN }}"
+ingress_secret_name: "api-custom-cert"
+DEFAULT_BASIC_AUTH: "Basic YWRtaW46YWRtaW4="
+## Application
+PORTAL_APPLICATION: 'ODP BTXL Portal Application'
+## OAuth
+OAUTH_RESOURCE_NAME: 'keycloak-auth'
+OAUTH_PLAN_NAME: 'keycloak-plan'
+
+## Gateway
+gateway_log_level: "INFO"
+gateway_endpoint: "/gateway"
+## API Management
+management_log_level: "INFO"
+management_endpoint: "/management"
+## Portal
+portal_endpoint: "/portal"
+## UI
+ui_endpoint: "/console(/|$)(.*)"
+
+
+## APIS
+### ORION
+ORION_API_PATH: "/fiware/ngsi"
+ORION_API_PORTAL_NAME: 'FIWARE-NGSI v2 Orion Context Broker'
+ORION_API_PORTAL_DESCRIPTION: 'API for the Orion Context Broker, imported by ansible.'
+
+### FROST
+FROST_API_PATH: "/frost/sensorthings"
+FROST_API_PORTAL_NAME: 'FROST OGC Sensorthings API'
+FROST_API_PORTAL_DESCRIPTION: 'API for the Sensorthings FROST-Server, imported by ansible.'
+
+### MinIO
+MINIO_API_PATH: "/minio/s3"
+MINIO_API_PORTAL_NAME: 'MinIO S3 Object Storage API'
+MINIO_API_PORTAL_DESCRIPTION: 'API for the MinIO S3 Object Storage, imported by ansible.'
+

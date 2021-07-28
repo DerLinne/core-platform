@@ -1,0 +1,25 @@
+{
+    "name": "KEYCLOAK",
+    "configuration": {
+        "clientId": "{{ IDM_CLIENT_GRAVITEE }}",
+        "clientSecret": "{{ IDM_CLIENT_SECRET_GRAVITEE }}",
+        "tokenEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/token",
+        "tokenIntrospectionEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/token/introspect",
+        "authorizeEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/auth",
+        "userInfoEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/userinfo",
+        "userLogoutEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/logout?redirect_uri=",
+        "color": "#0076b4",
+        "scopes": ["openid", "profile"]
+    },
+    "enabled": true,
+    "groupMappings": [],
+    "userProfileMapping": {
+        "id": "sub",
+        "firstname": "given_name",
+        "lastname": "family_name",
+        "email": "email",
+        "picture": "picture"
+    },
+    "emailRequired": false,
+    "syncMappings": true
+}

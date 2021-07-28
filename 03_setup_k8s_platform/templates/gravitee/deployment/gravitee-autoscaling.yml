@@ -1,0 +1,209 @@
+# apiVersion: autoscaling/v2beta2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: gravitee-gateway-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: gravitee-gateway
+#   minReplicas: 2
+#   maxReplicas: 3
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 170
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: AverageValue
+#         averageValue: 1400Mi
+# #  - type: Object
+# #    object:
+# #        metric:
+# #          name: requests-per-second
+# #        describedObject:
+# #          apiVersion: networking.k8s.io/v1beta1
+# #          kind: Ingress
+# #          name: gravitee-gateway
+# #        target:
+# #          type: Value
+# #          value: 10k
+
+# ---
+
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: gravitee-gateway-vpa-recommender
+# spec:
+#   targetRef:
+#     apiVersion: "apps/v1"
+#     kind: Deployment
+#     name: gravitee-gateway
+#   updatePolicy:
+#     updateMode: "Off"
+#   resourcePolicy:
+#     containerPolicies:
+#       - containerName: '*'
+#         controlledResources: ["cpu", "memory"]
+
+# ---
+
+# apiVersion: autoscaling/v2beta2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: gravitee-api-management-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: gravitee-api-management
+#   minReplicas: 1
+#   maxReplicas: 2
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 200
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: AverageValue
+#         averageValue: 1400Mi
+
+
+# ---
+
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: gravitee-api-management-vpa-recommender
+# spec:
+#   targetRef:
+#     apiVersion: "apps/v1"
+#     kind: Deployment
+#     name: gravitee-api-management
+#   updatePolicy:
+#     updateMode: "Off"
+#   resourcePolicy:
+#     containerPolicies:
+#       - containerName: '*'
+#         controlledResources: ["cpu", "memory"]
+
+# ---
+
+# apiVersion: autoscaling/v2beta2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: gravitee-management-ui-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: gravitee-ui
+#   minReplicas: 1
+#   maxReplicas: 2
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 160
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: AverageValue
+#         averageValue: 100Mi
+
+# ---
+
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: gravitee-management-ui-vpa-recommender
+# spec:
+#   targetRef:
+#     apiVersion: "apps/v1"
+#     kind: Deployment
+#     name: gravitee-ui
+#   updatePolicy:
+#     updateMode: "Off"
+#   resourcePolicy:
+#     containerPolicies:
+#       - containerName: '*'
+#         controlledResources: ["cpu", "memory"]
+
+# ---
+
+# apiVersion: autoscaling/v2beta2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: gravitee-portal-ui-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: gravitee-portal
+#   minReplicas: 1
+#   maxReplicas: 2
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 160
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: AverageValue
+#         averageValue: 100Mi
+
+
+# ---
+
+
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: gravitee-portal-ui-vpa-recommender
+# spec:
+#   targetRef:
+#     apiVersion: "apps/v1"
+#     kind: Deployment
+#     name: gravitee-portal
+#   updatePolicy:
+#     updateMode: "Off"
+#   resourcePolicy:
+#     containerPolicies:
+#       - containerName: '*'
+#         controlledResources: ["cpu", "memory"]
+
+# ---
+
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: gravitee-elasticsearch-vpa-recommender
+# spec:
+#   targetRef:
+#     apiVersion: "apps/v1"
+#     kind: StatefulSet
+#     name: gravitee-elasticsearch
+#   updatePolicy:
+#     updateMode: "Off"
+#   resourcePolicy:
+#     containerPolicies:
+#       - containerName: '*'
+#         controlledResources: ["cpu", "memory"]

@@ -181,6 +181,21 @@
   vars:
     query: "[?clientId== '{{ IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
 
+<<<<<<< HEAD
+=======
+- name: "Get keycloak client Admin Tools ID."
+  set_fact:
+    client_id_admin_tools: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_ADMIN_TOOLS }}'].id | [0]"
+
+- name: "Get keycloak client Masterportal ID."
+  set_fact:
+    client_id_masterportal: "{{ clients.json | json_query(query) }}"
+  vars:
+    query: "[?clientId== '{{ IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
+
+>>>>>>> ticket-63-branch
 - name: "Get keycloak client CKAN ID."
   set_fact:
     client_id_ckan: "{{ clients.json | json_query(query) }}"
@@ -227,6 +242,7 @@
   register: keycloak_client_gravitee_secret_response
 
 - name: Get Client Secret Admin Tools
+<<<<<<< HEAD
   uri:
     method: GET
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_admin_tools }}/client-secret"
@@ -252,11 +268,41 @@
   uri:
     method: GET
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_ckan }}/client-secret"
+=======
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_admin_tools }}/client-secret"
+>>>>>>> ticket-63-branch
     return_content: yes
     headers:
       Accept: application/json
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 200
+<<<<<<< HEAD
+=======
+  register: keycloak_client_admin_tools_secret_response
+
+- name: Get Client Secret Masterportal
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_masterportal }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+  register: keycloak_client_masterportal_secret_response
+
+- name: Get Client Secret CKAN
+  uri:
+    method: GET
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_ckan }}/client-secret"
+    return_content: yes
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 200
+>>>>>>> ticket-63-branch
   register: keycloak_client_ckan_secret_response
 
 - name: Get Client Secret MINIO
@@ -287,6 +333,7 @@
     cacheable: yes
 
 - name: "Set IDM client secret Admin Tools."
+<<<<<<< HEAD
   set_fact:
     IDM_CLIENT_SECRET_ADMIN_TOOLS: "{{ keycloak_client_admin_tools_secret_response.json.value }}"
     cacheable: yes
@@ -296,6 +343,17 @@
     IDM_CLIENT_SECRET_MASTERPORTAL: "{{ keycloak_client_masterportal_secret_response.json.value }}"
     cacheable: yes
 
+=======
+  set_fact:
+    IDM_CLIENT_SECRET_ADMIN_TOOLS: "{{ keycloak_client_admin_tools_secret_response.json.value }}"
+    cacheable: yes
+
+- name: "Set IDM client secret Masterportal."
+  set_fact:
+    IDM_CLIENT_SECRET_MASTERPORTAL: "{{ keycloak_client_masterportal_secret_response.json.value }}"
+    cacheable: yes
+
+>>>>>>> ticket-63-branch
 - name: "Set IDM client secret CKAN."
   set_fact:
     IDM_CLIENT_SECRET_CKAN: "{{ keycloak_client_ckan_secret_response.json.value }}"
@@ -427,6 +485,7 @@
   when: client_ckan_response.status != 409
 
 - name: Create MINIO roles 1/4
+<<<<<<< HEAD
   uri:
     method: POST
     url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
@@ -443,6 +502,72 @@
       Authorization: Bearer {{ keycloak_login.json.access_token }}
     status_code: 201
   register: roles_minio_response
+  when: client_minio_response.status != 409
+
+- name: Create MINIO roles 2/4
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "minioPolicyReadWrite",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+  when: client_minio_response.status != 409
+
+- name: Create MINIO roles 3/4
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+        "name": "minioPolicyWrite",
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+  when: client_minio_response.status != 409
+
+- name: Create MINIO roles 4/4
+=======
+>>>>>>> ticket-63-branch
+  uri:
+    method: POST
+    url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_minio }}/roles"
+    return_content: yes
+    body_format: json
+    body: |
+      {
+<<<<<<< HEAD
+        "name": "minioPolicyRead",
+=======
+        "name": "minioAdmin",
+>>>>>>> ticket-63-branch
+        "composite": false,
+        "clientRole": true
+      }
+    headers:
+      Accept: application/json
+      Authorization: Bearer {{ keycloak_login.json.access_token }}
+    status_code: 201
+  register: roles_minio_response
+<<<<<<< HEAD
+  when: client_minio_response.status != 409  
+=======
   when: client_minio_response.status != 409
 
 - name: Create MINIO roles 2/4
@@ -501,3 +626,5 @@
     status_code: 201
   register: roles_minio_response
   when: client_minio_response.status != 409  
+
+>>>>>>> ticket-63-branch

@@ -1,0 +1,15 @@
+{
+    "enabled": true,
+    "type": "oidc",
+    "name": "KEYCLOAK",
+    "configuration": {
+        "clientId": "{{ IDM_CLIENT_GRAVITEE }}",
+        "clientSecret": "{{ IDM_CLIENT_SECRET_GRAVITEE }}",
+        "tokenEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/token",
+        "authorizeEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/auth",
+        "userInfoEndpoint": "https://idm.{{ DOMAIN }}/auth/realms/{{ IDM_REALM }}/protocol/openid-connect/userinfo"
+    },
+    "userProfileMapping": {
+        "id": "sub"
+    }
+}

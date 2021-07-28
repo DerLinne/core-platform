@@ -442,12 +442,10 @@ do build:
     - docker info
     - env
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-
   script:
     - docker build -t webgis-qgisserver .
     - docker tag webgis-qgisserver "$CI_REGISTRY_IMAGE:webgis-qgisserver"
     - docker push "$CI_REGISTRY_IMAGE:webgis-qgisserver"
-
 
 ```
 How to create and deploy such an image locally, using the MicroK8s registry, will be described further [below](#how-to-build-the-qgis-server-docker-image).
