@@ -14,5 +14,5 @@ ingress_tls_acme: "true"
 ingress_server_name: "grafana"
 ingress_tls_secret: "grafana-tls"
 
-admin_user: "{{ lookup('env', 'GRAFANA_ADMIN') }}"
-admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') }}"
+admin_user: "{{ GRAFANA_ADMIN }}"
+admin_password: "{{ GRAFANA_ADMIN_PASSWORD }}"
