@@ -14,7 +14,7 @@
           "endpoints": [
             {
               "name":"default",
-              "target":"http://orion.{{ k8s_namespace }}.svc.cluster.local:9200",
+              "target":"http://orion.{{ K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK }}.svc.cluster.local:9200",
               "inherit":true
             }
           ],

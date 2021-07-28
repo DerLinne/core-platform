@@ -200,9 +200,9 @@
     body_format: form-urlencoded
     body:
     - [ grant_type, "password" ]
-    - [ username, "{{keycloak.PLATFORM_ADMIN_EMAIL }}" ]
+    - [ username, "{{PLATFORM_ADMIN_EMAIL }}" ]
     - [ password, "{{ ADMIN_PASSWORD }}" ]
-    - [ client_id, "{{ keycloak.IDM_CLIENT_GRAVITEE }}" ]
+    - [ client_id, "{{ IDM_CLIENT_GRAVITEE }}" ]
     - [ client_secret, "{{ IDM_CLIENT_SECRET_GRAVITEE }}" ]
     headers:
       Accept: application/json
@@ -447,9 +447,9 @@
     body_format: form-urlencoded
     body:
     - [ grant_type, "password" ]
-    - [ username, "{{keycloak.PLATFORM_ADMIN_EMAIL }}" ]
+    - [ username, "{{PLATFORM_ADMIN_EMAIL }}" ]
     - [ password, "{{ ADMIN_PASSWORD }}" ]
-    - [ client_id, "{{ keycloak.IDM_CLIENT_GRAVITEE }}" ]
+    - [ client_id, "{{ IDM_CLIENT_GRAVITEE }}" ]
     - [ client_secret, "{{ IDM_CLIENT_SECRET_GRAVITEE }}" ]
     headers:
       Accept: application/json
@@ -485,9 +485,9 @@
     body_format: form-urlencoded
     body:
     - [ grant_type, "password" ]
-    - [ username, "{{keycloak.PLATFORM_ADMIN_EMAIL }}" ]
+    - [ username, "{{PLATFORM_ADMIN_EMAIL }}" ]
     - [ password, "{{ ADMIN_PASSWORD }}" ]
-    - [ client_id, "{{ keycloak.IDM_CLIENT_GRAVITEE }}" ]
+    - [ client_id, "{{ IDM_CLIENT_GRAVITEE }}" ]
     - [ client_secret, "{{ IDM_CLIENT_SECRET_GRAVITEE }}" ]
     headers:
       Accept: application/json
@@ -542,7 +542,7 @@
   set_fact:
     env_def_app_id: "{{ applications.json | json_query(query) }}"
   vars:
-    query: "[?name == 'Default application' && owner.displayName == '{{ keycloak.PLATFORM_ADMIN_FIRST_NAME }} {{ keycloak.PLATFORM_ADMIN_SURNAME }}'].id | [0]"
+    query: "[?name == 'Default application' && owner.displayName == '{{ PLATFORM_ADMIN_FIRST_NAME }} {{ PLATFORM_ADMIN_SURNAME }}'].id | [0]"
 
 - name: Print application id
   debug:
@@ -573,7 +573,7 @@
         {
             "app":
             {
-                "client_id": "{{ keycloak.IDM_CLIENT_API_ACCESS }}"
+                "client_id": "{{ IDM_CLIENT_API_ACCESS }}"
             }
         }
       }
@@ -599,12 +599,20 @@
     status_code: 200
   register: applications
 
+- name: Applications
+  ansible.builtin.debug:
+    msg: "{{ applications }}"
+
 - name: Get portal application id
   set_fact:
     portal_app_id: "{{ applications.json | json_query(query) }}"
   vars:
-    query: "[?name == '{{ gravitee.PORTAL_APPLICATION }}' && owner.displayName == '{{ keycloak.PLATFORM_ADMIN_FIRST_NAME }} {{ keycloak.PLATFORM_ADMIN_SURNAME }}'].id | [0]"
+    query: "[?name == '{{ gravitee.PORTAL_APPLICATION }}' && owner.displayName == '{{ PLATFORM_ADMIN_FIRST_NAME }} {{ PLATFORM_ADMIN_SURNAME }}'].id | [0]"
 
 - name: Print portal app id
   debug:
     var: portal_app_id
+
+- name: Print query
+  debug:
+    msg: "[?name == '{{ gravitee.PORTAL_APPLICATION }}' && owner.displayName == '{{ PLATFORM_ADMIN_FIRST_NAME }} {{ PLATFORM_ADMIN_SURNAME }}'].id | [0]"

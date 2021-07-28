@@ -36,7 +36,7 @@
         },
         "endpoints" : [
           {
-            "target" : "http://orion.{{ k8s_namespace }}.svc.cluster.local:1026",
+            "target" : "http://orion.{{ K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK }}.svc.cluster.local:1026",
             "weight" : 1,
             "backup" : false,
             "inherit" : true,
@@ -134,7 +134,7 @@
         "tokenFormUrlEncodedName": "token",
         "userClaim": "sub",
         "clientSecret": "{{ IDM_CLIENT_SECRET_API_ACCESS }}",
-        "clientId": "{{ keycloak.IDM_CLIENT_API_ACCESS }}",
+        "clientId": "{{ IDM_CLIENT_API_ACCESS }}",
         "tokenHeaderName": ""
       }
     }
