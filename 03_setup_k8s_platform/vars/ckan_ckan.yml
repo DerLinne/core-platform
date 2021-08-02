@@ -101,7 +101,7 @@ tls_secretName: "ckan.{{ DOMAIN }}-tls"
 
 # Set to true, if using Træfik
 ingressRoute_enabled: false
-ingressRoute_host: "ckan.u{{ DOMAIN }}"
+ingressRoute_host: "ckan.{{ DOMAIN }}"
 
 datapusher_enabled: true
 datapusher_maxContentLength: "102400000"
