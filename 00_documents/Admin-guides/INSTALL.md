@@ -1308,7 +1308,7 @@ The deployment of QuantumLeap is done by calling the file `tasks/context_managem
 # file: 03_setup_k8s_platform/vars/context_management-stack/quantumleap.yml
 
 # Namespace where Service for TimescaleDB resides
-timescale_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT_OPERATOR | lower }}"
+timescale_namespace: "{{ default.K8S_NAMESPACE_DATA_MANAGEMENT | lower }}"
 timescale_service: "futrhub-timescale"
 
 # Quantum Leap

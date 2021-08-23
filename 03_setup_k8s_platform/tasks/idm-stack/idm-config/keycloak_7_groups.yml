@@ -28,9 +28,4 @@
 - name: Check if already existing.
   debug:
     msg: "Failed. Group may already exist."
-<<<<<<< HEAD
   when: group_default_tenant_response.status == 409    
-=======
-  when: group_default_tenant_response.status == 409    
-
->>>>>>> ticket-63-branch
