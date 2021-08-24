@@ -17,33 +17,6 @@ In Order to be able to run the complete installation, one central Ansible Invent
 
 Additionally some Environment Variables have to be set.
 
-### Configure Environment Variables
-
-First create a copy based on the template-
-
-```
-# Copy template
-cp local.env.template local.env
-
-# Edit and set right parameters
-vim local.env
-
-# source values to current session
-source local.env
-
-```
-
-The File `local.env` containes the following parameters to set
-
-```env
-export FUTR_HUB_ACN_SSHKEY_PATH=$HOME/.ssh/
-export FUTR_HUB_ACN_SSHKEY=<filename>
-export LDAP_ADMIN_USERNAME=<admin_username>
-export LDAP_ADMIN_PASSWORD=<secure_admin_password>
-export LDAP_USERS=<username>
-export LDAP_PASSWORDS=<secure_password>
-```
-
 ### Configure Inventory File
 
 First create a copy based on the template-
