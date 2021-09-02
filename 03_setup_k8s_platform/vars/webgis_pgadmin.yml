@@ -29,9 +29,9 @@ networkPolicy_enabled: true
 
 ingress_enabled: true
 ingress_class: public
-ingres_host: pgadmin.{{ DOMAIN }}
+ingres_host: "pgadmin.{{ DOMAIN }}"
 tls_acme: true
-tls_secretName: pgadmin.{{ DOMAIN }}-tls
+tls_secretName: "pgadmin.{{ DOMAIN }}-tls"
 
 existingSecret: ""
 
