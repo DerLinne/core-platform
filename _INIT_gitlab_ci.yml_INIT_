@@ -1,0 +1,161 @@
+#
+# GITLAB CI Variables:
+# --------------------
+#
+# File: DEPLOY_KEY_PRIVATE_PROD: private ssh key
+# File: DEPLOY_KEY_PUBLIC_PROD: public ssh key
+# File: INVENTORY_PROD: ansible inventory file
+#
+# Variable: TARGET_HOST_PROD: IP address of target host
+# Variable: TARGET_HOSTNAME_PROD: name of target host from inventory (e.g. demo)
+#
+
+stages:
+    - verify
+    - prod
+    - staging
+    - test
+
+image: willhallonline/ansible:2.10-ubuntu-20.04
+
+variables: &global-variables
+    ANSIBLE_HOST_KEY_CHECKING: 'false'
+    ANSIBLE_FORCE_COLOR: 'true'
+    ANSIBLE_CONFIG: "ansible.cfg"
+    ANSIBLE_SCP_IF_SSH: 'y'
+    DEBIAN_FRONTEND: 'noninteractive'
+
+
+####################################
+######     VERIFY / LINT    ########
+####################################
+
+
+#verify syntaxs etc...
+verify_commit:
+  stage: verify
+  environment:
+    name: "Verify ansible playbooks"
+  script:
+    - 'which ansible-lint || ( pip install ansible-lint )'
+    - ansible-lint -v 01_setup_base/playbook.yml
+    - ansible-lint -v 02_setup_docker/playbook.yml
+    - ansible-lint -v 03_setup_containers_plattform/playbook.yml
+    - ansible-lint -v 05_usecases/playbook.yml
+
+
+####################################
+######     PRODUCTION    ###########
+####################################
+
+
+.ssh_config_prod: &ssh_config_prod
+    - mkdir -p ~/.ssh
+    # Settings > Repository > Deploy Keys > "DEPLOY_KEY_PUBLIC_PROD" is the public key of the utitlized SSH pair (choose `Write access allowed` on creation)
+    # Settings > CI/CD > Variables > "DEPLOY_KEY_PRIVATE_PROD" is the private key of the utitlized SSH pair, type is 'File' and ends with empty line
+    - mv "$DEPLOY_KEY_PRIVATE_PROD" ~/.ssh/id_rsa_sc_admin
+    - mv "$DEPLOY_KEY_PUBLIC_PROD" ~/.ssh/id_rsa_sc_admin.pub
+    - chmod 600 ~/.ssh/id_rsa_sc_admin
+    - chmod 600 ~/.ssh/id_rsa_sc_admin.pub
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa_sc_admin
+    - ssh-keyscan -H $TARGET_HOST_PROD >> ~/.ssh/known_hosts
+    # Set ssh config for serverspec
+    - mv 01_setup_base/files/ssh_config ~/.ssh/config
+    - sed -i "s/THEHOSTNAME/$TARGET_HOST_PROD/g" ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+
+
+# deploy for production
+deploy_ansible_prod:
+  script:
+    - *ssh_config_prod
+    - mv "$INVENTORY_PROD" inventory
+    - ansible-playbook 01_setup_base/playbook.yml -l $TARGET_HOSTNAME_PROD -u root -i inventory
+    - ansible-playbook 02_setup_docker/playbook.yml -l $TARGET_HOSTNAME_PROD -u mrdocker --private-key ~/.ssh/id_rsa_sc_admin -i inventory
+    - ansible-playbook 03_setup_containers_plattform/playbook.yml -l $TARGET_HOSTNAME_PROD -u mrdocker --private-key ~/.ssh/id_rsa_sc_admin -i inventory
+    - ansible-playbook 05_usecases/playbook.yml -l $TARGET_HOSTNAME_PROD -u mrdocker --private-key ~/.ssh/id_rsa_sc_admin -i inventory
+  stage: prod
+  environment:
+    name: "Deploy Production Env"
+  only:
+      - deployment
+  artifacts:
+    paths:
+      - .facts/
+      - 03_setup_containers_plattform/files/traefik/
+    expire_in: never
+    when: always
+
+# deploy for production
+test_serverscript_prod:
+  script:
+    - *ssh_config_prod
+    - 'which gem || ( apt-get update -y && apt-get install -y --no-install-recommends ruby )'
+    - gem install rspec serverspec
+    - cd 04_tests/serverspec
+    - TARGET_HOST=$TARGET_HOST_PROD rake spec
+  stage: test
+  environment:
+    name: "Test Production Env"
+  only:
+      - deployment
+
+
+####################################
+######     STAGING       ###########
+####################################
+
+
+.ssh_config_staging: &ssh_config_staging
+    - mkdir -p ~/.ssh
+    - mv "$DEPLOY_KEY_PRIVATE_STAGING" ~/.ssh/id_rsa_sc_admin
+    - mv "$DEPLOY_KEY_PUBLIC_STAGING" ~/.ssh/id_rsa_sc_admin.pub
+    - chmod 600 ~/.ssh/id_rsa_sc_admin
+    - chmod 600 ~/.ssh/id_rsa_sc_admin.pub
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa_sc_admin
+    - ssh-keyscan -H $TARGET_HOST_STAGING >> ~/.ssh/known_hosts
+    # Set ssh config for serverspec
+    - mv 01_setup_base/files/ssh_config ~/.ssh/config
+    - sed -i "s/THEHOSTNAME/$TARGET_HOST_STAGING/g" ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+
+
+# deploy for staging
+deploy_ansible_staging:
+  script:
+    - *ssh_config_staging
+    - mv "$INVENTORY_STAGING" inventory
+    - ansible-playbook 01_setup_base/playbook.yml -l $TARGET_HOSTNAME_STAGING -u root -i inventory
+    - ansible-playbook 02_setup_docker/playbook.yml -l $TARGET_HOSTNAME_STAGING -u mrdocker --private-key ~/.ssh/id_rsa_sc_admin -i inventory
+    - ansible-playbook 03_setup_containers_plattform/playbook.yml -l $TARGET_HOSTNAME_STAGING -u mrdocker --private-key ~/.ssh/id_rsa_sc_admin -i inventory
+    - ansible-playbook 05_usecases/playbook.yml -l $TARGET_HOSTNAME_STAGING -u mrdocker --private-key ~/.ssh/id_rsa_sc_admin -i inventory
+  stage: staging
+  environment:
+    name: "Deploy Staging Env"
+  only:
+      - master
+  artifacts:
+    paths:
+      - .facts/
+      - 03_setup_containers_plattform/files/traefik/
+    expire_in: never
+    when: always
+
+# deploy for staging
+test_serverscript_staging:
+  script:
+    - *ssh_config_staging
+    - 'which gem || ( apt-get update -y && apt-get install -y --no-install-recommends ruby )'
+    - gem install rspec serverspec
+    - cd 04_tests/serverspec
+    - TARGET_HOST=$TARGET_HOST_STAGING rake spec
+  stage: test
+  environment:
+    name: "Test Staging Env"
+  only:
+      - master
+
