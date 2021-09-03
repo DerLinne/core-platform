@@ -8,7 +8,7 @@ This how-to explains how to upload data from QGIS Desktop to postgis.
 
 ![ticket_65_7](/00_documents/User-guides/images/set_privileges.PNG)
 
-- Individual users were created, mainly for the purpose of accessing the database via any Desktop GIS (QGIS or MapInfo) by defining name, a password (Definition tab) and applying the role _qgis_user_ (Membership tab)
+- Individual users were created, mainly for the purpose of accessing the database via any Desktop GIS (QGIS or MapInfo) by defining the name, the password (Definition tab), activating "Can login?" and applying the role _qgis_user_ (Membership tab)
 
 ![ticket_65_6](/00_documents/User-guides/images/set_definition_and_membership.PNG)
 
