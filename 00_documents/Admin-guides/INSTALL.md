@@ -555,7 +555,7 @@ To allow access to the data of QGIS Server, [CORS](https://developer.mozilla.org
 
 If you have deployed QGIS Server, so it can be reached via HTTPS, you have to open the URL
 
-https://mapserver.{{ YOUR DOMAIN }}/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+https://mapserver.{{ YOUR DOMAIN }}/qgis/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
 
 in your Web browser.
 

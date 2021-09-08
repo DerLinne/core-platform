@@ -20,6 +20,7 @@ data:
         gzip off;
         include fastcgi_params;
         fastcgi_pass {{ $fullName }}:{{ .Values.qgis.server.ports.servicePort }};
+        fastcgi_param PGSERVICEFILE {{ .Values.qgis.pgservicefile_dir}}/{{ .Values.qgis.pgservicefile}};
 
         if ($request_method = 'OPTIONS') {
           add_header 'Access-Control-Allow-Origin' '{{ .Values.nginx.cors_origin }}';
