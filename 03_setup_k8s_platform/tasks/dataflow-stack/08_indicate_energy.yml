@@ -25,7 +25,7 @@
     pv_path: "/var/snap/microk8s/common/default-storage"
 
 - name: Install NodeRed via Helm chart
-  kubernetes.core.helm:
+  .helm:
     name: "{{ helm_release_name }}"
     # chart_ref: "{{ helm_repo_name }}/{{ helm_chart_name }}"
     chart_ref: "files/helmcharts/{{ helm_chart_name }}"

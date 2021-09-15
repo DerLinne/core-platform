@@ -61,7 +61,7 @@
       when: docker_registry is defined
 
     - name: Create docker-registry secret for GitLab registry
-      kubernetes.core.k8s:
+      .k8s:
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
@@ -80,7 +80,7 @@
         - dockerconfigjson is defined
 
     - name: Install Helm package with values loaded from template
-      kubernetes.core.helm:
+      .helm:
         name: "{{ masterportal_helm_release_name }}"
         # chart_ref: "{{ helm_repo_name }}/{{ masterportal_helm_chart_name }}"
         chart_ref: "files/helmcharts/{{ masterportal_helm_chart_name }}"
