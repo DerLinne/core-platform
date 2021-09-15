@@ -210,10 +210,12 @@
         qgis_server_server_pod_name: "{{ qgis_server_server_pod_info['resources'][0]['metadata']['name'] }}"
       when: qgis_server_server_pod_info is defined
 
-    - debug:
+    - name: Debug qgis_server_http_pod_name
+      debug:
         msg: "Name of HTTP Pod: {{ qgis_server_http_pod_name }}"
 
-    - debug:
+    - name: Debug qgis_server_server_pod_name
+      debug:
         msg: "Name of Server Pod: {{ qgis_server_server_pod_name }}"
 
     - name: Create /home/qgis/.pg_service.conf in Pod running QGIS Server component server
