@@ -36,7 +36,7 @@
         masterportal_helm_release_name: "{{ masterportal.HELM_RELEASE_NAME }}"
 
     - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
-      kubernetes.core.k8s_info:
+      k8s_info:
         api_version: v1
         kind: Secret
         name: "gitlab-registry"
