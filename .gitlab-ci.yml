@@ -78,8 +78,7 @@ deploy_ansible_staging:
     - ansible-playbook -i inventory -l $STAGING_TARGET_HOST -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 02_setup_k8s/setup_k8s_playbook_02.yml
     - ansible-playbook -i inventory -l $STAGING_TARGET_HOST -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 02_setup_k8s/setup_k8s_playbook_03.yml
     - ansible-playbook -i inventory -l $STAGING_TARGET_HOST -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 03_setup_k8s_platform/full_install.yml
-    when: manual
-
+  when: manual
   stage: staging
   environment:
     name: "Deploy Staging Env"
