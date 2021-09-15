@@ -11,9 +11,14 @@
   apt: name={{ sys_packages }} state=present
 
 # Install required Python modules
-- name: Install required Python modules
-  pip: name={{ item }}
-  loop: [ 'PyYAML','openshift']
+# - name: Install required Python modules
+#   pip: name={{ item }}
+#   loop: [ 'PyYAML','openshift']
+
+- name: Install required Python packages
+  pip:
+    name: "{{ python_packages }}"
+
 
 # Configure ufw
 - name: Set logging
