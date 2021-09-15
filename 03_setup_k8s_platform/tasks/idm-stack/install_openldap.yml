@@ -185,7 +185,7 @@
 
     - name: Set OpenLDAP URL
       ansible.builtin.set_fact:
-        openldap_url: "ldap://openldap.{{ k8s_namespace }}.svc.cluster.local:1389"
+        OPENLDAP_URL: "ldap://openldap.{{ k8s_namespace }}.svc.cluster.local:1389"
 
     - name: Re-Login to KeyCloak
       ansible.builtin.uri:
