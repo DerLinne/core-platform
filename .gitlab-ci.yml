@@ -38,10 +38,10 @@ verify_commit:
     name: "Verify ansible playbooks"
   script:
     - 'which ansible-lint || ( pip install ansible-lint )'
-    - ansible-lint -v 02_setup_k8s/setup_k8s_playbook_01.yml
-    - ansible-lint -v 02_setup_k8s/setup_k8s_playbook_02.yml
-    - ansible-lint -v 02_setup_k8s/setup_k8s_playbook_03.yml
-    - ansible-lint -v 03_setup_k8s_platform/full_install.yml
+    - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_01.yml
+    - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_02.yml
+    - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_03.yml
+    - ansible-lint -x experimental -v 03_setup_k8s_platform/full_install.yml
 
 
 ####################################
