@@ -177,7 +177,7 @@
         values: "{{ lookup('template', 'templates/webgis/qgisserver_values.yaml.j2') | from_yaml }}"
 
     - name: Get Pod running QGIS Server component http
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -194,7 +194,7 @@
       when: qgis_server_http_pod_info is defined
 
     - name: Get Pod running QGIS Server component server
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
