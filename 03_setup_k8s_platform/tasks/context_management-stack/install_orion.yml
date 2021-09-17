@@ -14,7 +14,7 @@
     - orion.mongodb_namespace is defined
 
 - name: Check if MongoDB internal endpoint exists
-  k8s_info:
+  community.kubernetes.k8s_info:
     kubeconfig: "{{ k8s_config }}"
     context: "{{ k8s_context }}"
     namespace: "{{ orion.mongodb_namespace }}"
@@ -38,7 +38,7 @@
     - "{{ lookup('template', 'templates/context_management-stack/orion.yml') | from_yaml_all | list }}"
 
 - name: Wait till deployment of Orion is completed
-  k8s_info:
+  community.kubernetes.k8s_info:
     kubeconfig: "{{ k8s_config }}"
     context: "{{ k8s_context }}"
     namespace: "{{ k8s_namespace }}"

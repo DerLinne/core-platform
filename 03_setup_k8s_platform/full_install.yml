@@ -5,21 +5,21 @@
   gather_facts: false
 
 # import further playbooks
-- import_playbook: deploy_postgres_operator.yml
-- import_playbook: deploy_minio_operator.yml
-- import_playbook: deploy_idm_stack.yml
-- import_playbook: deploy_monitoring_loki.yml
-- import_playbook: deploy_monitoring_grafana.yml
-- import_playbook: deploy_grafana.yml
-- import_playbook: deploy_minio_tenant.yml
-- import_playbook: deploy_timescale.yml
-- import_playbook: deploy_context_management_stack.yml
-- import_playbook: deploy_apim_stack.yml
-- import_playbook: deploy_public_oauth2_proxy.yml
+# - import_playbook: deploy_postgres_operator.yml
+# - import_playbook: deploy_minio_operator.yml
+# - import_playbook: deploy_idm_stack.yml
+# - import_playbook: deploy_monitoring_loki.yml
+# - import_playbook: deploy_monitoring_grafana.yml
+# - import_playbook: deploy_grafana.yml
+# - import_playbook: deploy_minio_tenant.yml
+# - import_playbook: deploy_timescale.yml
+# - import_playbook: deploy_context_management_stack.yml
+# - import_playbook: deploy_apim_stack.yml
 - import_playbook: deploy_webgis_postgis_playbook.yml
 - import_playbook: deploy_webgis_pgadmin_playbook.yml
 - import_playbook: deploy_webgis_masterportal_playbook.yml
-- import_playbook: deploy_webgis_qgisserver_playbook.yml
-- import_playbook: deploy_ckan_playbook.yml
-- import_playbook: deploy_frost_playbook.yml
+# - import_playbook: deploy_webgis_qgisserver_playbook.yml
+# - import_playbook: deploy_ckan_playbook.yml
+# - import_playbook: deploy_frost_playbook.yml
 - import_playbook: deploy_webgis_oauth2_masterportal_proxy.yml
+#  - import_playbook: deploy_webgis_oauth2_proxy.yml

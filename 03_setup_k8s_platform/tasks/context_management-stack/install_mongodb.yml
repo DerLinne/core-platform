@@ -17,7 +17,7 @@
     - "{{ lookup('template', 'templates/context_management-stack/mongodb.yml') | from_yaml_all | list }}"
 
 - name: Wait till deployment of MongoDB v3.6 is completed
-  k8s_info:
+  community.kubernetes.k8s_info:
     kubeconfig: "{{ k8s_config }}"
     context: "{{ k8s_context }}"
     namespace: "{{ k8s_namespace }}"

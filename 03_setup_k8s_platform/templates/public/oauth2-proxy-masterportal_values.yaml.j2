@@ -3,7 +3,7 @@ config:
   # -- OAuth client ID
   clientID: "{{ MP_IDM_CLIENT }}"
   # -- OAuth client secret
-  clientSecret: "{{ IDM_CLIENT_SECRET_MASTERPORTAL }}"
+  clientSecret: "{{ MP_IDM_CLIENT_SECRET }}"
   # -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
   cookieSecret: "{{ MP_OAUTH_COOKIE_SECRET }}"
   google: {}
@@ -19,7 +19,7 @@ config:
   # -- custom [oauth2_proxy.cfg](https://github.com/oauth2-proxy/oauth2-proxy/blob/master/contrib/oauth2-proxy.cfg.example) contents for settings not overridable via environment nor command line
   configFile: |-
     client_id = "{{ MP_IDM_CLIENT }}"
-    client_secret = "{{ IDM_CLIENT_SECRET_MASTERPORTAL }}"
+    client_secret = "{{ MP_IDM_CLIENT_SECRET }}"
     email_domains = [ "*" ]
     upstreams = [ "file:///dev/null" ]
     provider = "oidc"
