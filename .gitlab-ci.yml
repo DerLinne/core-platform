@@ -60,6 +60,7 @@ verify_commit:
     - ssh-add ~/.ssh/id_rsa_sc_admin
     - ssh-keyscan -H $STAGING_TARGET_HOST >> ~/.ssh/known_hosts
     # Set ssh config for serverspec
+    - echo ~
     - touch ~/.ssh/config
     - echo "Host $STAGING_TARGET_HOST" >> ~/.ssh/config
     - echo "    HostName $STAGING_TARGET_HOST" >> ~/.ssh/config
