@@ -3,6 +3,8 @@
 # Update Repositories
 - name: Update apt cache
   raw: apt-get -y update
+  register: aptoutput
+  changed_when: aptoutput.rc != 0
 
 # Install Dependencies
 - name: Install required system packages
@@ -11,7 +13,7 @@
 # Install required Python modules
 - name: Install required Python modules
   pip: name={{ item }}
-  loop: [ 'PyYAML','openshift']
+  loop: [ 'PyYAML', 'openshift==0.11.2', 'jmespath', 'docker', psycopg2-binary, 'kubernetes==11.0']
 
 # Configure ufw
 - name: Set logging
@@ -87,3 +89,5 @@
 # Disable Swap
 - name: Disable Swap
   command: swapoff -a
+  register: disableswap
+  changed_when: disableswap.rc != 0

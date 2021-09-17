@@ -28,7 +28,7 @@
         qgisserver_project_file: "{{ qgisserver.env_QGIS_PROJECT_FILE }}"
 
     - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
-      kubernetes.core.k8s_info:
+      k8s_info:
         api_version: v1
         kind: Secret
         name: "gitlab-registry"
@@ -38,7 +38,7 @@
       register: gitlab_registry_secret
 
     - name: Get deployment info of QGIS Server
-      kubernetes.core.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -69,7 +69,7 @@
     # - create /home/qgis/.pg_service.conf in Pod running QGIS Server component server.
     # - restart the Pod running QGIS Server component http.
     - name: Wait till new QGIS Server Pod is up and running
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -83,7 +83,7 @@
         wait_timeout: 360
 
     - name: Get Pod running QGIS Server component http
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -100,7 +100,7 @@
       when: qgis_server_http_pod_info is defined
 
     - name: Get Pod running QGIS Server component server
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -141,7 +141,7 @@
     #     minutes: 1
 
     - name: Wait till the new Pod, running QGIS Server component http, is up and running
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
