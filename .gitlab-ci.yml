@@ -82,8 +82,6 @@ deploy_ansible_staging:
   stage: staging
   environment:
     name: "Deploy Staging Env"
-  only:
-      - master
   artifacts:
     paths:
       - .facts/
