@@ -17,7 +17,7 @@
         externalTrafficPolicy: Cluster
         type: LoadBalancer
         externalIPs:
-          - "{{ hostvars['k8s-master']['ansible_host'] }}"
+          - "{{hostvars['k8s-master']['ansible_host']}}"
         selector:
           app.kubernetes.io/name: ingress-nginx
           app.kubernetes.io/part-of: ingress-nginx

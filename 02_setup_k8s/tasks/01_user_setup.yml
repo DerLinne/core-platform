@@ -35,8 +35,7 @@
     msg: "Could not reach target host."
   when: "root_login.unreachable is defined and not ('Permission denied' in root_login.msg)"
 
-- name: "Debug root_login.unreachable"
-  debug:
+- debug:
     msg:
       - "Could not log in with root user. This is probably since you already configured the user 'acn'."
       - "If this is not the case, please check if root login is allowed on your target host and that the root password is correct."

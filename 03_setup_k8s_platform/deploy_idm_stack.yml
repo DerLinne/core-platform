@@ -19,8 +19,8 @@
       ansible.builtin.set_fact:
         k8s_config: "{{ default.K8S_KUBECONFIG }}"
         k8s_context: "{{ default.K8S_CONTEXT }}"
-        k8s_namespace: "{{ K8S_NAMESPACE_IDMSTACK | lower }}"
-        k8s_operator_namespace: "{{ default.K8S_NAMESPACE_KEYCLOAK_OPERATOR | lower }}"
+        k8s_namespace: "{{ K8S_NAMESPACE_IDMSTACK | lower}}"
+        k8s_operator_namespace: "{{ default.K8S_NAMESPACE_KEYCLOAK_OPERATOR | lower}}"
       tags: always
 
     - name: Read common values of IDM stack

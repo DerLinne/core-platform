@@ -13,13 +13,11 @@
     dest: "/var/snap/microk8s/current/args/docker-daemon.json"
     owner: "root"
     group: "root"
-    mode: '0664' #default linux umask
 
 - name: Microk8s status
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.status --wait-ready
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Set File Descriptor Limits for Microk8s
   lineinfile:
@@ -31,7 +29,6 @@
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.stop
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Start Microk8s
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.start
@@ -42,71 +39,59 @@
   retries: 3
   delay: 10
   ignore_errors: false
-  changed_when: false
 
 - name: Microk8s status
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.status --wait-ready
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Microk8s inspect
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.inspect
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Alias kubectl
   shell: "source /etc/profile.d/apps-bin-path.sh && snap alias microk8s.kubectl kubectl"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Enable dns
   shell: "source /etc/profile.d/apps-bin-path.sh && microk8s.enable dns"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Enable ingress
   shell: "source /etc/profile.d/apps-bin-path.sh && microk8s.enable ingress"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Enable storage
   shell: "source /etc/profile.d/apps-bin-path.sh && microk8s.enable storage"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Enable K8s Dashboard
   shell: "source /etc/profile.d/apps-bin-path.sh && /snap/bin/microk8s.enable dashboard"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Enable Helm3
   shell: "source /etc/profile.d/apps-bin-path.sh && /snap/bin/microk8s.enable helm3"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Alias helm
   shell: "source /etc/profile.d/apps-bin-path.sh && snap alias microk8s.helm3 helm"
   args:
     executable: /bin/bash
-  changed_when: false
 
 # @TODO: Remember to create roles if RBAC is enabled!
 - name: Enable Role Based Access
   shell: "source /etc/profile.d/apps-bin-path.sh && /snap/bin/microk8s.enable rbac"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Enable Prometheus
   shell: "source /etc/profile.d/apps-bin-path.sh && /snap/bin/microk8s.enable prometheus"
   args:
     executable: /bin/bash
-  changed_when: false

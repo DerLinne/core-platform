@@ -41,53 +41,6 @@
         name: "{{ mpoauth2proxy_helm_repo_name }}"
         url: "{{ mpoauth2proxy_helm_repo_url }}"
 
-    - name: Re-Login to keycloak
-      uri:
-        method: POST
-        url: "https://idm.{{ DOMAIN }}/auth/realms/master/protocol/openid-connect/token"
-        return_content: yes
-        body_format: form-urlencoded
-        body:
-            grant_type: "password"
-            client_id: "admin-cli"
-            username: "{{ ADMIN_USERNAME }}"
-            password: "{{ ADMIN_PASSWORD }}"
-        status_code: 200
-      register: keycloak_login
-
-    - name: Get clients
-      uri:
-        method: GET
-        url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients"
-        return_content: yes
-        headers:
-          Accept: application/json
-          Authorization: Bearer {{ keycloak_login.json.access_token }}
-        status_code: 200
-      register: clients
-
-    - name: "Get keycloak client Masterportal ID."
-      set_fact:
-        client_id_masterportal: "{{ clients.json | json_query(query) }}"
-      vars:
-        query: "[?clientId== '{{ IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
-
-    - name: Get Client Secret Masterportal
-      uri:
-        method: GET
-        url: "https://idm.{{ DOMAIN }}/auth/admin/realms/{{ IDM_REALM }}/clients/{{ client_id_masterportal }}/client-secret"
-        return_content: yes
-        headers:
-          Accept: application/json
-          Authorization: Bearer {{ keycloak_login.json.access_token }}
-        status_code: 200
-      register: keycloak_client_masterportal_secret_response
-
-    - name: "Set IDM client secret Masterportal."
-      set_fact:
-        IDM_CLIENT_SECRET_MASTERPORTAL: "{{ keycloak_client_masterportal_secret_response.json.value }}"
-        cacheable: yes
-
     - name: Install Helm package with values loaded from template
       community.kubernetes.helm:
         name: "{{ mpoauth2proxy_helm_release_name }}"
