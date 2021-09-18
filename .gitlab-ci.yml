@@ -67,6 +67,7 @@ verify_commit:
     - echo "    PreferredAuthentications publickey" >> ~/.ssh/config
     - echo "    IdentityFile ~/.ssh/id_rsa_sc_admin" >> ~/.ssh/config
     - chmod 600 ~/.ssh/config
+    - 'which sshpass || ( apt-get update -y && apt-get install sshpass -y )'
 
 
 # deploy for staging
