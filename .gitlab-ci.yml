@@ -11,8 +11,8 @@
 #
 
 stages:
-    - verify
     - staging
+    - verify
     - prod
     - test
 
