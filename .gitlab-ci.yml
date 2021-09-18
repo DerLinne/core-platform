@@ -68,6 +68,7 @@ variables: &global-variables
     - echo "    IdentityFile ~/.ssh/id_rsa_sc_admin" >> ~/.ssh/config
     - chmod 600 ~/.ssh/config
     - cat /root/.ssh/config
+    - cat /builds/berlintxl/futr-hub/platform/data-platform-k8s/ansible.cfg
 
 
 # deploy for staging
