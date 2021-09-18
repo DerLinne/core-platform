@@ -73,7 +73,7 @@ variables: &global-variables
 # deploy for staging
 deploy_ansible_staging:
   script:
-    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev
+    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev -y
     - *ssh_config_staging
     - mv "$STAGING_INVENTORY_FULL" inventory
     - cat /etc/ansible/hosts
