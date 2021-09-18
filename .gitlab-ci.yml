@@ -67,6 +67,7 @@ variables: &global-variables
     - echo "    PreferredAuthentications publickey" >> ~/.ssh/config
     - echo "    IdentityFile ~/.ssh/id_rsa_sc_admin" >> ~/.ssh/config
     - chmod 600 ~/.ssh/config
+    - cat ~
     - cat /root/.ssh/config
     - cat /builds/berlintxl/futr-hub/platform/data-platform-k8s/ansible.cfg
 

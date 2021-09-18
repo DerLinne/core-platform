@@ -22,6 +22,10 @@
     mode: 0600
     line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + hostvars['k8s-master']['ansible_host']) }}"
 
+- name: get port, default 22
+  delegate_to: localhost
+  command: cat ~/.ssh/known_hosts
+
 # Check root login
 - name: Check root login
   command: hostname
