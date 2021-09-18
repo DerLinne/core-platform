@@ -76,7 +76,7 @@ deploy_ansible_staging:
     - *ssh_config_staging
     - mv "$STAGING_INVENTORY_FULL" inventory
     - cat /etc/ansible/hosts
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root -vvvvv 02_setup_k8s/setup_k8s_playbook_01.yml
+    - ansible-playbook -i inventory -l $TARGET_HOSTNAME 02_setup_k8s/setup_k8s_playbook_01.yml --extra-vars "ansible_ssh_user=root ansible_ssh_pass=$STAGING_HOST_PASSWORD"
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 02_setup_k8s/setup_k8s_playbook_02.yml
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 02_setup_k8s/setup_k8s_playbook_03.yml
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 03_setup_k8s_platform/full_install.yml
