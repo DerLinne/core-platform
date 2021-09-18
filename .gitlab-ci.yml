@@ -55,7 +55,7 @@ variables: &global-variables
     - mv "$STAGING_KEY_PUBLIC" ~/.ssh/id_rsa_sc_admin.pub
     - chmod 600 ~/.ssh/id_rsa_sc_admin
     - chmod 600 ~/.ssh/id_rsa_sc_admin.pub
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    #- 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
     - eval "$(ssh-agent -s)"
     - ssh-add ~/.ssh/id_rsa_sc_admin
     - ssh-keyscan -H $STAGING_TARGET_HOST >> ~/.ssh/known_hosts
@@ -67,12 +67,13 @@ variables: &global-variables
     - echo "    PreferredAuthentications publickey" >> ~/.ssh/config
     - echo "    IdentityFile ~/.ssh/id_rsa_sc_admin" >> ~/.ssh/config
     - chmod 600 ~/.ssh/config
-    - 'which sshpass || ( apt-get update -y && apt-get install sshpass -y )'
+    #- 'which sshpass || ( apt-get update -y && apt-get install sshpass -y )'
 
 
 # deploy for staging
 deploy_ansible_staging:
   script:
+    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev
     - *ssh_config_staging
     - mv "$STAGING_INVENTORY_FULL" inventory
     - cat /etc/ansible/hosts
