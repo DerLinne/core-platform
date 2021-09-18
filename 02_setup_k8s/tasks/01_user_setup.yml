@@ -23,10 +23,12 @@
     line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + hostvars['k8s-master']['ansible_host']) }}"
 
 - name: Display resolv.conf contents
+  delegate_to: localhost
   command: cat /etc/ansible/hosts
   register: command_output
 
 - name: Print to console
+  delegate_to: localhost
   debug:
     msg: "{{command_output.stdout}}"
 
