@@ -22,6 +22,13 @@
     mode: 0600
     line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + hostvars['k8s-master']['ansible_host']) }}"
 
+- name: Display resolv.conf contents
+  command: cat /etc/ansible/hosts
+  register: command_output
+
+- name: Print to console
+  debug:
+    msg: "{{command_output.stdout}}"
 
 # Check root login
 - name: Check root login
