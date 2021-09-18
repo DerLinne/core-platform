@@ -75,10 +75,10 @@ variables: &global-variables
 deploy_ansible_staging:
   script:
     - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev -y
-    - *ssh_config_staging
     - mv "$STAGING_INVENTORY_FULL" inventory
     - cat /etc/ansible/hosts
     - ansible-playbook -i inventory -u root -vvv 02_setup_k8s/setup_k8s_playbook_01.yml
+    - *ssh_config_staging
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 02_setup_k8s/setup_k8s_playbook_02.yml
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 02_setup_k8s/setup_k8s_playbook_03.yml
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u pipeline_ssh_user --private-key ~/.ssh/id_rsa_sc_admin 03_setup_k8s_platform/full_install.yml
