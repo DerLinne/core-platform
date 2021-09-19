@@ -61,7 +61,7 @@ variables: &global-variables
     - ssh-add root/.ssh/id_rsa_sc_admin
     - ssh-keyscan -H $STAGING_TARGET_HOST >> root/.ssh/known_hosts
     # Add SSH Config for acn user
-    - touch /root/.ssh/config
+    - touch root/.ssh/config
     - echo "Host $STAGING_TARGET_HOST" >> root/.ssh/config
     - echo "    HostName $STAGING_TARGET_HOST" >> root/.ssh/config
     - echo "    User acn" >> root/.ssh/config
@@ -78,7 +78,7 @@ deploy_ansible_staging:
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root -vvv 02_setup_k8s/setup_k8s_playbook_01.yml
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn -vvv 02_setup_k8s/setup_k8s_playbook_02.yml
     - ansible-playbook -i inventory -l localhost -u acn -vvv 02_setup_k8s/setup_k8s_playbook_03.yml
-    - ansible-playbook -i inventory -l localhost -u acn -vvv 03_setup_k8s_platform/full_install.yml
+    - ansible-playbook -i inventory -l localhost -vvv 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: staging
   environment:
