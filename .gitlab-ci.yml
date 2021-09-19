@@ -72,12 +72,15 @@ variables: &global-variables
 # deploy for staging
 deploy_ansible_staging:
   script:
-    # Add Helm repo
     - apt-get update -y && apt-get install curl apt-transport-https -y
+    # Add Helm package repo
     - curl https://baltocdn.com/helm/signing.asc | apt-key add -
     - echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+    # Add kubectl package repo
+    - curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    - echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
     # Install required system packages
-    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev helm -y
+    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev helm kubectl -y
     # Install required python packages
     - python3 -m pip install 'openshift==0.11.2' jmespath docker psycopg2-binary
 
