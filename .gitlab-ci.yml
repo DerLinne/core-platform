@@ -61,7 +61,7 @@ variables: &global-variables
     - ssh-add root/.ssh/id_rsa_sc_admin
     - ssh-keyscan -H $STAGING_TARGET_HOST >> root/.ssh/known_hosts
     # Add SSH Config for acn user
-    - touch home/root/.ssh/config
+    - touch /root/.ssh/config
     - echo "Host $STAGING_TARGET_HOST" >> root/.ssh/config
     - echo "    HostName $STAGING_TARGET_HOST" >> root/.ssh/config
     - echo "    User acn" >> root/.ssh/config
