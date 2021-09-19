@@ -50,38 +50,35 @@ variables: &global-variables
 
 
 .ssh_config_staging: &ssh_config_staging
-    - mkdir -p ~/.ssh
-    - mv "$STAGING_KEY_PRIVATE" ~/.ssh/id_rsa_sc_admin
-    - mv "$STAGING_KEY_PUBLIC" ~/.ssh/id_rsa_sc_admin.pub
-    - chmod 600 ~/.ssh/id_rsa_sc_admin
-    - chmod 600 ~/.ssh/id_rsa_sc_admin.pub
-    #- 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    # Get SSH keys
+    - mkdir -p root/.ssh
+    - mv "$STAGING_KEY_PRIVATE" root/.ssh/id_rsa_sc_admin
+    - mv "$STAGING_KEY_PUBLIC" root/.ssh/id_rsa_sc_admin.pub
+    # Add SSH Key
+    - chmod 600 root/.ssh/id_rsa_sc_admin
+    - chmod 600 root/.ssh/id_rsa_sc_admin.pub
     - eval "$(ssh-agent -s)"
-    - ssh-add ~/.ssh/id_rsa_sc_admin
-    - ssh-keyscan -H $STAGING_TARGET_HOST >> ~/.ssh/known_hosts
-    # Set ssh config for serverspec
-    - touch ~/.ssh/config
-    - echo "Host $STAGING_TARGET_HOST" >> ~/.ssh/config
-    - echo "    HostName $STAGING_TARGET_HOST" >> ~/.ssh/config
-    - echo "    User acn" >> ~/.ssh/config
-    - echo "    PreferredAuthentications publickey" >> ~/.ssh/config
-    - echo "    IdentityFile ~/.ssh/id_rsa_sc_admin" >> ~/.ssh/config
-    - chmod 600 ~/.ssh/config
-    - cat /root/.ssh/config
-    - cat /builds/berlintxl/futr-hub/platform/data-platform-k8s/ansible.cfg
-
+    - ssh-add root/.ssh/id_rsa_sc_admin
+    - ssh-keyscan -H $STAGING_TARGET_HOST >> root/.ssh/known_hosts
+    # Add SSH Config for acn user
+    - touch home/root/.ssh/config
+    - echo "Host $STAGING_TARGET_HOST" >> root/.ssh/config
+    - echo "    HostName $STAGING_TARGET_HOST" >> root/.ssh/config
+    - echo "    User acn" >> root/.ssh/config
+    - echo "    PreferredAuthentications publickey" >> root/.ssh/config
+    - echo "    IdentityFile root/.ssh/id_rsa_sc_admin" >> root/.ssh/config
+    - chmod 600 root/.ssh/config
 
 # deploy for staging
 deploy_ansible_staging:
   script:
     - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev -y
     - mv "$STAGING_INVENTORY_FULL" inventory
-    - cat /etc/ansible/hosts
     - *ssh_config_staging
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root -vvv 02_setup_k8s/setup_k8s_playbook_01.yml
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn -vvv 02_setup_k8s/setup_k8s_playbook_02.yml
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn -vvv 02_setup_k8s/setup_k8s_playbook_03.yml
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn -vvv 03_setup_k8s_platform/full_install.yml
+    - ansible-playbook -i inventory -l localhost -u acn -vvv 02_setup_k8s/setup_k8s_playbook_03.yml
+    - ansible-playbook -i inventory -l localhost -u acn -vvv 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: staging
   environment:
