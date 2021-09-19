@@ -3,8 +3,9 @@
 
 # SSH-Key of user 'acn'
 copy_local_key: "{{ PLATFORM_SSHKEY_PATH }}/{{ PLATFORM_SSHKEY_NAME }}"
-copy_local_pub_key: "{{ lookup('file', '/root/.ssh/id_rsa_sc_admin.pub') }}"
-#copy_local_pub_key: "{{ lookup('file', lookup('env','HOME') + '/' + PLATFORM_SSHKEY_PATH + '/' + PLATFORM_SSHKEY_NAME  + '.pub') }}"
+copy_local_pub_key: "{{ lookup('file', PLATFORM_SSHKEY_PATH + '/' + PLATFORM_SSHKEY_NAME  + '.pub') }}"
+
+#copy_local_pub_key: "{{ lookup('file', '/root/.ssh/id_rsa_sc_admin.pub') }}"
 
 # Necessary System packages we need to intall
 sys_packages: [ 'curl', 'vim', 'snapd', 'python3', 'python3-pip', 'ufw', 'htop', 'snap', 'postgresql', 'postgresql-contrib', 'python3-psycopg2', 'libpq-dev' ]
