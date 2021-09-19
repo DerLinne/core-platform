@@ -51,23 +51,23 @@ variables: &global-variables
 
 .ssh_config_staging: &ssh_config_staging
     # Get SSH keys
-    - mkdir -p root/.ssh
-    - mv "$STAGING_KEY_PRIVATE" root/.ssh/id_rsa_sc_admin
-    - mv "$STAGING_KEY_PUBLIC" root/.ssh/id_rsa_sc_admin.pub
+    - mkdir -p /root/.ssh
+    - mv "$STAGING_KEY_PRIVATE" /root/.ssh/id_rsa_sc_admin
+    - mv "$STAGING_KEY_PUBLIC" /root/.ssh/id_rsa_sc_admin.pub
     # Add SSH Key
-    - chmod 600 root/.ssh/id_rsa_sc_admin
-    - chmod 600 root/.ssh/id_rsa_sc_admin.pub
+    - chmod 600 /root/.ssh/id_rsa_sc_admin
+    - chmod 600 /root/.ssh/id_rsa_sc_admin.pub
     - eval "$(ssh-agent -s)"
-    - ssh-add root/.ssh/id_rsa_sc_admin
-    - ssh-keyscan -H $STAGING_TARGET_HOST >> root/.ssh/known_hosts
+    - ssh-add /root/.ssh/id_rsa_sc_admin
+    - ssh-keyscan -H $STAGING_TARGET_HOST >> /root/.ssh/known_hosts
     # Add SSH Config for acn user
-    - touch root/.ssh/config
-    - echo "Host $STAGING_TARGET_HOST" >> root/.ssh/config
-    - echo "    HostName $STAGING_TARGET_HOST" >> root/.ssh/config
-    - echo "    User acn" >> root/.ssh/config
-    - echo "    PreferredAuthentications publickey" >> root/.ssh/config
-    - echo "    IdentityFile root/.ssh/id_rsa_sc_admin" >> root/.ssh/config
-    - chmod 600 root/.ssh/config
+    - touch /root/.ssh/config
+    - echo "Host $STAGING_TARGET_HOST" >> /root/.ssh/config
+    - echo "    HostName $STAGING_TARGET_HOST" >> /root/.ssh/config
+    - echo "    User acn" >> /root/.ssh/config
+    - echo "    PreferredAuthentications publickey" >> /root/.ssh/config
+    - echo "    IdentityFile /root/.ssh/id_rsa_sc_admin" >> /root/.ssh/config
+    - chmod 600 /root/.ssh/config
 
 # deploy for staging
 deploy_ansible_staging:
