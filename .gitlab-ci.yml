@@ -72,8 +72,16 @@ variables: &global-variables
 # deploy for staging
 deploy_ansible_staging:
   script:
-    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev -y
+    # Add Helm repo
+    - curl https://baltocdn.com/helm/signing.asc | apt-key add -
+    - apt-get install apt-transport-https --yes
+    - echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+    # Install required system packages
+    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev helm -y
+    # Install required python packages
     - python3 -m pip install 'openshift==0.11.2' jmespath docker psycopg2-binary
+    
+    # Start installing platform
     - mv "$STAGING_INVENTORY_FULL" inventory
     - *ssh_config_staging
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root -vvv 02_setup_k8s/setup_k8s_playbook_01.yml
