@@ -82,14 +82,14 @@ deploy_ansible_staging:
     # Install required system packages
     - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev helm kubectl -y
     # Install required python packages
-    - python3 -m pip install 'openshift==0.11.2' jmespath docker psycopg2-binary
+    - python3 -m pip install 'openshift==0.11.2' jmespath docker psycopg2-binary pymongo
 
     # Start installing platform
     - mv "$STAGING_INVENTORY_FULL" inventory
     - *ssh_config_staging
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root 02_setup_k8s/setup_k8s_playbook_01.yml
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn 02_setup_k8s/setup_k8s_playbook_02.yml
-    - ansible-playbook -i inventory -l localhost -u acn 02_setup_k8s/setup_k8s_playbook_03.yml
+    #- ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root 02_setup_k8s/setup_k8s_playbook_01.yml
+    #- ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn 02_setup_k8s/setup_k8s_playbook_02.yml
+    #- ansible-playbook -i inventory -l localhost -u acn 02_setup_k8s/setup_k8s_playbook_03.yml
     - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: staging
