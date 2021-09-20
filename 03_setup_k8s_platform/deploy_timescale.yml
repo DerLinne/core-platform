@@ -86,7 +86,7 @@
       command: |
         kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
           exec -it {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0
-          -- bash -c "psql -U {{ postgres.super_username }} -d quantumleap -c 'CREATE EXTENSION timescaledb;'"
+          -- bash -c "psql -U {{ postgres.super_username }} -d quantumleap -c 'CREATE EXTENSION IF NOT EXISTS timescaledb;'"
       register: result
       until: result.rc == 0
       retries: 20
