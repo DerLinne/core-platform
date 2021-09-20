@@ -10,7 +10,7 @@ spec:
   - https://github.com/aerogear/keycloak-metrics-spi/releases/download/1.0.4/keycloak-metrics-spi-1.0.4.jar
   externalAccess:
     enabled: false
-  instances: 2
+  instances: {{ keycloak_replicas }}
   podDisruptionBudget:
     enabled: true
   externalDatabase:
