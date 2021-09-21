@@ -165,7 +165,7 @@
       - always
 
     - name: Install Helm package with values loaded from template
-      helm:
+      kubernetes.core.helm:
         name: "{{ qgisserver_helm_release_name }}"
         # chart_ref: "{{ helm_repo_name }}/{{ qgisserver_helm_chart_name }}"
         chart_ref: "files/helmcharts/{{ qgisserver_helm_chart_name }}"
