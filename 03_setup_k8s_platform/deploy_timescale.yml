@@ -90,6 +90,6 @@
       register: result
       until: result.rc == 0
       retries: 20
-      delay: 10
+      delay: 30
       changed_when: True
 
