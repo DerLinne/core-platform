@@ -120,7 +120,7 @@ deploy_ansible_staging_platform:
     - *ssh_config_staging
     - mkdir -p /root/.kube
     - scp acn@$STAGING_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_staging /root/.kube/kubeconfig_txl_staging
-    - head 1 /root/.kube/kubeconfig_txl_staging
+    - head -1 /root/.kube/kubeconfig_txl_staging
     #- ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: staging
