@@ -33,14 +33,6 @@ spec:
             secretKeyRef:
               key: MASTER_PASSWORD
               name: '{{ IDM_ADMIN_K8S_SECRET_NAME }}'
-      volumes:
-        defaultMode: 0777
-        items:
-          - name: keycloak-messages-de
-            mountPath: /opt/jboss/keycloak/themes/base/email/messages/messages_de.properties
-            subPath: messages_de.properties
-            configMaps:
-              - keycloak-messages-de
     resources:
       limits:
         cpu: 1500m

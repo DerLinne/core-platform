@@ -29,7 +29,25 @@
   command: |
     kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
       cp {{ playbook_dir }}/templates/keycloak/customization/images/keycloak-bg.png
-      keycloak-0:opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
+      keycloak-1:opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
+  register: result
+  until: result.rc == 0
+  changed_when: True
+
+- name: Push messages_de to keycloak instance-0
+  command: |
+    kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+      cp {{ playbook_dir }}/templates/keycloak/customization/email/messages_de.properties
+      keycloak-0:opt/jboss/keycloak/themes/base/email/messages_de.properties
+  register: result
+  until: result.rc == 0
+  changed_when: True
+
+- name: Push messages_de to keycloak instance-1
+  command: |
+    kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+      cp {{ playbook_dir }}/templates/keycloak/customization/email/messages_de.properties
+      keycloak-1:opt/jboss/keycloak/themes/base/email/messages_de.properties
   register: result
   until: result.rc == 0
   changed_when: True
