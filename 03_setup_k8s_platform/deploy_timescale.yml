@@ -93,7 +93,8 @@
           until: result.rc == 0
           retries: 5
           delay: 20
-      rescue: 
+          changed_when: True
+      rescue:
         - name: Try cluster-1 resource
           command: |
             kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
@@ -103,5 +104,5 @@
           until: result.rc == 0
           retries: 5
           delay: 20
-      changed_when: True
+          changed_when: True
 

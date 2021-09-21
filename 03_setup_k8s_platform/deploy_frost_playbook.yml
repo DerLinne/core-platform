@@ -151,6 +151,7 @@
           until: result.rc == 0
           retries: 5
           delay: 20
+          changed_when: True
       rescue:
         - name: Try cluster-1 resource
           command: |
@@ -161,7 +162,7 @@
           until: result.rc == 0
           retries: 5
           delay: 20
-      changed_when: True
+          changed_when: True
 
     - name: Get password of user sensorthings, created by Zalando operator
       k8s_info:
