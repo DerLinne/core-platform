@@ -70,7 +70,7 @@ variables: &global-variables
     - chmod 600 /root/.ssh/config
 
 # deploy for staging
-deploy_ansible_staging_full:
+deploy_staging_k8s+platform:
   script:
     - apt-get update -y && apt-get install curl apt-transport-https -y
     # Add Helm package repo
@@ -101,7 +101,7 @@ deploy_ansible_staging_full:
     expire_in: never
     when: on_success
 
-deploy_ansible_staging_platform:
+deploy_staging_platform:
   script:
     - apt-get update -y && apt-get install curl apt-transport-https -y
     # Add Helm package repo
@@ -121,7 +121,7 @@ deploy_ansible_staging_platform:
     - mkdir -p /root/.kube
     - scp acn@$STAGING_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_staging /root/.kube/kubeconfig_txl_staging
     - head -1 /root/.kube/kubeconfig_txl_staging
-    #- ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
+    - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: staging
   environment:
