@@ -11,3 +11,7 @@
     state: present
   loop:
     - "{{ lookup('template', 'templates/keycloak/deployment/keycloak.yaml') | from_yaml_all | list }}"
+
+- name: Wait for Keylcoak Start-Up
+  wait_for:
+    timeout: 180

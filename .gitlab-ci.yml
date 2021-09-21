@@ -11,7 +11,7 @@
 #
 
 stages:
-    #- verify
+    - verify
     - staging
     - prod
     - test
@@ -32,16 +32,18 @@ variables: &global-variables
 
 
 ### verify syntaxs etc...
-# verify_commit:
-#   stage: verify
-#   environment:
-#     name: "Verify ansible playbooks"
-#   script:
-#     - 'which ansible-lint || ( pip install ansible-lint )'
-#     - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_01.yml
-#     - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_02.yml
-#     - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_03.yml
-#     - ansible-lint -x experimental -v 03_setup_k8s_platform/full_install.yml
+verify_commit:
+  stage: verify
+  environment:
+    name: "Verify ansible playbooks"
+  script:
+    # Install required python packages
+    - python3 -m pip install 'openshift==0.12.1' jmespath docker psycopg2-binary pymongo
+    - 'which ansible-lint || ( pip install ansible-lint )'
+    - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_01.yml
+    - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_02.yml
+    - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_03.yml
+    - ansible-lint -x experimental -v 03_setup_k8s_platform/full_install.yml
 
 
 ####################################
@@ -69,40 +71,7 @@ variables: &global-variables
     - echo "    IdentityFile /root/.ssh/id_rsa_sc_admin" >> /root/.ssh/config
     - chmod 600 /root/.ssh/config
 
-# deploy for staging
-deploy_staging_k8s+platform:
-  script:
-    - apt-get update -y && apt-get install curl apt-transport-https -y
-    # Add Helm package repo
-    - curl https://baltocdn.com/helm/signing.asc | apt-key add -
-    - echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
-    # Add kubectl package repo
-    - curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    - echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
-    # Install required system packages
-    - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev helm kubectl -y
-    # Install required python packages
-    - python3 -m pip install 'openshift==0.11.2' jmespath docker psycopg2-binary pymongo
-
-    # Start installing platform
-    - mv "$STAGING_INVENTORY_FULL" inventory
-    - *ssh_config_staging
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root 02_setup_k8s/setup_k8s_playbook_01.yml
-    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn 02_setup_k8s/setup_k8s_playbook_02.yml
-    - ansible-playbook -i inventory -l localhost -u acn 02_setup_k8s/setup_k8s_playbook_03.yml
-    - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
-  when: manual
-  stage: staging
-  environment:
-    name: "Deploy Staging Full"
-  artifacts:
-    paths:
-      - .facts/
-    expire_in: never
-    when: on_success
-
-deploy_staging_platform:
-  script:
+.pre_deploy_staging: &pre_deploy_staging
     - apt-get update -y && apt-get install curl apt-transport-https -y
     # Add Helm package repo
     - curl https://baltocdn.com/helm/signing.asc | apt-key add -
@@ -115,9 +84,34 @@ deploy_staging_platform:
     # Install required python packages
     - python3 -m pip install 'openshift==0.12.1' jmespath docker psycopg2-binary pymongo
 
+
+# deploy for staging
+deploy_staging_k8s+platform:
+  script:
+    - *pre_deploy_staging
     # Start installing platform
     - mv "$STAGING_INVENTORY_FULL" inventory
     - *ssh_config_staging
+    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u root 02_setup_k8s/setup_k8s_playbook_01.yml
+    - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn 02_setup_k8s/setup_k8s_playbook_02.yml
+    - ansible-playbook -i inventory -l localhost -u acn 02_setup_k8s/setup_k8s_playbook_03.yml
+  when: manual
+  stage: staging
+  environment:
+    name: "Deploy Staging Kubernetes"
+  artifacts:
+    paths:
+      - .facts/
+    expire_in: never
+    when: on_success
+
+deploy_staging_platform:
+  script:
+    - *pre_deploy_staging
+    # Start installing platform
+    - mv "$STAGING_INVENTORY_FULL" inventory
+    - *ssh_config_staging
+    # Get kubeconfig from kubernetes
     - mkdir -p /root/.kube
     - scp acn@$STAGING_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_staging /root/.kube/kubeconfig_txl_staging
     - head -1 /root/.kube/kubeconfig_txl_staging
