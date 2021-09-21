@@ -705,7 +705,7 @@ datapusherCallbackUrlBase: http://ckan
 
 smtp_server: "smtpServerURLorIP:port"
 smtp_user: "{{ CKAN_SMTP_USER }}"
-smtp_password: "{{ CKAN_SMTP_PASSWORD }}"
+smtp_password: "{{ CKAN_SMTP_USER_PASSWORD }}"
 smtp_mailFrom: "postmaster@domain.com"
 smtp_tls : "enabled"
 smtp_starttls: "true"

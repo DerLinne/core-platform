@@ -62,7 +62,7 @@ datapusherCallbackUrlBase: http://ckan
 
 smtp_server: "{{ CKAN_SMTP_SERVER_AND_PORT }}"
 smtp_user: "{{ CKAN_SMTP_USER }}"
-smtp_password: "{{ CKAN_SMTP_PASSWORD }}"
+smtp_password: "{{ CKAN_SMTP_USER_PASSWORD }}"
 smtp_mailFrom: "{{ CKAN_SMTP_EMAIL }}"
 smtp_tls : "enabled"
 smtp_starttls: "true"

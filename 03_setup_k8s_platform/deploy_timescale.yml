@@ -84,7 +84,7 @@
 
     - name: Create timescale extension
       block:
-        - name: Try cluster-0 resource
+        - name: _Create timescale extension_ Try cluster-0 resource
           command: |
             kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
               exec {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-0
@@ -95,7 +95,7 @@
           delay: 20
           changed_when: True
       rescue:
-        - name: Try cluster-1 resource
+        - name: _Create timescale extension_ Try cluster-1 resource
           command: |
             kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
               exec {{ timescale.cluster_team }}-{{ timescale.cluster_name }}-1
