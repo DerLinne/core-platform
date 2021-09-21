@@ -70,7 +70,7 @@
       set_fact:
         client_id_masterportal: "{{ clients.json | json_query(query) }}"
       vars:
-        query: "[?clientId== '{{ IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
+        query: "[?clientId== '{{ default.IDM_CLIENT_MASTERPORTAL }}'].id | [0]"
 
     - name: Get Client Secret Masterportal
       uri:

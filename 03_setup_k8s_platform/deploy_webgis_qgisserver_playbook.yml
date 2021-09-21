@@ -218,6 +218,10 @@
       debug:
         msg: "Name of Server Pod: {{ qgis_server_server_pod_name }}"
 
+    - name: Give {{ qgis_server_server_pod_name }} some time to properly start
+      wait_for:
+        timeout: 60
+
     - name: Create /home/qgis/.pg_service.conf in Pod running QGIS Server component server
       ansible.builtin.shell: |
         kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace | lower }} exec {{ qgis_server_server_pod_name }} -- bash -c "cat {{ qgisserver.pgservicefile_dir }}/{{ qgisserver.pgservicefile }} > /home/qgis/.pg_service.conf"
