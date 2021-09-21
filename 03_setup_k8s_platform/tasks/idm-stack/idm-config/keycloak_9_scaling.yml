@@ -19,7 +19,7 @@
 - name: Push background image to keycloak instance-0
   command: |
     kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
-      cp {{ playbook_dir }}../../..templates/keycloak/customization/images/keycloak-bg.png
+      cp {{ playbook_dir }}/templates/keycloak/customization/images/keycloak-bg.png
       keycloak-0:opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
   register: result
   until: result.rc == 0
@@ -28,7 +28,7 @@
 - name: Push background image to keycloak instance-1
   command: |
     kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
-      cp {{ playbook_dir }}../../..templates/keycloak/customization/images/keycloak-bg.png
+      cp {{ playbook_dir }}/templates/keycloak/customization/images/keycloak-bg.png
       keycloak-0:opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
   register: result
   until: result.rc == 0
