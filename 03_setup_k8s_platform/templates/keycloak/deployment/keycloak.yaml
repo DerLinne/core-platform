@@ -36,9 +36,11 @@ spec:
       volumes:
         defaultMode: 0777
         items:
-          - name: messages-de
+          - name: keycloak-messages-de
             mountPath: /opt/jboss/keycloak/themes/base/email/messages/messages_de.properties
             subPath: messages_de.properties
+            configMaps:
+              - keycloak-messages-de
     resources:
       limits:
         cpu: 1500m
