@@ -40,6 +40,20 @@ spec:
       requests:
         cpu: 750m
         memory: 750Mi
+    volumeMounts:
+      - name: background-image
+        mountPath: /opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
+        subPath: keycloak-bg.png
+      - name: messages_de
+        mountPath: /opt/jboss/keycloak/themes/base/email/messages/messages_de.properties
+        subPath: messages_de.properties
+  volumes:
+    - name: background-image
+      configMap:
+        name: keycloak_background_image
+    - name: messages_de
+      configMap:
+        name: keycloak_messages_de
 
 # ---
 

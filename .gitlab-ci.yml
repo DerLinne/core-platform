@@ -128,19 +128,6 @@ deploy_staging_platform:
     expire_in: never
     when: on_success
 
-# deploy for staging
-# test_serverscript_staging:
-#   script:
-#     - *ssh_config_staging
-#     - 'which gem || ( apt-get update -y && apt-get install -y --no-install-recommends ruby )'
-#     - gem install rspec serverspec
-#     - cd 04_tests/serverspec
-#     - TARGET_HOST=$TARGET_HOST_STAGING rake spec
-#   stage: test
-#   environment:
-#     name: "Test Staging Env"
-#   only:
-#       - master
 
 ####################################
 ######     PRODUCTION    ###########
@@ -186,16 +173,3 @@ deploy_staging_platform:
 #    expire_in: never
 #    when: always
 #
-## deploy for production
-#test_serverscript_prod:
-#  script:
-#    - *ssh_config_prod
-#    - 'which gem || ( apt-get update -y && apt-get install -y --no-install-recommends ruby )'
-#    - gem install rspec serverspec
-#    - cd 04_tests/serverspec
-#    - TARGET_HOST=$TARGET_HOST_PROD rake spec
-#  stage: test
-#  environment:
-#    name: "Test Production Env"
-#  only:
-#      - deployment
