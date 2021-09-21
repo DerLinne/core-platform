@@ -113,7 +113,7 @@ deploy_staging_platform:
     # Install required system packages
     - apt-get update -y && apt install openssh-client curl vim git less iputils-ping sshpass libpq-dev gcc python3-dev musl-dev helm kubectl -y
     # Install required python packages
-    - python3 -m pip install 'openshift==0.11.2' jmespath docker psycopg2-binary pymongo 'kubernetes==12.0.1'
+    - python3 -m pip install 'openshift==0.12.1' jmespath docker psycopg2-binary pymongo
 
     # Start installing platform
     - mv "$STAGING_INVENTORY_FULL" inventory
