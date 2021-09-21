@@ -39,6 +39,7 @@ verify_commit:
   script:
     # Install required python packages
     - python3 -m pip install 'openshift==0.12.1' jmespath docker psycopg2-binary pymongo
+    - ansible-galaxy collection install community.kubernetes
     - 'which ansible-lint || ( pip install ansible-lint )'
     - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_01.yml
     - ansible-lint -x experimental -v 02_setup_k8s/setup_k8s_playbook_02.yml
