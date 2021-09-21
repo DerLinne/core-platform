@@ -65,7 +65,7 @@ variables: &global-variables
     - echo "Host $STAGING_TARGET_HOST" >> /root/.ssh/config
     - echo "    HostName $STAGING_TARGET_HOST" >> /root/.ssh/config
     - echo "    User acn" >> /root/.ssh/config
-    - echo "    PreferredAuthentications publickey" >> /root/.ssh/config
+    - echo "    PreferredAuthentications publickey,password" >> /root/.ssh/config
     - echo "    IdentityFile /root/.ssh/id_rsa_sc_admin" >> /root/.ssh/config
     - chmod 600 /root/.ssh/config
 
