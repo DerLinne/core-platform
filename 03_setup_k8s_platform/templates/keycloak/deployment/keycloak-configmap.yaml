@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: keycloak_messages_de
+  name: keycloak-messages-de
 data:
   messages_de.properties: |
     emailVerificationSubject=E-Mail verifizieren

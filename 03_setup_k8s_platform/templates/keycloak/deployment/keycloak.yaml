@@ -47,7 +47,7 @@ spec:
   volumes:
     - name: messages_de
       configMap:
-        name: keycloak_messages_de
+        name: keycloak-messages-de
 
 # ---
 
