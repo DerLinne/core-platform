@@ -23,15 +23,15 @@ serverDefinitions_Port: 5432
 serverDefintions_Username: "{{ MAPSERVER_POSTGIS_USER }}"
 serverDefintions_Host: "{{ MAPSERVER_POSTGIS_HOST }}"
 serverDefinitions_SSLMode: prefer
-serverDefinitions_MaintenanceDB: "{{ serverDefinitions_MaintenanceDB }}"
+serverDefinitions_MaintenanceDB: "{{ MAPSERVER_POSTGIS_DB }}"
 
 networkPolicy_enabled: true
 
 ingress_enabled: true
 ingress_class: public
-ingres_host: pgadmin.{{ DOMAIN }}
+ingres_host: "pgadmin.{{ DOMAIN }}"
 tls_acme: true
-tls_secretName: pgadmin.{{ DOMAIN }}-tls
+tls_secretName: "pgadmin.{{ DOMAIN }}-tls"
 
 existingSecret: ""
 

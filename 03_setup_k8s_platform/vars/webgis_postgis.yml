@@ -21,5 +21,5 @@ persistentVolume_size: 100Mi
 persistentVolume_storageClass: microk8s-hostpath
 persistentVolume_existingClaim:
 
-env_postgres_user: "{{ env_postgres_user }}"
-env_postgres_password: "{{ env_postgres_password }}"
+env_postgres_user: "{{ WEBGIS_POSTGRES_ADMIN }}"
+env_postgres_password: "{{ WEBGIS_POSTGRES_ADMIN_PASSWORD }}"
