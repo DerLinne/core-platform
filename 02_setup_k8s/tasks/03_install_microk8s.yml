@@ -32,6 +32,7 @@
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.stop
   args:
     executable: /bin/bash
+  changed_when: False
 
 - name: Start Microk8s
   shell: source /etc/profile.d/apps-bin-path.sh && microk8s.start

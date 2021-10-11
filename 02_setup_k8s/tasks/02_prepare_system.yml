@@ -3,6 +3,7 @@
 # Update Repositories
 - name: Update apt cache
   raw: apt-get -y update
+  changed_when: False
 
 # Install Dependencies
 - name: Install required system packages
