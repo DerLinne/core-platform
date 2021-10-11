@@ -20,9 +20,11 @@ data:
         gzip off;
         include fastcgi_params;
         fastcgi_pass {{ $fullName }}:{{ .Values.qgis.server.ports.servicePort }};
+        fastcgi_param PGSERVICEFILE {{ .Values.qgis.pgservicefile_dir}}/{{ .Values.qgis.pgservicefile}};
 
         if ($request_method = 'OPTIONS') {
           add_header 'Access-Control-Allow-Origin' '{{ .Values.nginx.cors_origin }}';
+          add_header 'Access-Control-Allow-Credentials' 'true';
           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
           #
           # Custom headers and headers various browsers *should* be OK with but aren't
@@ -38,17 +40,19 @@ data:
         }
 
         if ($request_method = 'POST') {
-          add_header 'Access-Control-Allow-Origin' '{{ .Values.nginx.cors_origin }}';
-          add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
-          add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+          add_header 'Access-Control-Allow-Origin' '{{ .Values.nginx.cors_origin }}' always;
+          add_header 'Access-Control-Allow-Credentials' 'true' always;
+          add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+          add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
         }
 
         if ($request_method = 'GET') {
-          add_header 'Access-Control-Allow-Origin' '{{ .Values.nginx.cors_origin }}';
-          add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
-          add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+          add_header 'Access-Control-Allow-Origin' '{{ .Values.nginx.cors_origin }}' always;
+      add_header 'Access-Control-Allow-Credentials' 'true' always;
+          add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+          add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
         }
       }
     }

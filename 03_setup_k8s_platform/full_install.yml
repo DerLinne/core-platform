@@ -24,3 +24,4 @@
 - import_playbook: deploy_ckan_playbook.yml
 - import_playbook: deploy_frost_playbook.yml
 - import_playbook: deploy_webgis_oauth2_masterportal_proxy.yml
+- import_playbook: deploy_webgis_oauth2_proxy.yml

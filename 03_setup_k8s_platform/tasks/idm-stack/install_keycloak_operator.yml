@@ -17,32 +17,27 @@
       kubectl --kubeconfig="{{ k8s_config }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/crds/"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Deploy role for KeyCloak Operator
   ansible.builtin.shell: |
       kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_operator_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/role.yaml"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Deploy role binding for KeyCloak Operator
   ansible.builtin.shell: |
       kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_operator_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/role_binding.yaml"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Deploy service account for KeyCloak Operator
   ansible.builtin.shell: |
       kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_operator_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/service_account.yaml"
   args:
     executable: /bin/bash
-  changed_when: false
 
 - name: Deploy KeyCloak Operator
   ansible.builtin.shell: |
       kubectl --kubeconfig="{{ k8s_config }}" --namespace="{{ k8s_operator_namespace }}" apply -f "{{ keycloak_op.git_repo_dest }}/deploy/operator.yaml"
   args:
     executable: /bin/bash
-  changed_when: false

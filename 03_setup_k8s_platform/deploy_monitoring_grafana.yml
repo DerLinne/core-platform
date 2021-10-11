@@ -46,7 +46,7 @@
         create_namespace: true
         values: "{{ lookup('template', 'monitoring/grafana-values.yaml.j2') | from_yaml }}"
 
-    - name: Let Grafana a chance to start
+    - name: Let Grafana a chance to start 
       pause:
         seconds: 60
 
@@ -72,7 +72,6 @@
         state: present
 
     - name: (Re-)Import Grafana Dashboards
-      no_log: true
       community.grafana.grafana_dashboard:
             grafana_url: "https://{{ monitoring_grafana.ingress_server_name }}.{{ DOMAIN }}"
             url_username: "{{ monitoring_grafana.admin_user }}"
