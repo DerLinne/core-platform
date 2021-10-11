@@ -19,5 +19,6 @@
     - idm-config/keycloak_6_scope_mappings.yml
     - idm-config/keycloak_7_groups.yml
     - idm-config/keycloak_8_users.yml
+    - idm-config/keycloak_9_scaling.yml
   loop_control:
     loop_var: config_step

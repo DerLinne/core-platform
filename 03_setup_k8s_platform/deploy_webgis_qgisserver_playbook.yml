@@ -46,7 +46,7 @@
         qgisserver_project_file: "{{ qgisserver.env_QGIS_PROJECT_FILE }}"
 
     - name: Check for Secret gitlab-registry in Namespace "{{ k8s_namespace }}"
-      kubernetes.core.k8s_info:
+      k8s_info:
         api_version: v1
         kind: Secret
         name: "gitlab-registry"
@@ -71,7 +71,7 @@
       when: docker_registry is defined
 
     - name: Create docker-registry secret for GitLab registry
-      kubernetes.core.k8s:
+      k8s:
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
@@ -177,7 +177,7 @@
         values: "{{ lookup('template', 'templates/webgis/qgisserver_values.yaml.j2') | from_yaml }}"
 
     - name: Get Pod running QGIS Server component http
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -194,7 +194,7 @@
       when: qgis_server_http_pod_info is defined
 
     - name: Get Pod running QGIS Server component server
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -210,11 +210,17 @@
         qgis_server_server_pod_name: "{{ qgis_server_server_pod_info['resources'][0]['metadata']['name'] }}"
       when: qgis_server_server_pod_info is defined
 
-    - debug:
+    - name: Debug qgis_server_http_pod_name
+      debug:
         msg: "Name of HTTP Pod: {{ qgis_server_http_pod_name }}"
 
-    - debug:
+    - name: Debug qgis_server_server_pod_name
+      debug:
         msg: "Name of Server Pod: {{ qgis_server_server_pod_name }}"
+
+    - name: Give {{ qgis_server_server_pod_name }} some time to properly start
+      wait_for:
+        timeout: 60
 
     - name: Create /home/qgis/.pg_service.conf in Pod running QGIS Server component server
       ansible.builtin.shell: |

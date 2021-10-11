@@ -1,0 +1,53 @@
+- name: Set keycloak deployment instances to 2
+  set_fact:
+    keycloak_replicas: 2
+
+- name: Deploy Keycloak custom resource
+  k8s:
+    definition: "{{ item }}"
+    namespace: "{{ k8s_namespace }}"
+    kubeconfig: "{{ k8s_config }}"
+    context: "{{ k8s_context }}"
+    state: present
+  loop:
+    - "{{ lookup('template', 'templates/keycloak/deployment/keycloak.yaml') | from_yaml_all | list }}"
+
+- name: Wait for Keylcoak Start-Up
+  wait_for:
+    timeout: 180
+
+- name: Push background image to keycloak instance-0
+  command: |
+    kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+      cp {{ playbook_dir }}/templates/keycloak/customization/images/keycloak-bg.png
+      keycloak-0:opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
+  register: result
+  until: result.rc == 0
+  changed_when: True
+
+- name: Push background image to keycloak instance-1
+  command: |
+    kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+      cp {{ playbook_dir }}/templates/keycloak/customization/images/keycloak-bg.png
+      keycloak-1:opt/jboss/keycloak/themes/keycloak/login/resources/img/keycloak-bg.png
+  register: result
+  until: result.rc == 0
+  changed_when: True
+
+- name: Push messages_de to keycloak instance-0
+  command: |
+    kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+      cp {{ playbook_dir }}/templates/keycloak/customization/email/messages_de.properties
+      keycloak-0:opt/jboss/keycloak/themes/base/email/messages/messages_de.properties
+  register: result
+  until: result.rc == 0
+  changed_when: True
+
+- name: Push messages_de to keycloak instance-1
+  command: |
+    kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+      cp {{ playbook_dir }}/templates/keycloak/customization/email/messages_de.properties
+      keycloak-1:opt/jboss/keycloak/themes/base/email/messages/messages_de.properties
+  register: result
+  until: result.rc == 0
+  changed_when: True

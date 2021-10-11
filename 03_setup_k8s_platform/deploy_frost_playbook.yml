@@ -141,18 +141,31 @@
                 memory: 500Mi
 
     - name: Create PostGIS extension
-      command: |
-        kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
-          exec -it {{ postgis.cluster_team }}-{{ postgis.cluster_name }}-0
-          -- bash -c "psql -U {{ postgres.super_username }} -d {{ frost.frost_db_database }} -c 'CREATE EXTENSION postgis;'"
-      register: result
-      until: result.rc == 0
-      retries: 10
-      delay: 5
-      changed_when: True
+      block:
+        - name: _Create PostGIS extension_ Try cluster-0 resource
+          command: |
+            kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+              exec {{ postgis.cluster_team }}-{{ postgis.cluster_name }}-0
+              -- bash -c "psql -U {{ postgres.super_username }} -d {{ frost.frost_db_database }} -c 'CREATE EXTENSION IF NOT EXISTS postgis;'"
+          register: result
+          until: result.rc == 0
+          retries: 5
+          delay: 20
+          changed_when: True
+      rescue:
+        - name: _Create PostGIS extension_ Try cluster-1 resource
+          command: |
+            kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace }}
+              exec {{ postgis.cluster_team }}-{{ postgis.cluster_name }}-1
+              -- bash -c "psql -U {{ postgres.super_username }} -d {{ frost.frost_db_database }} -c 'CREATE EXTENSION IF NOT EXISTS postgis;'"
+          register: result
+          until: result.rc == 0
+          retries: 5
+          delay: 20
+          changed_when: True
 
     - name: Get password of user sensorthings, created by Zalando operator
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -178,7 +191,7 @@
         apply: yes
 
     - name: Get Pod running FROST Server component http
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"

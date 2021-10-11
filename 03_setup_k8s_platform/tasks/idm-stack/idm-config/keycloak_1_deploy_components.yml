@@ -1,3 +1,7 @@
+- name: Set initial keycloak deployment instances
+  set_fact:
+    keycloak_replicas: 1
+
 - name: Deploy Keycloak custom resource
   k8s:
     definition: "{{ item }}"
@@ -17,3 +21,7 @@
     state: present
   loop:
     - "{{ lookup('template', 'templates/keycloak/deployment/keycloak-ingress.yaml') | from_yaml }}"
+
+- name: Wait for Keylcoak Start-Up
+  wait_for:
+    timeout: 180

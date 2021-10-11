@@ -29,7 +29,7 @@
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}" 
+        context: "{{ k8s_context }}"
         definition:
           apiVersion: v1
           kind: Secret
@@ -49,7 +49,7 @@
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"         
+        context: "{{ k8s_context }}"
         definition:
           apiVersion: v1
           kind: Secret
@@ -73,7 +73,7 @@
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"         
+        context: "{{ k8s_context }}"
         definition:
           apiVersion: minio.min.io/v2
           kind: Tenant
@@ -96,8 +96,8 @@
 
           spec:
             ## Registry location and Tag to download MinIO Server image
-            image: "{{ minio.image_repository }}:{{ minio.image_tag }}" 
-            imagePullPolicy: "{{ minio.image_pullPolicy }}" 
+            image: "{{ minio.image_repository }}:{{ minio.image_tag }}"
+            imagePullPolicy: "{{ minio.image_pullPolicy }}"
 
             ## Secret with credentials to be used by MinIO Tenant.
             ## Refers to the secret object created above.
@@ -126,7 +126,6 @@
                     resources:
                       requests:
                         storage: 10Gi
-                    storageClassName: minio-storage
 
                 ## Used to specify a toleration for a pod
                 # tolerations:
@@ -220,13 +219,13 @@
             ## Add environment variables to be set in MinIO container (https://github.com/minio/minio/tree/master/docs/config)
             env:
             - name: MINIO_IDENTITY_OPENID_CONFIG_URL
-              value: "{{ IDM_ENDP_ISSUER }}/.well-known/openid-configuration" 
+              value: "{{ IDM_ENDP_ISSUER }}/.well-known/openid-configuration"
             - name: MINIO_IDENTITY_OPENID_CLIENT_ID
               value: "{{ IDM_CLIENT_MINIO }}"
             - name: MINIO_IDENTITY_OPENID_CLIENT_SECRET
-              value: "{{ IDM_CLIENT_SECRET_MINIO }}" 
+              value: "{{ IDM_CLIENT_SECRET_MINIO }}"
             - name: MINIO_IDENTITY_OPENID_SCOPES
-              value: "openid,profile,email"  
+              value: "openid,profile,email"
 
             ## PriorityClassName indicates the Pod priority and hence importance of a Pod relative to other Pods.
             ## This is applied to MinIO pods only.
@@ -236,7 +235,7 @@
             ## Define configuration for Console (Graphical user interface for MinIO)
             ## Refer https://github.com/minio/console
             console:
-              image: "{{ minio.image_console_repository }}:{{ minio.image_console_tag }}" 
+              image: "{{ minio.image_console_repository }}:{{ minio.image_console_tag }}"
               replicas: 1
               consoleSecret:
                 name: console-secret
@@ -250,7 +249,7 @@
                 - name: CONSOLE_IDP_CLIENT_ID
                   value: "{{ IDM_CLIENT_MINIO }}"
                 - name: CONSOLE_IDP_SECRET
-                  value: "{{ IDM_CLIENT_SECRET_MINIO }}" 
+                  value: "{{ IDM_CLIENT_SECRET_MINIO }}"
                 - name: CONSOLE_IDP_CALLBACK
                   value: "https://{{ minio.ingress_console_server_name }}.{{ DOMAIN }}/oauth_callback"
 
@@ -259,7 +258,7 @@
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"         
+        context: "{{ k8s_context }}"
         definition:
           apiVersion: networking.k8s.io/v1
           kind: Ingress
@@ -278,21 +277,21 @@
             rules:
             - host: "{{ minio.ingress_console_server_name }}.{{ DOMAIN }}"
               http:
-                paths:  
+                paths:
                 - path: /
                   pathType: Prefix
                   backend:
-                    service: 
+                    service:
                       name: minio-console
-                      port: 
-                        number: 9090      
+                      port:
+                        number: 9090
 
     - name: Deploy minio test client ingress
       k8s:
         state: present
         namespace: "{{ k8s_namespace }}"
         kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"         
+        context: "{{ k8s_context }}"
         definition:
           apiVersion: networking.k8s.io/v1
           kind: Ingress
@@ -311,11 +310,11 @@
             rules:
             - host: "{{ minio.ingress_server_name }}.{{ DOMAIN }}"
               http:
-                paths:  
+                paths:
                 - path: /
                   pathType: Prefix
                   backend:
-                    service: 
+                    service:
                       name: minio
-                      port: 
-                        number: 80   
+                      port:
+                        number: 80
