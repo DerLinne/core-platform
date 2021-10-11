@@ -165,7 +165,7 @@
           changed_when: True
 
     - name: Get password of user sensorthings, created by Zalando operator
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
@@ -191,7 +191,7 @@
         apply: yes
 
     - name: Get Pod running FROST Server component http
-      community.kubernetes.k8s_info:
+      k8s_info:
         kubeconfig: "{{ k8s_config }}"
         context: "{{ k8s_context }}"
         namespace: "{{ k8s_namespace }}"
