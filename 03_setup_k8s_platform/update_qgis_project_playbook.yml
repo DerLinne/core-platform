@@ -65,9 +65,8 @@
         - qgis_server_deployment_name is defined
 
     # After redeployment, we have to
-    # - wait until the new Pod, running QGIS Server component server, has been crated.
+    # - wait until the new Pod, running QGIS Server component server, has been created.
     # - create /home/qgis/.pg_service.conf in Pod running QGIS Server component server.
-    # - restart the Pod running QGIS Server component http.
     - name: Wait till new QGIS Server Pod is up and running
       community.kubernetes.k8s_info:
         kubeconfig: "{{ k8s_config }}"
@@ -80,24 +79,7 @@
           - component=server
         wait: yes
         wait_sleep: 10
-        wait_timeout: 360
-
-    - name: Get Pod running QGIS Server component http
-      community.kubernetes.k8s_info:
-        kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"
-        namespace: "{{ k8s_namespace }}"
-        kind: Pod
-        label_selectors:
-          - app.kubernetes.io/instance=geodata-qgisserver
-          - app=webgis-qgisserver
-          - component=http
-      register: qgis_server_http_pod_info
-
-    - name: Get name of Pod running QGIS Server component http
-      ansible.builtin.set_fact:
-        qgis_server_http_pod_name: "{{ qgis_server_http_pod_info['resources'][0]['metadata']['name'] }}"
-      when: qgis_server_http_pod_info is defined
+        wait_timeout: 600
 
     - name: Get Pod running QGIS Server component server
       community.kubernetes.k8s_info:
@@ -127,29 +109,5 @@
         kubectl --kubeconfig {{ k8s_config }} -n {{ k8s_namespace | lower }} exec {{ qgis_server_server_pod_name }} -- bash -c "cat {{ qgisserver.pgservicefile_dir }}/{{ qgisserver.pgservicefile }} > /home/qgis/.pg_service.conf"
       args:
         executable: /bin/bash
-      when: qgis_server_http_pod_name is defined
+      when: qgis_server_server_pod_name is defined
 
-    - name: Restart Pod running QGIS Server component http
-      ansible.builtin.shell: |
-        kubectl --kubeconfig="{{ k8s_config }}" --namespace "{{ k8s_namespace | lower }}" delete pod "{{ qgis_server_http_pod_name }}"
-      args:
-        executable: /bin/bash
-      when: qgis_server_http_pod_name is defined
-
-    # - name: Pause one minute to wait until Pod has been restarted
-    #   pause:
-    #     minutes: 1
-
-    - name: Wait till the new Pod, running QGIS Server component http, is up and running
-      community.kubernetes.k8s_info:
-        kubeconfig: "{{ k8s_config }}"
-        context: "{{ k8s_context }}"
-        namespace: "{{ k8s_namespace }}"
-        kind: Pod
-        label_selectors:
-          - app.kubernetes.io/instance=geodata-qgisserver
-          - app=webgis-qgisserver
-          - component=http
-        wait: yes
-        wait_sleep: 10
-        wait_timeout: 360

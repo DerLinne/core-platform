@@ -38,11 +38,11 @@ env_DEBUG: "1"
 
 # QGIS: values for file 'pg_service.conf'
 postgis_service: "qwc_geodb"
-postgis_host: "geodata-postgis-webgis-postgis"
+postgis_host: "{{ MAPSERVER_POSTGIS_HOST }}"
 postgis_port: 5432
-postgis_dbname: "qwc_demo"
-postgis_user: "{{ postgis_user }}"
-postgis_user_password: "{{ postgis_user_password }}"
+postgis_dbname: "{{ MAPSERVER_POSTGIS_DB }}"
+postgis_user: "{{ MAPSERVER_POSTGIS_USER }}"
+postgis_user_password: "{{ MAPSERVER_POSTGIS_USER_PASSWORD }}"
 postgis_sslmode: "disable"
 
 # PostGIS: MountPath and Name of 'pg_service.conf' for QGIS Server
