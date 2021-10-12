@@ -7,7 +7,7 @@ HELM_RELEASE_NAME: geodata-masterportal
 replicaCount: 1
 image_registry: "registry.gitlab.com/"
 image_repository: "registry.gitlab.com/berlintxl/futr-hub/platform/masterportal_customizing"
-image_tag: "webgis-masterportal"
+image_tag: "{{ ENVIRONMENT }}"
 image_pullPolicy: Always
 
 service_type: NodePort

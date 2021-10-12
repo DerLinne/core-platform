@@ -19,8 +19,9 @@ This document describes how to:
 - a [good](https://neovim.io/), [command line usable](https://www.vim.org/) Editor.
 - a SSH key pair for the ACN user _acn_.
 - a SSH key pair to access this Git repository, since it is set to _private_.
-- IP address of the Linux server you want to install [MicroK8s](https://microk8s.io).
+- IP address and FQDN of the Linux server where you want to install [MicroK8s](https://microk8s.io).
 - Credentials to access the Linux server.
+- Setup DNS records to be used with [Let's Encrypt](https://letsencrypt.org/)
 - An email address for [cert-manager](https://cert-manager.io)
 
 
@@ -817,7 +818,7 @@ ansible-playbook -i inventory deploy_frost_playbook.yml
 
 After a view minutes the deployment should be finished.
 
-You can than reach FROST Server with this URL: http://frost.utr-k8s.urban-data.cloud:30888/FROST-Server/
+You can than reach FROST Server with this URL: http://frost.your.domain:30888/FROST-Server/
 
 **NOTE**
 >This installation of FROST Server does use PostgreSQL + PostGIS extension, deployed via the [Zalando Postgres Operator](https://github.com/zalando/postgres-operator). Therefore, during the installation, the PostGIS server deployed by the Helm chart will be deleted.
@@ -1053,12 +1054,12 @@ ansible-playbook -i inventory deploy_monitoring_grafana.yml
 The DataFlow Stack contains event-driven applications, that use [NodeRed](https://nodered.org/).
 As of now the following NodeRed applications are deployed:
 
-- [01_show_last_tweet](https://nr-show-last-tweet.utr-k8s.urban-data.cloud)
-- [05_luftdaten_info](https://nr-luftdaten-info.utr-k8s.urban-data.cloud)
-- [06_sensebox](https://nr-sensebox.utr-k8s.urban-data.cloud)
-- [07_switch_lights](https://nr-switch-lights.utr-k8s.urban-data.cloud)
-- [08_indicate_energy](https://nr-indicate-energy.utr-k8s.urban-data.cloud)
-- [09_paxcounter](https://nr-paxcounter.utr-k8s.urban-data.cloud)
+- [01_show_last_tweet](https://nr-show-last-tweet.your.domain)
+- [05_luftdaten_info](https://nr-luftdaten-info.your.domain)
+- [06_sensebox](https://nr-sensebox.your.domain)
+- [07_switch_lights](https://nr-switch-lights.your.domain)
+- [08_indicate_energy](https://nr-indicate-energy.your.domain)
+- [09_paxcounter](https://nr-paxcounter.your.domain)
 
 For further details, please take a look at [this](https://gitlab.com/berlintxl/futr-hub/platform/data-platform/-/tree/master/05_usecases) GitLab repository.
 
