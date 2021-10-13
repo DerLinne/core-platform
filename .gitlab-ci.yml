@@ -137,7 +137,7 @@ deploy_staging_platform:
 
 
 .prepare_single_job_staging: &prepare_single_job_staging
-    - *pre_deploy_staging
+    - *pre_deploy
     - python3 -m pip install 'openshift==0.12.1'
     # Start installing platform
     - mv "$STAGING_INVENTORY_FULL" inventory
@@ -199,7 +199,7 @@ deploy_prod_k8s:
     - ansible-playbook -i inventory -l $TARGET_HOSTNAME -u acn 02_setup_k8s/setup_k8s_playbook_02.yml
     - ansible-playbook -i inventory -l localhost -u acn 02_setup_k8s/setup_k8s_playbook_03.yml
   when: manual
-  stage: production
+  stage: prod
   environment:
     name: "Deploy Production Kubernetes"
   artifacts:
@@ -222,7 +222,7 @@ deploy_production_platform:
     - ansible-galaxy collection install community.kubernetes
     - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
   when: manual
-  stage: production
+  stage: prod
   environment:
     name: "Deploy Production Platform"
   artifacts:
