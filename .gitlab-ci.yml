@@ -136,6 +136,33 @@ deploy_staging_platform:
     when: on_success
 
 
+.prepare_single_job_staging: &prepare_single_job_staging
+    - *pre_deploy_staging
+    - python3 -m pip install 'openshift==0.12.1'
+    # Start installing platform
+    - mv "$STAGING_INVENTORY_FULL" inventory
+    - *ssh_config_staging
+    # Get kubeconfig from kubernetes
+    - mkdir -p /root/.kube
+    - scp acn@$STAGING_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_staging /root/.kube/kubeconfig_txl_staging
+    - head -1 /root/.kube/kubeconfig_txl_staging
+    - ansible-galaxy collection install community.kubernetes
+
+deploy_staging_ckan:
+  script:
+    - *prepare_single_job_staging
+    - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/deploy_ckan_playbook.yml
+  when: manual
+  stage: staging
+  environment:
+    name: "Deploy Staging Platform"
+  artifacts:
+    paths:
+      - .facts/
+    expire_in: never
+    when: on_success
+
+
 ####################################
 ######     PRODUCTION    ###########
 ####################################
