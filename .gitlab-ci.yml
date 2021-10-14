@@ -91,6 +91,7 @@ verify_commit:
     - echo "    IdentityFile /root/.ssh/id_rsa_sc_admin" >> /root/.ssh/config
     - chmod 600 /root/.ssh/config
 
+
 # deploy for staging
 deploy_staging_k8s:
   script:
@@ -112,11 +113,9 @@ deploy_staging_k8s:
     expire_in: never
     when: on_success
 
-deploy_staging_platform:
-  script:
+.prepare_deploy_staging: &prepare_deploy_staging
     - *pre_deploy
     - python3 -m pip install 'openshift==0.12.1'
-    # Start installing platform
     - mv "$STAGING_INVENTORY_FULL" inventory
     - *ssh_config_staging
     # Get kubeconfig from kubernetes
@@ -124,6 +123,10 @@ deploy_staging_platform:
     - scp acn@$STAGING_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_staging /root/.kube/kubeconfig_txl_staging
     - head -1 /root/.kube/kubeconfig_txl_staging
     - ansible-galaxy collection install community.kubernetes
+
+deploy_staging_platform:
+  script:
+    - *prepare_deploy_staging
     - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: staging
@@ -135,22 +138,9 @@ deploy_staging_platform:
     expire_in: never
     when: on_success
 
-
-.prepare_single_job_staging: &prepare_single_job_staging
-    - *pre_deploy
-    - python3 -m pip install 'openshift==0.12.1'
-    # Start installing platform
-    - mv "$STAGING_INVENTORY_FULL" inventory
-    - *ssh_config_staging
-    # Get kubeconfig from kubernetes
-    - mkdir -p /root/.kube
-    - scp acn@$STAGING_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_staging /root/.kube/kubeconfig_txl_staging
-    - head -1 /root/.kube/kubeconfig_txl_staging
-    - ansible-galaxy collection install community.kubernetes
-
 deploy_staging_ckan:
   script:
-    - *prepare_single_job_staging
+    - *prepare_deploy_staging
     - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/deploy_ckan_playbook.yml
   when: manual
   stage: staging
@@ -208,11 +198,9 @@ deploy_prod_k8s:
     expire_in: never
     when: on_success
 
-deploy_production_platform:
-  script:
+.prepare_deploy_prod: &prepare_deploy_prod
     - *pre_deploy
     - python3 -m pip install 'openshift==0.12.1'
-    # Start installing platform
     - mv "$PROD_INVENTORY_FULL" inventory
     - *ssh_config_prod
     # Get kubeconfig from kubernetes
@@ -220,6 +208,10 @@ deploy_production_platform:
     - scp acn@$PROD_TARGET_HOST:/home/acn/.kube/kubeconfig_txl_prod /root/.kube/kubeconfig_txl_prod
     - head -1 /root/.kube/kubeconfig_txl_prod
     - ansible-galaxy collection install community.kubernetes
+
+deploy_production_platform:
+  script:
+    - *prepare_deploy_prod
     - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/full_install.yml
   when: manual
   stage: prod
