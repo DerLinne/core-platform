@@ -23,6 +23,13 @@ working_group=<name_for_localhost_group>
 # (Sub-)Domain for the Installation
 DOMAIN="<domainname>"
 
+# Name of the envrionment where to deploy to
+#   - 'prod',
+#   - 'staging',
+#   - 'dev1' or
+#   - 'dev2'.
+ENVIRONMENT="<deploy_to_this_environment>"
+
 ## IDM Users
 PLATFORM_ADMIN_FIRST_NAME="<firstname>"
 PLATFORM_ADMIN_SURNAME="<surename>"
@@ -126,6 +133,7 @@ CKAN_SMTP_EMAIL='<emailadress>'
 # Grafana Values
 GRAFANA_ADMIN='<username>'
 GRAFANA_ADMIN_PASSWORD='<password>'
+
 
 # Frost Values
 FROST_DB_USERNAME='<username>'

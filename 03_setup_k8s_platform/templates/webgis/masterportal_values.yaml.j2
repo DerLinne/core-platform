@@ -49,7 +49,7 @@ ingress:
     nginx.ingress.kubernetes.io/auth-url: "https://mpoauth.{{ DOMAIN }}/oauth2/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://mpoauth.{{ DOMAIN }}/oauth2/start?rd=https://$host$request_uri"
     nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
-    
+
   hosts:
     - host: {{ masterportal.ingress_host }}
       paths:
