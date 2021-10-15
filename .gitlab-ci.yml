@@ -152,6 +152,20 @@ deploy_staging_ckan:
     expire_in: never
     when: on_success
 
+deploy_staging_ckan:
+  script:
+    - *prepare_deploy_staging
+    - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/deploy_webgis_qgisserver_playbook.yml
+  when: manual
+  stage: staging
+  environment:
+    name: "Deploy Staging Platform"
+  artifacts:
+    paths:
+      - .facts/
+    expire_in: never
+    when: on_success
+
 
 ####################################
 ######     PRODUCTION    ###########
