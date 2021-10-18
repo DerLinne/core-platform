@@ -29,7 +29,7 @@ This document describes how to:
 ```
 # clone this repository
 git clone git@gitlab.com:berlintxl/futr-hub/platform/data-platform-k8s.git
-cd data-platform-k8s/01_setup_acn
+cd 01_setup_acn
 
 # Edit the file 'secrets', if you need/want to provide credentials
 # to log into Docker Hub
@@ -82,11 +82,11 @@ This section describes how to install [MicroK8s](https://microk8s.io) on a Linux
 **NOTE**
 > The installation is suited for Debian/Ubuntu If you use a different Linux distribution, the installation might fail!
 
-All required files are located in the folder `~/data-platform-k8s/02_setup_k8s`.
+All required files are located in the folder `02_setup_k8s`.
 
 ### Prerequisites
 You need to make a copy of the file
-`~/data-platform-k8s/02_setup_k8s/inventory.default`
+`02_setup_k8s/inventory.default`
 and set proper values for:
 
 - k8s-master ansible_host
@@ -96,7 +96,7 @@ and set proper values for:
 before you run the Ansible playbook.
 
 ```
-cd ~/data-platform-k8s/02_setup_k8s
+cd 02_setup_k8s
 
 cp inventory.default inventory
 
@@ -109,7 +109,7 @@ Please, execute the following steps to install MicroK8s.
 
 ```
 # run the Ansible playbooks
-cd ~/data-platform-k8s/02_setup_k8s
+cd 02_setup_k8s
 
 ansible-playbook -i inventory -u root playbook.yml
 
@@ -153,40 +153,27 @@ This section describes how to install the following components:
 
 + [PostGIS](#postgis)
 + [pgAdmin](#pgadmin)
-+ [MasterPortal](#masterportal)
++ [Masterportal](#masterportal)
 + [QGIS Server](#qgis-server)
 
 ### Prerequisites
-- Your DNS server is setup properly to create [Let's Encrypt](https://letsencrypt.org/) certificats for the Linux server, where you deployed your Kubernetes cluster onto.
+- Your DNS server is setup properly, so you can create [Let's Encrypt](https://letsencrypt.org/) certificats for the Linux server, where you deployed your Kubernetes cluster onto.
 
 - You have created an [access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) to have read-/write-access to the GitLab container registry.
 
-- You need to have a kubeconfig-file within the ACN, that allows you to access the K8s API server with kubectl.
-
-- Create a copy of `secrets.default` with the name `secrets.env`, containing all necessary credentials.
-
-
+- You have a kubeconfig-file, that allows you to access the K8s API server with kubectl.
 
 **NOTE**
-> If you installed MicroK8s from within the ACN, you will already have a kubeconfig-file in the directory `~/.kube/` with the name `k8s-master_config`.
+> If you installed MicroK8s, you will already have a kubeconfig-file in the directory `~/.kube/` with the name `k8s-master_config`.
 
-You need to make a copy of the file
-`~/data-platform-k8s/03_setup_k8s/inventory.default`
-and set proper values for:
-
-- GITLAB_REGISTRY_ACCESS_USER_EMAIL
-- GITLAB_REGISTRY_ACCESS_USER
-- GITLAB_REGISTRY_ACCESS_TOKEN
-
-before you run the Ansible playbook.
-
+To verify, you can connect to your K8s API server, simply run the following commands.
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-cp inventory.default inventory
+export KUBECONFIG=$HOME/.kube/k8s-master_config
+kubectl cluster-info
 
-# edit the values for the above mentioned variables.
-vim inventory
+kubectl get pods --namespace kube-system
 ```
+
 
 The deployments of
 
@@ -197,77 +184,264 @@ The deployments of
 + pgAdmin
 + QGIS Server
 
-all require credentials, that are read from environment variables.
-To setup those, you have to make a copy of the file `secrets.default` and name it `secrets.env`.
-
-The file-ending `.env` ensures that this file will be ignored by Git, if you have not changed the file `.gitignore` from this repository.
+require credentials and settings, that are defined in the inventory file of Ansible.
+To setup those, you have to make a copy of the file `03_setup_k8s_platform/inventory.default` 
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-cp secrets.default secrets.env
-
-# set credentials in the file secrets.env.
-vim secrets.env
-
-# after you have edited the file, source it.
-source secrets.env
+cd 03_setup_k8s_platform
+cp inventory.default inventory
+vim inventory
 ```
 
+and set proper values for the inventory, before you continue with the installation.
 
-Make sure that ChartMuseum is running.
-```
-ps aux | grep 'helm servecm' | grep -v grep
-```
+**NOTE**
+Please, take special note of the variable `ENVIRONMENT`. With this variable you can decide, which images of Masterportal and QGIS Server and which (sub-) domains are used.
 
-If not, run the Ansible playbook `start_cm_playbook.yml`.
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+```ini
+[k8s_cluster]
+k8s-master ansible_host="<ip_address>"
 
-ansible-playbook -i inventory start_cm_playbook.yml
-```
+[localhost]
+127.0.0.1   ansible_connection=local
+
+[localhost:vars]
+ansible_python_interpreter="{{ ansible_playbook_python }}"
+
+[k8s_cluster:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_password=<initial_root_password>
+
+[all:vars]
+# Common Data
+FUTR_HUB_ACN_SSHKEY_PATH=$HOME/.ssh/
+FUTR_HUB_ACN_SSHKEY=<name_of_keyfile>
+
+kubeconfig_file=<name_for_local_kubeconfig_file>
+working_user=<name_for_localhost_user>
+working_group=<name_for_localhost_group>
+
+# (Sub-)Domain for the Installation
+DOMAIN="<domainname>"
+
+# Name of the envrionment where to deploy to
+#   - 'prod',
+#   - 'staging',
+#   - 'dev1' or
+#   - 'dev2'.
+ENVIRONMENT="<deploy_to_this_environment>"
+
+## IDM Users
+PLATFORM_ADMIN_FIRST_NAME="<firstname>"
+PLATFORM_ADMIN_SURNAME="<surename>"
+PLATFORM_ADMIN_EMAIL="<mail_of_platform_admin>"
+IDM_REALM_MASTER_USERNAME="<mail_of_platform_admin>"
+IDM_REALM_MASTER_PASSWORD="<initial_password_for_platform_admin"
+
+# Gitlab Repo Access
+GITLAB_REGISTRY_ACCESS_USER_EMAIL="<Your_GitLab_User_Email>"
+GITLAB_REGISTRY_ACCESS_USER="<Your_GitLab_User>"
+GITLAB_REGISTRY_ACCESS_TOKEN="<Your_GitLab_Registry_Token>"
+
+# microk8s Config
+microk8s_version='1.21/stable'
+
+# Cert-Manager LE Email Address
+cert_manager_le_mail='<le_email_address>'
+
+## Minio settings
+#
+## Access Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio' | base64)
+minio_tenant_accesskey='<your_access_key>'
+## Secret Key for MinIO Tenant, base64 encoded (e.g. echo -n 'minio123' | base64)
+minio_tenant_secretkey='<your_access_secret>'
+## Passphrase to encrypt jwt payload, base64 encoded (e.g. echo -n 'SECRET' | base64)
+MINIO_TENANT_CONSOLE_PBKDF_PASSPHRASE='<your_console_passphrase'
+## Salt to encrypt jwt payload, base64 encoded (e.g. echo -n 'SECRET' | base64)
+MINIO_TENANT_CONSOLE_PBKDF_SALT='<your_console_salt'
+## MinIO User Access Key (used for Console Login), base64 encoded (e.g.  echo -n 'YOURCONSOLEACCESS' | base64)
+MINIO_TENANT_CONSOLE_ACCESS_KEY='<your_soncole_access_ke>'
+## MinIO User Secret Key (used for Console Login), base64 encoded (e.g. echo -n 'YOURCONSOLESECRET' | base64)
+MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
+
+## IDM Settings
+#
+IDM_SCOPE='openid'
+IDM_CLIENT='<your_keycloak_client>'
+IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+IDM_ENDP_AUTHORIZE='<your_authorize_url>'
+IDM_ENDP_TOKEN='<your_token_url>'
+IDM_ENDP_USER_INFO='<your_user_info_url>'
+# -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
+OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+#
+
+## IDM General Values
+#
+IDM_REALM = '<realm name for the platform>'
+IDM_ADMIN_K8S_SECRET_NAME = '<k8s secret name for platform admin credentials>'
+IDM_DB_ADMIN_SECRET_NAME = '<k8s secret name for idm database credentials>'
 
 
+## Email Server values and credentials
+#
+EMAIL_SERVER = '<email server used to send emails i.e. smtp.x.x>'
+EMAIL_USER = '<username to access email server>'
+EMAIL_PASSWORD = 'password to access email server'
+EMAIL_FROM = '<email address used as "from">'
 
-To verify you can connect to your K8s API server and all necessary Pods, simply run the following commands.
-```
-export KUBECONFIG=$HOME/.kube/k8s-master_config
-kubectl cluster-info
 
-kubectl get pods --namespace kube-system
-```
+# Since TimescaleDB is deployed via Zalando operator, we do not need to set TIMESCALE_PASSWORD.
+# This is done by the operator during deployment of TimescaleDB.
+#TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
 
-### PostGIS
-To install [PostGIS](https://postgis.net/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_postgis_playbook.yml` from within the ACN.
+## Master Portal Settings
+#
+MP_IDM_CLIENT='<your_keycloak_client>'
+MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
+MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
+# -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
+MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
 
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+## Context Management Stack
+CMS_MONGO_INITDB_DATABASE='<name_of_orion_database>'
+CMS_MONGO_INITDB_ROOT_USERNAME='<name_of_mongodb_admin>'
+CMS_MONGO_INITDB_ROOT_PASSWORD='<password_of_mongodb_admin>'
+CMS_ORION_MONGODB_USER='<your_orion_mongodb_user>'
+CMS_ORION_MONGODB_PASSWORD='<your_orion_mongodb_user_password>'
 
-ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
-```
+## CKAN Values
+CKAN_MASTER_DB_USER='<username>'
+CKAN_MASTER_DB_USER_PASSWORD='<password>'
+CKAN_DB_USER='<username>'
+CKAN_DB_USER_PASSWORD='<password>'
+CKAN_DATASTORE_RWDB_USER='<username>'
+CKAN_DATASTORE_RWDB_USER_PASSWORD='<password>'
+CKAN_DATASTORE_RODB_USER='<username>'
+CKAN_DATASTORE_RODB_USER_PASSWORD='<password>'
+CKAN_SYSADMIN_NAME='<username>'
+CKAN_SYSADMIN_PASSWORD='<password>'
+CKAN_SYSADMIN_APITOKEN='<apitoken_from_ckan>'
+CKAN_SYSADMIN_EMAIL='<emailaddress_of_ckan_admin>'
+CKAN_SITE_TITLE='<title_of_ckan_site>'
+CKAN_SITE_ID='<id_of_ckan_site>'
+CKAN_SMTP_SERVER_AND_PORT='<servername:port>'
+CKAN_SMTP_USER='<username>'
+CKAN_SMTP_USER_PASSWORD='<password>'
+CKAN_SMTP_EMAIL='<emailadress>'
 
-After a view minutes the deployment should be finished and you can then connect to the PostGIS server as user `postgres` with the password `postgres123`.
 
-If you want to change the user and password, you have to export the environment variables `POSTGRES_USER` and `POSTGRES_PASSWORD`, before running the Ansible playbook.
+# Grafana Values
+GRAFANA_ADMIN='<username>'
+GRAFANA_ADMIN_PASSWORD='<password>'
 
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
 
-export POSTGRES_USER=foo
-export POSTGRES_PASSWORD=bar
-ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
+# Frost Values
+FROST_DB_USERNAME='<username>'
+FROST_DB_PASSWORD='<password>'
+
+# Geodata Values
+MAPSERVER_POSTGIS_USER='<username>'
+MAPSERVER_POSTGIS_USER_PASSWORD='<password>'
+MAPSERVER_POSTGIS_HOST='<hostname>'
+MAPSERVER_POSTGIS_DB='<dbname>'
+WEBGIS_POSTGRES_ADMIN='<admin_name>'
+WEBGIS_POSTGRES_ADMIN_PASSWORD='<admin_password>'
+
+# PGAdmin Values
+PGADMIN_DEFAULT_EMAIL='<username>'
+PGADMIN_DEFAULT_PASSWORD='<password>'
+PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION='True'
+
+# LDAP Values
+LDAP_ADMIN_USERNAME='<username>'
+LDAP_ADMIN_PASSWORD='<password>'
+LDAP_USERS='<username>'
+LDAP_PASSWORDS='<password>'
+LDAP_ROOT='<root_dn>'
+LDAP_USER_DC='<user_dc>'
+LDAP_GROUP='<groupname>'
+LDAP_EXTRA_SCHEMAS='<schemas>'
+
 ```
 
 **NOTE**
-> To further customize the deployment of PostGIS, you simply need to edit the file `data-platform-k8s/03_setup_k8s_platform/vars/webgis_postgis.yml`.
+To further customize the installation, you may want to take a look at the files in the folder `03_setup_k8s_platform/vars`, especially `default.yml`.
+
+```yaml
+---
+# file: 03_setup_k8s_platform/vars/default.yml
+
+# ChartMuseum
+CM_PORT: 8879
+CM_STORAGE: local
+CM_STORAGE_LOCAL_ROOTDIR: ~/futr_hub_apps
+CM_CONTEXT_PATH: charts
+
+# Helm
+HELM_REPO_URL: http://127.0.0.1
+HELM_REPO_NAME: futr-hub
+
+# Kubernetes
+K8S_KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/{{ kubeconfig_file }}"
+K8S_CONTEXT: microk8s
+
+K8S_NAMESPACE_APIMSTACK: apim-stack
+K8S_NAMESPACE_GEODATA: geodata-stack
+K8S_NAMESPACE_CKAN: metadata-stack
+K8S_NAMESPACE_FROST: frost-server
+K8S_NAMESPACE_POSTGRES_OPERATOR: operator-stack
+K8S_NAMESPACE_PUBLIC: public-stack
+K8S_NAMESPACE_DATAFLOWSTACK: dataflow-stack
+K8S_NAMESPACE_MINIO_OPERATOR: operator-stack
+K8S_NAMESPACE_DATA_MANAGEMENT: data-management-stack
+K8S_NAMESPACE_MONITORING: monitoring-logging-stack
+K8S_NAMESPACE_CONTEXT_MANAGEMENT_STACK: context-management-stack
+K8S_NAMESPACE_IDMSTACK: idm-stack
+K8S_NAMESPACE_KEYCLOAK_OPERATOR: idm-stack
+K8S_INGRESS_CLASS: public
+
+# GitLab-API-URL
+GITLAB_API_URL: "https://gitlab.com/api/v4"
+
+## IDM Clients
+IDM_CLIENT_API_ACCESS: "api-access"
+IDM_CLIENT_GRAFANA: "grafana"
+IDM_CLIENT_GRAVITEE: "gravitee"
+IDM_CLIENT_ADMIN_TOOLS: "admin_tools"
+IDM_CLIENT_MASTERPORTAL: "masterportal"
+IDM_CLIENT_CKAN: "ckan"
+IDM_CLIENT_MINIO: "minio"
+
+## IDM Groups
+IDM_GROUP_DEFAULT_TENANT_NAME: "default_dataspace"
+
+```
+
+
+### PostGIS
+To install [PostGIS](https://postgis.net/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_postgis_playbook.yml`.
+
+```
+cd 03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_postgis_playbook.yml
+```
+
+When the deployment has been finished, you can then connect to the PostGIS server with the user and password, set with the Ansible inventory variables `WEBGIS_POSTGRES_ADMIN` and `WEBGIS_POSTGRES_ADMIN_PASSWORD`.
+
+
+**NOTE**
+> To further customize the deployment of PostGIS, you may edit the file `03_setup_k8s_platform/vars/webgis_postgis.yml`.
 
 If you use the default values, then PostGIS can be accessed via port 5432 on the following DNS name from within your cluster:
 
-`geodata-postgis-webgis-postgis.geodata.svc.cluster.local`
+`geodata-postgis-webgis-postgis.geodata-stack.svc.cluster.local`
 
 To get the PostGIS user run:
 ```
 export POSTGRES_USER=$(
-    kubectl get secret --namespace geodata \
+    kubectl get secret --namespace geodata-stack \
     geodata-postgis-webgis-postgis \
     -o jsonpath="{.data.postgres_user}" | base64 -d
 )
@@ -276,7 +450,7 @@ export POSTGRES_USER=$(
 To get the password for this user run:
 ```
 export POSTGRES_PASSWORD=$(
-    kubectl get secret --namespace geodata \
+    kubectl get secret --namespace geodata-stack \
     geodata-postgis-webgis-postgis \
     -o jsonpath="{.data.postgres_password}" | base64 -d
 )
@@ -284,7 +458,7 @@ export POSTGRES_PASSWORD=$(
 
 To connect to your database from outside the cluster, using `psql` execute the following commands:
 ```
-kubectl port-forward --namespace geodata \
+kubectl port-forward --namespace geodata-stack \
     svc/geodata-postgis-webgis-postgis 5432:5432 &
 
 PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" psql \
@@ -307,61 +481,47 @@ postgres=# \dx
 ```
 
 ### pgAdmin
-To install [pgAdmin](https://www.pgadmin.org/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_pgadmin_playbook.yml` from within the ACN.
-
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-
-ansible-playbook -i inventory deploy_webgis_pgadmin_playbook.yml
-```
-
-After a view minutes the deployment should be finished.
-**NOTE**
-> To further customize the deployment of pgAdmin, you simply need to edit the file `data-platform-k8s/03_setup_k8s_platform/vars/webgis_pgadmin.yml`.
-
-To connect to the web-interface, please execute the following commands.
-```
-export POD_NAME=$(
-    kubectl get pods --namespace geodata \
-    -l "app.kubernetes.io/name=pgadmin4,app.kubernetes.io/instance=geodata-pgadmin" \
-    -o jsonpath="{.items[0].metadata.name}"
-)
-
-kubectl port-forward --namespace geodata $POD_NAME 8080:80
-```
-
-Now you can access pgAdmin's web-interface with [this](http://127.0.0.1:8080) URL.
-
-To login, user either the default values
-
-- Login: max@mustermann.de
-- Password: pgadmin123
-
-or the values of the environment variables
+To install [pgAdmin](https://www.pgadmin.org/) as part of the WebGIS prototype, you must first set the values of
 
 - `PGADMIN_DEFAULT_EMAIL`
 - `PGADMIN_DEFAULT_PASSWORD`
 
-if you have set them.
+in the Ansible inventory file, before you run the Ansible playbook `deploy_webgis_pgadmin_playbook.yml`.
 
-A server defintion for the PostGIS database is already provided, using the default values of the PostGIS installation.
+```
+cd 03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_pgadmin_playbook.yml
+```
 
 **NOTE**
-If you changed one of those values, you have to either edit the file `vars/webgis_pgadmin.yml` and/or set the following envirionment variables, before you run the Ansible playbook.
+> To further customize the deployment of pgAdmin, you simply need to edit the file `03_setup_k8s_platform/vars/webgis_pgadmin.yml`.
 
-| ENVIRONMENT VARIABLE | DEFAULT VALUE                                 |
-| :--------------------| :---------------------------------------------|
-|`POSTGIS_USER`        | postgres                                      |
-|`POSTGIS_DB`          | postgres                                      |
-|`POSTGIS_HOST`        | geodata-postgis-webgis-postgis.geodata |
+To connect to the web-interface, please execute the following commands.
+```
+export POD_NAME=$(
+    kubectl get pods --namespace geodata-stack \
+    -l "app.kubernetes.io/name=pgadmin4,app.kubernetes.io/instance=geodata-pgadmin" \
+    -o jsonpath="{.items[0].metadata.name}"
+)
 
-At the moment you have to enter the password for the PostGIS user manually, if you want to connect to the PostGIS database.
+kubectl port-forward --namespace geodata-stack $POD_NAME 8080:80
+```
 
-The default password for the default PostGIS user `postgres` is `postgres123`.
+Now you can access pgAdmin's web-interface with the URL `https://pgadmin.your.domain`. If you have set the Ansible inventory variable `ENVIRONMENT` to a value other than `prod`, you have to add this value as a subdomain to the URL, e.g. `https://pgadmin.staging.your.domain`.
+
+To login, use the values of the inventory's variables `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD`.
+
+A server defintion for the PostGIS database is already provided, using the values of the PostGIS installation.
 
 
-### MasterPortal
-To install [MasterPortal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml` from within the ACN. Before doing this, please install the Masterportal specific OAuth2 Proxy
+### Masterportal
+
+**IMPORTANT**
+Since there is no official Docker image for Masterportal, you will have to create your own.
+How to create such an image will be described further [below](#how-to-build-the-masterportal-docker-image).
+
+To install [Masterportal](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_masterportal_playbook.yml`. Before doing this, please install the Masterportal specific OAuth2 Proxy.
 
 To activate the authentication for masterportal set the following variables in the `inventory`:
 
@@ -374,87 +534,299 @@ MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
 MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
 ```
 
-Install OAuth2 Proxy for masterportal
+Install OAuth2 Proxy for Masterportal
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 
 ansible-playbook -i inventory deploy_webgis_oauth2_masterportal_proxy.yml
 ```
 
+Install Masterportal (after you have created the Docker image).
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 
 ansible-playbook -i inventory deploy_webgis_masterportal_playbook.yml
 ```
 
-After a view minutes the deployment should be finished.
+To access the Masterportal you have to open the URL `https://masterportal.your.domain/` in your Web browser, whereas `your.domain` is the value you set the Ansible inventory variable `DOMAIN` to. If you have set the Ansible inventory variable `ENVIRONMENT` to a value other than `prod`, you have to add this value as a subdomain to the URL, e.g. `https://masterportal.staging.your.domain`.
 
-To access the MasterPortal you will have to execute the following command:
-```
-kubectl --namespace geodata port-forward \
-    svc/geodata-masterportal-webgis-masterportal 12345:80
-```
-and open the URL [http://127.0.0.1:12345/webgis-masterportal/](http://127.0.0.1:12345/webgis-masterportal/) in your Web browser.
+Since there is no official Docker image for Masterportal you will have to create your own.
 
----
-**IMPORTANT**
-Since there is no official Docker image for MasterPort you will have to create your own and deploy it into the local K8s registry of MicroK8s!
+#### How to build the Masterportal Docker image
+To build the Docker image, use this Dockerfile.
 
-How to create and deploy such an image will be described below!
+```docker
+FROM nginx:1.19
 
----
+COPY static /usr/share/nginx/html
 
-#### How to build the MasterPortal Docker image
-
----
-**IMPORTANT**
-AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
-PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
-YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
-
----
-
-To build the Docker image, please execute the following commands:
+VOLUME /usr/share/nginx/html
+VOLUME /etc/nginx
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform/files/webgis-masterportal/
 
-docker build -t webgis-masterportal:local .
-```
+and tag the image with the value of the Ansible inventory variable `ENVIRONMENT`.
+The folder `static` contains the code `2.7.2` of Masterportal (`mastercode/2_7_2`) and the configuration/adjustments (`webgis-masterportal`).
+
 **NOTE**
-> It is mandatory, that you tag the image with `local`!
+You have to make sure that the URLs within `static/webgis-masterportal/resources/services-internet.json`, pointing to your QGIS Server, match your environment.
 
-Next, you will need to save this image, so we can import it.
+If you want to automatically replace the URLs within `static/webgis-masterportal/resources/services-internet.json` to match the value of `ENVIRONMENT`, you may install the following script as a Git pre-commit hook and replace the values of `OLD_MAPSERVER` and `NEW_MAPSERVER` accordingly.
+
+```bash
+# After creating the script `pre-commit.sh` in your Git working directory ...
+chmod +x pre-commit.sh 
+ln -s ../../pre-commit.sh .git/hooks/pre-commit
 ```
-docker save webgis-masterportal:local > /tmp/webgis-masterportal.tar
-```
+<br>
+
+```bash
+#!/bin/sh
+
+# Replace the URL of the FUTR-HUB mapserver for environment 'staging' within
+# the file services-internet.json.
+
+# Where to find services-internet.json?
+REPO_PATH=$(git rev-parse --show-toplevel --sq)
+SUBFOLDER='static/webgis-masterportal/resources'
+SERVICES_INTERNET="${REPO_PATH}/${SUBFOLDER}/services-internet.json"
+
+# services-internet.json: Set default/old URL.
+OLD_MAPSERVER='mapserver.old.domain/qgis-server'
+# This will be replaced with the following URL.
+NEW_MAPSERVER='mapserver.staging.new.domain/qgis-server'
+
+if [ ! -f "${SERVICES_INTERNET}" ]; then
+  echo "Could not find file services-internet.json"
+  exit 1
+fi
+
+# Perform string replacement.
+sed -i "s|${OLD_MAPSERVER}|${NEW_MAPSERVER}|g" "${SERVICES_INTERNET}"
+
+# (Re-)Add project.qgs file
+git add "${SERVICES_INTERNET}"
 
 
-#### How to deploy the Docker image into the MicroK8s registry
-First, you need to transmit the file `/tmp/webgis-masterportal.tar` to your MicroK8s server and then log onto that server.
+# Paranoia check
+grep -e "${OLD_MAPSERVER}" "${SERVICES_INTERNET}"
+PARANOIA=$?
+if [ $PARANOIA -ne 0 ]; then
+  exit 0
+else
+  echo "ERROR: some replacements were unsuccessful."
+  exit 1
+fi
 ```
-scp /tmp/webgis-masterportal.tar acn@<your_microk8s_server>:
-ssh acn@<your_microk8s_server>
+
+If you use a Gitlab CI/CD pipeline, you may want to create a branch for each environment (prod, staging, dev1 and dev2) and use the following configuration (it uses `staging` as environment) to build the Docker image and push it into the Gitlab registry.
+
+```yaml
+workflow: # run pipeline jobs for tags and pushes to staging by default
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "staging"
+
+services:
+  - docker:dind
+
+stages:
+  - build
+
+do build:
+  tags:
+    - shared
+  image: docker:stable
+  stage: build
+  before_script:
+    - docker info
+    - env
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  script:
+    - docker build -t "$CI_COMMIT_BRANCH" .
+    - docker tag "$CI_COMMIT_BRANCH" "$CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH"
+
 ```
+
 **NOTE**
-> If you did not deploy a MicroK8s server through the ACN, you need to change your login-name of course.
+Please, make sure that you change the line
 
-Next, import the saved Docker image into the registry of MicroK8s, by executing the following commands on your MicroK8s server:
+```yaml
+    - if: $CI_COMMIT_BRANCH == "staging"
 ```
-sudo microk8s ctr images import webgis-masterportal.tar
-sudo microk8s ctr images list | grep webgis
-
-# You should see the image webgis-masterportal listed
-```
+if you use a different value for `ENVIRONMENT`.
 
 
 ### QGIS Server
 
 **IMPORTANT**
-Since there is no official Docker image for QGIS Server, you will have to create your own and deploy it either
+Since there is no official Docker image for QGIS Server, you will have to create your own. 
+How to create such an image will be described further [below](#how-to-build-the-qgis-server-docker-image).
 
-+ into the local K8s registry of MicroK8s or
-+ use a GitLab pipeline, like the following, and use GitLab's registry.
+
+To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml`, after you have created the Docker image of QGIS Server.
+
+```
+cd 03_setup_k8s_platform
+
+ansible-playbook -i inventory deploy_webgis_qgisserver_playbook.yml
+```
+
+The deployment creates the ConfigMap `qgis-nginx.conf` and the Secret `geodata-qgisserver-webgis-qgisserver`.
+The later one contains the values for the file `pg_service.conf` that is mounted into the QGIS Server pod. An according database and its user will be created within the PostGIS Pod.
+
+The file `pg_service.conf` has the following content.
+
+```ini
+[qwc_geodb]
+host=name-of-yourwebgis-postgis
+port=5432
+dbname=name_of_your_qgis_database
+user=user_to_access_qgis_database
+password=password_to_access_qgis_database
+sslmode=disable
+```
+
+The values of
+
+- host
+- dbname
+- user
+- password
+
+are set in the Ansible inventory through these variables.
+
+- MAPSERVER_POSTGIS_HOST
+- MAPSERVER_POSTGIS_DB
+- MAPSERVER_POSTGIS_USER
+- MAPSERVER_POSTGIS_USER_PASSWORD
+
+
+The QGIS project file `project.qgs` is part of the QGIS Server Docker image, that you host in a [GitLab repository](https://gitlab.com/berlintxl/futr-hub/platform/qgis-server-customizing/-/blob/master/project.qgs).
+
+You have to define the the path to this GitLab project in the file `03_setup_k8s_platform/vars/webgis_qgisserver.yml`.
+
+```yaml
+
+# file: 03_setup_k8s_platform/vars/webgis_qgisserver.yml
+
+server_image_repository: "the/path/to/QGIS_Docker_image/GitLab_project"
+```
+
+If you want QGIS Server to use a new version of your QGIS project file, you have to
+
++ commit your new `project.qgs` into the Git repo of the QGIS Server Docker image,
++ wait until the new image has been build and then
++ update the QGIS Server Pod by running the Ansible playbook `update_qgis_project.yml`.
+
+```
+cd 03_setup_k8s_platform
+ansible-playbook -i inventory update_qgis_project_playbook.yml
+```
+
+To reach your QGIS Server from the Internet via HTTPS, you have to
+
+- make sure, that the Nginx Ingress Controler and the CertManager are setup for your K8s cluster.
+- set `DOMAIN=<your domain>` in the Ansible inventory file.
+- make sure that `ingress_enabled` in `vars/webgis_qgisserver.yml` is set to `true`.
+
+If you want to change the host name from `mapserver` to something else, please edit 
+
+- `nginx_server_name`
+- `ingress_host`
+
+in the file `vars/webgis_qgisserver.yml` accordingly and make sure your DNS server can resolve this host name. Also keep in mind to change any URLs that are pointing to the Mapserver, e.g. Masterportal.
+
+To allow access to the data of QGIS Server, [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled in the Nginx ConfigMap `qgis-nginx.conf`. You can set the value of the HTTP header `Access-Control-Allow-Origin` for request methods `POST`, `GET` and `OPTIONS`, using the parameter `nginx_cors_origin`. The default is, that every host of your domain `DOMAIN` can use those access methods.
+
+You can either edit the content of the Nginx ConfigMap by using `kubectl edit`, after deployment, or by editing the template file `files/helmcharts/webgis-qgisserver/templates/http-configmap.yaml` before deployment.
+
+
+To verify that the deployment was successful, open the URL
+
+https://mapserver.your.domain/qgis/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+
+in your Web browser.
+
+
+#### How to build the QGIS Server Docker image
+To build the Docker image, use this Dockerfile.
+
+```docker
+FROM debian:buster-slim
+
+ENV LANG=en_EN.UTF-8
+
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -y \
+        gnupg \
+        ca-certificates \
+        wget \
+        locales \
+    && localedef -i en_US -f UTF-8 en_US.UTF-8 \
+    # Add the current key for package downloading - As the key changes every year at least
+    # Please refer to QGIS install documentation and replace it with the latest one https://www.qgis.org/en/site/forusers/alldownloads.html#linux
+    && wget -O - https://qgis.org/downloads/qgis-2021.gpg.key | gpg --import \
+    && gpg --export --armor 46B5721DBBD2996A | apt-key add - \
+    && echo "deb http://qgis.org/debian buster main" >> /etc/apt/sources.list.d/qgis.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests --allow-unauthenticated -y \
+        qgis-server \
+        spawn-fcgi \
+        xauth \
+        xvfb \
+    && apt-get remove --purge -y \
+        gnupg \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m qgis
+
+ENV TINI_VERSION v0.17.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+ENV QGIS_PREFIX_PATH /usr
+ENV QGIS_SERVER_LOG_STDERR 1
+ENV QGIS_SERVER_LOG_LEVEL 2
+
+COPY data /data/qgis
+RUN chmod -R 777 /data/qgis/
+RUN chown -R qgis:qgis /data/qgis
+
+COPY cmd.sh /home/qgis/cmd.sh
+RUN chmod -R 777 /home/qgis/cmd.sh
+RUN chown qgis:qgis /home/qgis/cmd.sh
+
+USER qgis
+WORKDIR /home/qgis
+
+ENTRYPOINT ["/tini", "--"]
+
+CMD ["/home/qgis/cmd.sh"]
+
+```
+
+and tag the image with the value of the Ansible inventory variable ENVIRONMENT.
+
+The script `cmd.sh` has the following content.
+
+```bash
+#!/bin/bash
+
+[[ $DEBUG == "1" ]] && env
+
+exec /usr/bin/xvfb-run --auto-servernum --server-num=1 /usr/bin/spawn-fcgi -p 5555 -n -d /home/qgis -- /usr/lib/cgi-bin/qgis_mapserv.fcgi
+```
+
+**NOTE**
+Your QGIS project file `project.qgs` should be put within the directory `data`. If you need to put the project file in a subfolder within the directory `data`, you also have to change the value of `qgis_data_dir` in the file `vars/webgis_qgisserver.yml`, before you deploy QGIS Server.
+
+
+If you use a Gitlab CI/CD pipeline, you may want to create a branch for each environment (prod, staging, dev1 and dev2) and use the following configuration to build the Docker image and push it into the Gitlab registry.
 
 ```yaml
 services:
@@ -472,141 +844,84 @@ do build:
     - docker info
     - env
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
   script:
-    - docker build -t webgis-qgisserver .
-    - docker tag webgis-qgisserver "$CI_REGISTRY_IMAGE:webgis-qgisserver"
-    - docker push "$CI_REGISTRY_IMAGE:webgis-qgisserver"
+    - docker build -t "$CI_COMMIT_BRANCH" .
+    - docker tag "$CI_COMMIT_BRANCH" "$CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH"
+
 
 ```
-How to create and deploy such an image locally, using the MicroK8s registry, will be described further [below](#how-to-build-the-qgis-server-docker-image).
-
----
-
-To install [QGIS Server](https://docs.qgis.org/3.16/en/docs/server_manual/index.html) as part of the WebGIS prototype, simply run the Ansible playbook `deploy_webgis_qgisserver_playbook.yml` from within the ACN, after you have created the Docker image of QGIS Server.
-
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-
-ansible-playbook -i inventory deploy_webgis_qgisserver_playbook.yml
-```
-
-After a view minutes the deployment should be finished.
-
-The deployment creates the ConfigMap `qgis-nginx.conf` and the Secret `geodata-qgisserver-webgis-qgisserver`.
-The later one contains the values for the file `pg_service.conf` that is mounted into the QGIS Server pod. An according database and its user will be created within the PostGIS Pod.
-
-The file `pg_service.conf` has the following content.
-```ini
-[qwc_geodb]
-host=name-of-yourwebgis-postgis
-port=5432
-dbname=name_of_your_qgis_database
-user=user_to_access_qgis_database
-password=password_to_access_qgis_database
-sslmode=disable
-```
----
-
-The QGIS project file `project.qgs` is part of the QGIS Server Docker image, that you host in a [GitLab repository](https://gitlab.com/berlintxl/futr-hub/platform/qgis-server-customizing/-/blob/master/project.qgs).
-
-You have to define the the path to this GitLab project in the file `03_setup_k8s_platform/vars/webgis_qgisserver.yml`.
-
-```yaml
-
-# file: 03_setup_k8s_platform/vars/webgis_qgisserver.yml
-
-HELM_CHART_NAME: webgis-qgisserver
-HELM_RELEASE_NAME: geodata-qgisserver
-
-# Name of the GitLab project where we store all files to build QGIS Docker image.
-QGIS_CUSTOM_GITLAB_PROJECT: "the/path/to/QGIS_Docker_image/GitLab_project"
-```
-
-If you want QGIS Server to use a new version of your QGIS project file, you have to
-
-+ commit your new `project.qgs` into the Git repo of the QGIS Server Docker image,
-+ wait until the new image has been build and then
-+ update the QGIS Server Pod by running the Ansible playbook `update_qgis_project.yml`.
-
-```
-cd ~/data-platform-k8s/03_setup_k8s_platform
-ansible-playbook -i inventory update_qgis_project_playbook.yml
-```
-
-After a few seconds a new Pod, using the new QGIS project file, will be ready.
-
----
-If you want to reach your QGIS Server from the Internet via HTTPS, you have to
-
-- make sure, that the Nginx Ingress Controler and the CertManager are setup for your K8s cluster.
-- add an entry `DOMAIN=<your domain>` to the file `inventory`.
-- make sure that `ingress_enabled` in `vars/webgis_qgisserver.yml` is set to `true`.
-
-If you want to change the host name from `mapserver` to something else, please edit
-
-- `nginx_server_name`
-- `ingress_host`
-
-accordingly and make sure your DNS server can resolve this host name.
-
-To allow access to the data of QGIS Server, [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled in the Nginx ConfigMap `qgis-nginx.conf`. You can set the value of the HTTP header `Access-Control-Allow-Origin` for request methods `POST`, `GET` and `OPTIONS`, using the parameter `nginx_cors_origin`. The default is, that every host of your domain `DOMAIN` can use those access methods.
-
----
-
-
-If you have deployed QGIS Server, so it can be reached via HTTPS, you have to open the URL
-
-https://mapserver.{{ YOUR DOMAIN }}/qgis/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
-
-in your Web browser.
-
-If not, you will have to execute the following command:
-```
-kubectl --namespace geodata port-forward \
-    svc/geodata-qgisserver-webgis-qgisserver-http 30080:80
-```
-and open the URL
-[http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities](http://127.0.0.1:30080/qgis-server/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities) in your Web browser.
-
-
-#### How to build the QGIS Server Docker image
 
 **NOTE**
-> AS OF NOW YOU CAN NOT BUILD THE DOCKER IMAGE FROM WITHIN THE ACN CONTAINER!
-PLEASE, BUILD THE IMAGE ON THE HOST YOU ARE RUNNING THE ACN CONTAINER ON.
-YOU MAY NEED TO CLONE THIS REPO ON THAT COMPUTER.
+You have to make sure that the URLs within `project.qgs`, pointing to your QGIS Server, match your environment.
 
-To build the Docker image, please execute the following commands:
+If you want to automatically replace the URLs within `project.qgs` to match the value of `ENVIRONMENT` (in this case: `staging`), you may install the following script as a Git pre-commit hook and replace the values of `SUBFOLDER`, `OLD_WFSUrl`, `NEW_WFSUrl`, `OLD_WMSOnlineResource` and `NEW_WMSOnlineResource` accordingly. It also removes credentials that might be in the project file.
 
+```bash
+# After creating the script `pre-commit.sh` in your Git working directory ...
+chmod +x pre-commit.sh 
+ln -s ../../pre-commit.sh .git/hooks/pre-commit
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform/files/webgis-qgisserver/
+<br>
 
-docker build -t webgis-qgisserver:local .
-```
-**NOTE**
-> It is mandatory, that you tag the image with `local`!
+```bash
+#!/bin/sh
 
-Next, you will need to save this image, so we can import it.
-```
-docker save webgis-qgisserver:local > /tmp/webgis-qgisserver.tar
-```
+# Perform the followinbg string replacements in file project.qgs:
+#
+# - s/dbname=.* host=.* port=[0-9]*/service='qwc_geodb'/g
+# - s/authcfg=[0-9a-zAZ]*//g
+
+# Where to find project.qgs?
+REPO_PATH=$(git rev-parse --show-toplevel --sq)
+SUBFOLDER='data/wfsbasis'
+PROJECT_QGS="${REPO_PATH}/${SUBFOLDER}/project.qgs"
+
+# Name of service to be used by PostgreSQL
+PG_SERVICE_CONF='qwc_geodb'
+
+# project.qgs: Set default/old values of WFSUrl and WMSOnlineResource.
+OLD_WFSUrl='mapserver.old.domain/qgis-server'
+OLD_WMSOnlineResource='mapserver.old.domain/qgis-server'
+# Those will be replaced with the following values.
+NEW_WFSUrl='mapserver.staging.new.domain/qgis-server'
+NEW_WMSOnlineResource='mapserver.staging.new.domain/qgis-server'
+
+if [ ! -f "${PROJECT_QGS}" ]; then
+  echo "Could not find file project.qgs"
+  exit 1
+fi
+
+# Perform string replacement.
+sed -i "s/user='[^\']*'\s\{0,1\}//g" "${PROJECT_QGS}"
+sed -i "s/password='[^\']*'\s\{0,1\}//g" "${PROJECT_QGS}"
+sed -i "s/dbname=.* host=.* port=[0-9]*/service='${PG_SERVICE_CONF}'/g" "${PROJECT_QGS}"
+sed -i "s/authcfg=[0-9a-zAZ]*//g" "${PROJECT_QGS}"
+sed -i "s|${OLD_WFSUrl}|${NEW_WFSUrl}|g" "${PROJECT_QGS}"
+sed -i "s|${OLD_WMSOnlineResource}|${NEW_WMSOnlineResource}|g" "${PROJECT_QGS}"
+
+# (Re-)Add project.qgs file
+git add "${PROJECT_QGS}"
 
 
-#### How to deploy the Docker image into the MicroK8s registry
-First, you need to transmit the file `/tmp/webgis-qgisserver.tar` to your MicroK8s server and then log onto that server.
-```
-scp /tmp/webgis-qgisserver.tar acn@<your_microk8s_server>:
-ssh acn@<your_microk8s_server>
-```
-**NOTE**
-> If you did not deploy a MicroK8s server through the ACN, you need to change your login-name of course.
-
-Next, import the saved Docker image into the registry of MicroK8s, by executing the following commands on your MicroK8s server:
-```
-sudo microk8s ctr images import webgis-qgisserver.tar
-sudo microk8s ctr images list | grep webgis
-
-# You should see the image webgis-qgisserver listed
+# Paranoia check
+grep \
+  -e "user" \
+  -e "password" \
+  -e "dbname=" \
+  -e "host=" \
+  -e "port=" \
+  -e "authcfg=" \
+  -e "${OLD_WFSUrl}" \
+  -e "${OLD_WMSOnlineResource}" "${PROJECT_QGS}"
+PARANOIA=$?
+if [ $PARANOIA -ne 0 ]; then
+  exit 0
+else
+  echo "ERROR: some replacements were unsuccessful."
+  exit 1
+fi
 ```
 
 ## CKAN
@@ -615,7 +930,7 @@ sudo microk8s ctr images list | grep webgis
 
 The deployment is done via Ansible, using the Helm chart [keitaro-charts/ckan](https://github.com/keitaroinc/ckan-helm) from [Keitaro](https://keitaro.com/).
 
-To deploy CKAN, simply run the Ansible playbook `deploy_ckan_playbook.yml` from within the ACN. This will deploy CKAN in the K8s namespace _ckan_.
+To deploy CKAN, simply run the Ansible playbook `deploy_ckan_playbook.yml`. This will deploy CKAN in the K8s namespace _ckan_.
 
 ---
 **IMPORTANT**
@@ -786,12 +1101,11 @@ For more information about the values that are set in `vars/ckan_ckan.yml`, see 
 
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 
 ansible-playbook -i inventory deploy_ckan_playbook.yml
 ```
 
-After a view minutes the deployment should be finished.
 
 Now you have to generate an API Token for the sysadmin user using the CKAN UI and replace the secret with the new value at runtime.
 
@@ -808,15 +1122,14 @@ kubectl -n ckan create secret generic ckansysadminapitoken --from-literal=sysadm
 
 The deployment is done via Ansible, using the Helm chart [frost-server](https://github.com/FraunhoferIOSB/FROST-Server/tree/master/helm/frost-server).
 
-To deploy FROST Server, simply run the Ansible playbook `deploy_frost_playbook.yml` from within the ACN. This will deploy FROST Server in the K8s namespace _frost-server_.
+To deploy FROST Server, simply run the Ansible playbook `deploy_frost_playbook.yml`. This will deploy FROST Server in the K8s namespace _frost-server_.
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 
 ansible-playbook -i inventory deploy_frost_playbook.yml
 ```
 
-After a view minutes the deployment should be finished.
 
 You can than reach FROST Server with this URL: http://frost.your.domain:30888/FROST-Server/
 
@@ -964,10 +1277,6 @@ MINIO_TENANT_CONSOLE_PBKDF_SALT='<your_console_salt'
 MINIO_TENANT_CONSOLE_ACCESS_KEY='<your_soncole_access_ke>'
 ## MinIO User Secret Key (used for Console Login), base64 encoded (e.g. echo -n 'YOURCONSOLESECRET' | base64)
 MINIO_TENANT_CONSOLE_SECRET_KEY='<your_soncole_access_ke>'
-
-## Timescale Settings
-
-TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
 ```
 
 For minio the creation of each values is described in the comment above the needed values.
@@ -979,7 +1288,7 @@ The TimescaleDB Password can be free defined.
 To set these values, execute the following:
 
 ```bash
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 cp inventory.default inventory
 
 # edit the values for the above mentioned variables.
@@ -1065,20 +1374,19 @@ For further details, please take a look at [this](https://gitlab.com/berlintxl/f
 
 The deployment is done via Ansible, using this [Helm chart](https://gitlab.com/berlintxl/futr-hub/platform/data-platform-k8s/-/tree/master/03_setup_k8s_platform/files/helmcharts/dataflow-nodered), that is derived from the (now deprecated) Helm chart [stable/node-red](https://github.com/helm/charts/tree/master/stable/node-red) .
 
-To deploy NodeRed, simply run the Ansible playbook `deploy_frost_playbook.yml` from within the ACN. This will deploy all NodeRed applications in the K8s namespace _dataflow-stack_.
+To deploy NodeRed, simply run the Ansible playbook `deploy_frost_playbook.yml`. This will deploy all NodeRed applications in the K8s namespace _dataflow-stack_.
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 
 ansible-playbook -i inventory deploy_dataflow_stack.yml
 ```
 
-After a view minutes the deployment should be finished.
 
 If you want to deploy a certain NodeRed application (use case), you can use tags.
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform
+cd 03_setup_k8s_platform
 
 ansible-playbook -i inventory deploy_dataflow_stack.yml --tags "uc01"
 ```
@@ -1341,7 +1649,7 @@ This chapter describes how to deploy and setup KeyCloak within a Kubernetes envi
 The deployment is done via Ansible, using the playbook `deploy_idm_stack.yml`. This will install all required resources into the K8s namespace `idm-stack`.
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform/
+cd 03_setup_k8s_platform/
 
 ansible-playbook -i inventory deploy_idm_stack.yml
 ```
@@ -1374,7 +1682,6 @@ tasks/idm-stack
 └── setup_keycloak_db.yml
 ```
 
-After a view minutes the deployment should be finished.
 
 **IMPORTANT**
 Before you run the playbook, make sure that all mandatory
@@ -1402,7 +1709,7 @@ You can use the following Ansible tags to execute certain tasks exclusively.
 If you need to delete KeyCloak's Custom Resources, you can run the Ansible playbook with the tag `keycloak_delete_cr`.
 
 ```
-cd ~/data-platform-k8s/03_setup_k8s_platform/
+cd 03_setup_k8s_platform/
 
 ansible-playbook -i inventory deploy_idm_stack.yml --tags "keycloak_delete_cr"
 ```
