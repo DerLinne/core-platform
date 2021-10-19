@@ -9,11 +9,11 @@
 - import_playbook: deploy_postgres_operator.yml
 - import_playbook: deploy_minio_operator.yml
 - import_playbook: deploy_idm_stack.yml
-- import_playbook: deploy_monitoring_loki.yml
 - import_playbook: deploy_minio_tenant.yml
 - import_playbook: deploy_timescale.yml
 - import_playbook: deploy_context_management_stack.yml
 - import_playbook: deploy_apim_stack.yml
+- import_playbook: deploy_monitoring_loki.yml
 - import_playbook: deploy_monitoring_grafana.yml
 - import_playbook: deploy_grafana.yml
 - import_playbook: deploy_public_oauth2_proxy.yml
