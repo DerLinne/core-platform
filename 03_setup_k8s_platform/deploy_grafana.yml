@@ -40,13 +40,13 @@
         name: "{{ grafana_helm_repo_name }}"
         url: "{{ grafana_helm_repo_url }}"
 
-    - name: Get Admin credentials
+    - name: Get timescale credentials
       k8s_info:
         namespace: '{{ default.K8S_NAMESPACE_DATA_MANAGEMENT | lower }}'
         kubeconfig: '{{ default.K8S_KUBECONFIG }}'
         context: '{{ default.K8S_CONTEXT }}'
         kind: Secret
-        name: 'postgres.{{ quantumleap }}.credentials.postgresql.acid.zalan.do'
+        name: 'postgres.{{ quantumleap.timescale_service }}.credentials.postgresql.acid.zalan.do'
       register: timescale_credentials
 
     - name: Install Helm package with values loaded from template
