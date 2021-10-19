@@ -339,7 +339,7 @@
     body_format: json
     body: |
       {
-        "name": "grafanaAdmin",
+        "name": "{{ item.role }}",
         "composite": false,
         "clientRole": true
       }
@@ -349,6 +349,10 @@
     status_code: 201
   register: roles_grafana_response
   when: client_grafana_response.status != 409
+  loop:
+    - {role: "grafanaAdmin"}
+    - {role: "grafanaEditor"}
+    - {role: "grafanaViewer"}
 
 - name: Create Gravitee roles
   uri:

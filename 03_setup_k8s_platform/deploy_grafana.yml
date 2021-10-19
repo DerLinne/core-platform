@@ -17,6 +17,11 @@
         file: data_management_grafana.yml
         name: grafana
 
+    - name: Read QuantumLeap values
+      ansible.builtin.include_vars:
+        file: context_management-stack/quantumleap.yml
+        name: quantumleap
+
     - name: Set default facts for K8S
       ansible.builtin.set_fact:
         k8s_config: "{{ default.K8S_KUBECONFIG }}"
@@ -34,6 +39,15 @@
       community.kubernetes.helm_repository:
         name: "{{ grafana_helm_repo_name }}"
         url: "{{ grafana_helm_repo_url }}"
+
+    - name: Get Admin credentials
+      k8s_info:
+        namespace: '{{ default.K8S_NAMESPACE_DATA_MANAGEMENT | lower }}'
+        kubeconfig: '{{ default.K8S_KUBECONFIG }}'
+        context: '{{ default.K8S_CONTEXT }}'
+        kind: Secret
+        name: 'postgres.{{ quantumleap }}.credentials.postgresql.acid.zalan.do'
+      register: timescale_credentials
 
     - name: Install Helm package with values loaded from template
       community.kubernetes.helm:
@@ -103,4 +117,4 @@
             state: present
             commit_message: Updated by ansible
             overwrite: yes
-            path: /tmp/udp/grafana/dashboard_files/tsdb_weather.json             
+            path: /tmp/udp/grafana/dashboard_files/tsdb_weather.json
