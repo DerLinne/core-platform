@@ -10,7 +10,7 @@ The preconfigured clients and roles are the following:
 | citywalks | citywalkAdmin |
 | ckan | ckanAdmin |
 | geodata | geodataAdmin |
-| grafana | grafanaAdmin |
+| grafana | grafanaAdmin | grafanaEditor | grafanaViewer |
 | gravitee | graviteeAdmin |
 | nodered | noderedAdmin |
 | pgadmin | pgadminAdmin |

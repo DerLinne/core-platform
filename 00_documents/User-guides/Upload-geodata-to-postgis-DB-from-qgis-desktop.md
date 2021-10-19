@@ -17,7 +17,7 @@ This how-to explains how to upload data from QGIS Desktop to postgis.
 - Open the Data Source Manager (see  highlighted button in the top-left corner in the screenshot below) 
 - Set up a new connection filling in the following details: 
 - Name: choose freely
-- Host: utr-k8s.urban-data.cloud
+- Host: { DOMAIN }
 - Port: 31876
 - Database: qwc_demo
 - User credentials have to be added in the second tab ("Basic Authentication")
