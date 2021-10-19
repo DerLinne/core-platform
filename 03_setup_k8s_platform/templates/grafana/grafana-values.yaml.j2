@@ -456,7 +456,7 @@ datasources:
         timescaledb: true
         sslmode: disable
       secureJsonData:
-        password: {{ timescale_credentials.password }}
+        password: {{ TIMESCALE_PASSWORD }}
 
 ## Configure notifiers
 ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
