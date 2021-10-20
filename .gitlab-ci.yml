@@ -152,20 +152,6 @@ deploy_staging_ckan:
     expire_in: never
     when: on_success
 
-deploy_staging_qgis_server:
-  script:
-    - *prepare_deploy_staging
-    - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/deploy_webgis_qgisserver_playbook.yml
-  when: manual
-  stage: staging
-  environment:
-    name: "Deploy Staging QGIS Server"
-  artifacts:
-    paths:
-      - .facts/
-    expire_in: never
-    when: on_success
-
 
 ####################################
 ######     PRODUCTION    ###########
@@ -231,6 +217,20 @@ deploy_production_platform:
   stage: prod
   environment:
     name: "Deploy Production Platform"
+  artifacts:
+    paths:
+      - .facts/
+    expire_in: never
+    when: on_success
+
+deploy_prod_ckan:
+  script:
+    - *prepare_deploy_prod
+    - ansible-playbook -i inventory -l localhost 03_setup_k8s_platform/deploy_ckan_playbook.yml
+  when: manual
+  stage: prod
+  environment:
+    name: "Deploy Production CKAN"
   artifacts:
     paths:
       - .facts/

@@ -104,7 +104,7 @@
 
     - name: Wait for handling connections to PostGIS K8s service ...
       ansible.builtin.pause:
-        seconds: 15
+        seconds: 60
 
     - name: Check connection to PostGIS Server
       community.general.postgresql_ping:

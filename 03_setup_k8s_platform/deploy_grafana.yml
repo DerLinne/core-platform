@@ -67,7 +67,7 @@
 
     - name: Let Grafana a chance to start
       pause:
-        seconds: 30
+        seconds: 60
 
     - name: Ensure temp directory exists
       file:
