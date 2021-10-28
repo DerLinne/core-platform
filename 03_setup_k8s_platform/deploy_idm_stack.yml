@@ -87,10 +87,11 @@
       import_tasks: tasks/idm-stack/setup_keycloak.yml
       tags: keycloak_setup
 
-    # 5. Install OpenLDAP and integrate with KeyCloak
-    - name: Install OpenLDAP and integrate with KeyCloak
-      import_tasks: tasks/idm-stack/install_openldap.yml
-      tags: keycloak_ldap
+# See issue 111 - disabled because of errornous behaviour when creating users
+#    # 5. Install OpenLDAP and integrate with KeyCloak
+#    - name: Install OpenLDAP and integrate with KeyCloak
+#      import_tasks: tasks/idm-stack/install_openldap.yml
+#      tags: keycloak_ldap
 
     # 99. Delete Keycloak CR
     - name: Delete Keycloak CR

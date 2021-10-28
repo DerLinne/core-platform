@@ -1,0 +1,1 @@
+Gravitee groovy and script mapper sources are based on work by orchestracities [documentation project](https://github.com/orchestracities/documentation) and modified by HYPERTEGRITY AG.

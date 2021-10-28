@@ -165,7 +165,7 @@ ingress:
   # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
   # ingressClassName: nginx
   # Values can be templated
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: "{{ default.K8S_INGRESS_CLASS }}"
     kubernetes.io/tls-acme: "true"
   labels: {}
@@ -356,7 +356,7 @@ env:
   GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "{{ IDM_ENDP_TOKEN }}"
   GF_AUTH_GENERIC_OAUTH_API_URL: "{{ IDM_ENDP_USER_INFO }}"
   GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
-  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(roles[*], 'adminTech') && 'Admin' || contains(roles[*], 'dataProducer') && 'Editor' || 'Viewer'"
+  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups[*], 'grafanaAdmin') && 'Admin' || contains(groups[*], 'grafanaEditor') && 'Editor' || 'Viewer'"
   GF_SECURITY_ALLOW_EMBEDDING: "true"
   GF_SECURITY_COOKIE_SAMESITE: "lax"
   GF_SERVER_ROOT_URL: "https://{{ grafana.ingress_server_name }}.{{ DOMAIN }}"
@@ -433,7 +433,7 @@ plugins:
   - marcusolsson-dynamictext-panel
   - dalvany-image-panel
   - michaeldmoore-multistat-panel
-  
+
 
 ## Configure grafana datasources
 ## ref: http://docs.grafana.org/administration/provisioning/#datasources
@@ -445,7 +445,7 @@ datasources:
     - name: TimescaleDB
       type: postgres
       orgId: 1
-      url: utr-staging.urban-data.cloud:15432
+      url: {{ DOMAIN }}:15432
       access: proxy
       isDefault: true
       user: postgres

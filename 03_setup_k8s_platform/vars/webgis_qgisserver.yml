@@ -8,7 +8,7 @@ HELM_RELEASE_NAME: geodata-qgisserver
 QGIS_CUSTOM_GITLAB_PROJECT: "berlintxl/futr-hub/platform/qgis-server-customizing"
 
 # Helm sepcific settings
-qgis_data_dir: "/data/qgis"
+qgis_data_dir: "/data/qgis/wfsbasis"
 nginx_default_conf: "/etc/nginx/conf.d/"
 nginx_qgis_conf: "qgis-nginx.conf"
 nginx_server_name: "mapserver.{{ DOMAIN }}"
@@ -18,7 +18,7 @@ nginx_cors_origin: "https://masterportal.{{ DOMAIN }}"
 server_replicaCount: 1
 server_image_registry: "registry.gitlab.com"
 server_image_repository: "berlintxl/futr-hub/platform/qgis-server-customizing"
-server_image_tag: "webgis-qgisserver"
+server_image_tag: "{{ ENVIRONMENT }}"
 server_image_pullPolicy: Always
 server_image_pullSecrets: "gitlab-registry"
 server_service_port: 5555

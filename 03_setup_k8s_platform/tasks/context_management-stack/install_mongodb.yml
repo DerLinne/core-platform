@@ -63,7 +63,7 @@
 
 - name: Wait for handling connections to MongoDB service ...
   ansible.builtin.pause:
-    seconds: 15
+    seconds: 60
 
 - name: Check connection to MongoDB
   community.mongodb.mongodb_info:
