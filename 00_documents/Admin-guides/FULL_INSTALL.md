@@ -113,9 +113,6 @@ EMAIL_USER = '<username to access email server>'
 EMAIL_PASSWORD = 'password to access email server'
 EMAIL_FROM = '<email address used as "from">'
 
-## Timescale Settings
-#
-TIMESCALE_PASSWORD='<your_desired_timescaledb_password>'
 
 ## Master Portal Settings
 #
@@ -124,9 +121,71 @@ MP_IDM_CLIENT_SECRET='<your_keycloak_client_secret>'
 MP_IDM_ENDP_USER_INFO='<your_user_info_url>'
 # -- server specific cookie for the secret; create a new one with `openssl rand -base64 32 | head -c 32 | base64`
 MP_OAUTH_COOKIE_SECRET='<see_generation_hint_above'
+
+
+## Context Management Stack
+CMS_MONGO_INITDB_DATABASE='<name_of_orion_database>'
+CMS_MONGO_INITDB_ROOT_USERNAME='<name_of_mongodb_admin>'
+CMS_MONGO_INITDB_ROOT_PASSWORD='<password_of_mongodb_admin>'
+CMS_ORION_MONGODB_USER='<your_orion_mongodb_user>'
+CMS_ORION_MONGODB_PASSWORD='<your_orion_mongodb_user_password>'
+
+## CKAN Values
+CKAN_MASTER_DB_USER='<username>'
+CKAN_MASTER_DB_USER_PASSWORD='<password>'
+CKAN_DB_USER='<username>'
+CKAN_DB_USER_PASSWORD='<password>'
+CKAN_DATASTORE_RWDB_USER='<username>'
+CKAN_DATASTORE_RWDB_USER_PASSWORD='<password>'
+CKAN_DATASTORE_RODB_USER='<username>'
+CKAN_DATASTORE_RODB_USER_PASSWORD='<password>'
+CKAN_SYSADMIN_NAME='<username>'
+CKAN_SYSADMIN_PASSWORD='<password>'
+CKAN_SYSADMIN_APITOKEN='<apitoken_from_ckan>'
+CKAN_SYSADMIN_EMAIL='<emailaddress_of_ckan_admin>'
+CKAN_SITE_TITLE='<title_of_ckan_site>'
+CKAN_SITE_ID='<id_of_ckan_site>'
+CKAN_SMTP_SERVER_AND_PORT='<servername:port>'
+CKAN_SMTP_USER='<username>'
+CKAN_SMTP_USER_PASSWORD='<password>'
+CKAN_SMTP_EMAIL='<emailadress>'
+
+
+# Grafana Values
+GRAFANA_ADMIN='<username>'
+GRAFANA_ADMIN_PASSWORD='<password>'
+
+# Frost Values
+FROST_DB_USERNAME='<username>'
+FROST_DB_PASSWORD='<password>'
+
+# Geodata Values
+MAPSERVER_POSTGIS_USER='<username>'
+MAPSERVER_POSTGIS_USER_PASSWORD='<password>'
+MAPSERVER_POSTGIS_HOST='<hostname>'
+MAPSERVER_POSTGIS_DB='<dbname>'
+WEBGIS_POSTGRES_ADMIN='<admin_name>'
+WEBGIS_POSTGRES_ADMIN_PASSWORD='<admin_password>'
+
+# PGAdmin Values
+PGADMIN_DEFAULT_EMAIL='<username>'
+PGADMIN_DEFAULT_PASSWORD='<password>'
+PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION='True'
+
+# LDAP Values
+LDAP_ADMIN_USERNAME='<username>'
+LDAP_ADMIN_PASSWORD='<password>'
+LDAP_USERS='<username>'
+LDAP_PASSWORDS='<password>'
+LDAP_ROOT='<root_dn>'
+LDAP_USER_DC='<user_dc>'
+LDAP_GROUP='<groupname>'
+LDAP_EXTRA_SCHEMAS='<schemas>'
 ```
 
 After setting all parameters accordingly, save the file.
+
+To furthermore configure individual components, please take a look at the files, residing in the folder `03_setup_k8s_platform/vars`.
 
 ## Install MicroK8s
 
