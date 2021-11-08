@@ -4,4 +4,4 @@
 # Settings for KeyCloak operator
 git_repo_url: "https://github.com/keycloak/keycloak-operator.git"
 git_repo_dest: "/tmp/kc_op"
-git_repo_branch: "master"
+git_repo_branch: "main"
